@@ -292,9 +292,8 @@
          
             $file_dir_path = get_post_meta( $product_id, 'file_dir_path', true );
 
-            $wpDir = ABSPATH; //Applications/MAMP/htdocs/abc/cdf/wordpress-2/
-            $upload_base_dir = wp_upload_dir()['basedir']; //Applications/MAMP/htdocs/abc/cdf/wordpress-2/wp-content/uploads
-          // $filePath = $upload_base_dir . 
+            $wpDir = ABSPATH; 
+            $upload_base_dir = wp_upload_dir()['basedir']; 
             $filePath = $upload_base_dir . '/' . $file_dir_path; 
 
             if (file_exists($filePath)) {

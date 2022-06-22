@@ -4,7 +4,7 @@
     Plugin URI: https://wplicenseit.com/
     Description: WordPress Plugin and Theme Licensing plugin
     Author: Devllo Plugins
-    Version: 1.0
+    Version: 1.0.1
     Author URI: http://devlloplugins.com/
     Text Domain: wplicense-it
     Domain Path: /languages
@@ -16,17 +16,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit();
 }
 
+if ( function_exists( 'wplicense_it_pro' ) ) {
+    deactivate_plugins('wplicense-it-pro/wplicense-it.php');
+} 
+
 /**
  * Current plugin version.
  */
-define( 'WPLICENSE_IT_VERSION', '0.9' );
 
 if ( ! class_exists( 'WPLicense_It' ) ) {
 
 class WPLicense_It {
 
-    private static $_instance = null;
+	private static $instance;
     public $_session = null;
+
+    public static function instance() {
+		if ( ! isset( self::$instance ) && ! ( self::$instance instanceof WPLicense_It ) ) {
+			self::$instance = new WPLicense_It;
+
+		}
+
+		return self::$instance;
+	}
 
     /**
      * Constructor
@@ -40,22 +52,22 @@ class WPLicense_It {
         $this->init_hooks();
 
         // Admin Files
-        include( 'admin/wplicense-it-product-admin.php');
-        include( 'admin/wplicense-it-product-post.php'); 
-        include( 'admin/wplicense-it-admin-menu.php'); 
+        include_once( 'admin/wplicense-it-product-admin.php');
+        include_once( 'admin/wplicense-it-product-post.php'); 
+        include_once( 'admin/wplicense-it-admin-menu.php'); 
 
         // Include Files
-        include( 'includes/wplicense-it-protect-file.php'); 
-        include( 'includes/wplicense-it-activator.php');
-        include( 'includes/wplicense-it-api.php'); 
+        include_once( 'includes/wplicense-it-protect-file.php'); 
+        include_once( 'includes/wplicense-it-activator.php');
+        include_once( 'includes/wplicense-it-api.php'); 
 
         // Pages Files
-        include( 'includes/pages/wplit-render-product.php'); 
-        include( 'includes/pages/view-licenses.php'); 
-        include( 'includes/pages/payment-checkout.php'); 
+        include_once( 'includes/pages/wplit-render-product.php'); 
+        include_once( 'includes/pages/view-licenses.php'); 
+        include_once( 'includes/pages/payment-checkout.php'); 
 
         // Email
-        include( 'includes/emails/wplicense-it-email.php'); 
+        include_once( 'includes/emails/wplicense-it-email.php'); 
 
     }
 
@@ -65,6 +77,11 @@ class WPLicense_It {
     }
 
     public function define_constants(){
+          // Plugin Root File.
+		if ( ! defined( 'WPLIT_PLUGIN_FILE' ) ) {
+			define( 'WPLIT_PLUGIN_FILE', __FILE__ );
+		}
+
         define( 'WPLIT_URI', plugin_dir_url( __FILE__ ) );
         define( 'WPLIT_DIR', dirname(__FILE__) );
 
@@ -82,4 +99,11 @@ class WPLicense_It {
 }
 }
 
-new WPLicense_It();
+if ( ! function_exists( 'wplicense_it' ) ) {
+	function wplicense_it() {
+		return WPLicense_It::instance();
+	}
+}
+
+
+wplicense_it();

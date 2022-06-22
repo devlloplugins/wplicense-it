@@ -2,7 +2,7 @@
 Contributors: devlloplugins, femiyb
 Tags: key, license, license key, serial key, software license, digital store, stripe
 Requires at least: 5.0
-Tested up to: 5.9
+Tested up to: 6.0
 Requires PHP: 7.0
 Stable tag: 1.0
 License: GPLv2 or later
@@ -67,3 +67,6 @@ Initial release.
 
 = 1.0 =
 Fix issue with Checkout and Stripe Tokens
+
+= 1.0.1 =
+Bug fix: Activation Functions.
