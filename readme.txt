@@ -4,7 +4,7 @@ Tags: key, license, license key, serial key, software license, digital store, st
 Requires at least: 5.0
 Tested up to: 6.0
 Requires PHP: 7.0
-Stable tag: 1.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 
 Sell and manage license keys for WordPress Applications (Plugins and Themes)
