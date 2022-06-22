@@ -10,9 +10,9 @@ class WP_License_It_Activator {
 
 
     public static function activate() {
-        define( 'WPLICENSE_IT_VERSION', '0.9' );
+        define( 'WPLICENSE_IT_VERSION', '1.0' );
 
-        $wplit_db_version = 0.9;
+        $wplit_db_version = 1.0;
 
         $current_wplit_db_version = get_option('wplit_db_version');
         if ( !$current_wplit_db_version ) {
