@@ -61,6 +61,20 @@ interface LicenseRepository {
 	public function find_by_order( int $order_id ): array;
 
 	/**
+	 * Searches licenses for the admin list.
+	 *
+	 * @param LicenseQuery $query Filters, sort order and page.
+	 */
+	public function search( LicenseQuery $query ): LicensePage;
+
+	/**
+	 * Number of licenses per status.
+	 *
+	 * @return array<string, int> Status => count, for every status.
+	 */
+	public function status_counts(): array;
+
+	/**
 	 * Active licenses whose expiry has passed.
 	 *
 	 * @param DateTimeImmutable $now   Current time.

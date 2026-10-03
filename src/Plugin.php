@@ -9,6 +9,9 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt;
 
+use Devllo\WPLicenseIt\Admin\AdminMenu;
+use Devllo\WPLicenseIt\Admin\Maintenance;
+use Devllo\WPLicenseIt\Admin\SettingsScreen;
 use Devllo\WPLicenseIt\Api\ApiService;
 use Devllo\WPLicenseIt\Api\DownloadSigner;
 use Devllo\WPLicenseIt\Api\LegacyApi;
@@ -90,6 +93,13 @@ final class Plugin {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 
 		( new MigrationRunner() )->register();
+
+		// Runs from WP-Cron, so it is not limited to admin requests.
+		Maintenance::register();
+
+		if ( is_admin() ) {
+			( new AdminMenu( $this->licenses() ) )->register();
+		}
 
 		// WooCommerce adapter. The HPOS declaration has to be registered before WooCommerce initialises.
 		add_action( 'before_woocommerce_init', array( WooAdapter::class, 'declare_hpos_compatibility' ) );
@@ -181,7 +191,10 @@ final class Plugin {
 	 */
 	private function limiter(): TransientRateLimiter {
 		if ( null === $this->limiter ) {
-			$this->limiter = new TransientRateLimiter();
+			$this->limiter = new TransientRateLimiter(
+				SettingsScreen::clamp( get_option( SettingsScreen::OPTION_FAILURES, 20 ), 1, 1000, 20 ),
+				60 * SettingsScreen::clamp( get_option( SettingsScreen::OPTION_WINDOW, 15 ), 1, 1440, 15 )
+			);
 		}
 
 		return $this->limiter;

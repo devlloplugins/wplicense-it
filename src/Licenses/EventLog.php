@@ -21,6 +21,8 @@ interface EventLog {
 	public const EXPIRED     = 'expired';
 	public const REVOKED     = 'revoked';
 	public const REFUNDED    = 'refunded';
+	public const REINSTATED  = 'reinstated';
+	public const UPDATED     = 'updated';
 
 	/**
 	 * Records an event.
@@ -30,4 +32,13 @@ interface EventLog {
 	 * @param array<string, mixed> $data       Extra details (site, old and new expiry, ...).
 	 */
 	public function record( int $license_id, string $type, array $data = array() ): void;
+
+	/**
+	 * Recent events of a license, newest first.
+	 *
+	 * @param int $license_id License ID.
+	 * @param int $limit      Maximum events.
+	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:\DateTimeImmutable}>
+	 */
+	public function for_license( int $license_id, int $limit = 50 ): array;
 }

@@ -11,6 +11,8 @@ namespace Devllo\WPLicenseIt\Tests\Support;
 
 use DateTimeImmutable;
 use Devllo\WPLicenseIt\Licenses\License;
+use Devllo\WPLicenseIt\Licenses\LicensePage;
+use Devllo\WPLicenseIt\Licenses\LicenseQuery;
 use Devllo\WPLicenseIt\Licenses\LicenseRepository;
 use Devllo\WPLicenseIt\Licenses\Status;
 
@@ -68,6 +70,42 @@ final class InMemoryLicenseRepository implements LicenseRepository {
 		$found = array_filter( $this->rows, static fn( License $row ): bool => $row->order_id === $order_id );
 
 		return array_map( static fn( License $row ): License => clone $row, array_values( $found ) );
+	}
+
+	public function search( LicenseQuery $query ): LicensePage {
+		$found = array_filter(
+			$this->rows,
+			static function ( License $row ) use ( $query ): bool {
+				return ( null === $query->status || $row->status === $query->status )
+					&& ( null === $query->product_id || $row->product_id === $query->product_id )
+					&& ( '' === $query->search || false !== stripos( $row->license_key . ' ' . $row->email, $query->search ) );
+			}
+		);
+
+		$found = array_values( $found );
+		usort(
+			$found,
+			static function ( License $a, License $b ) use ( $query ): int {
+				$result = $a->{$query->orderby} <=> $b->{$query->orderby};
+
+				return 'ASC' === $query->order ? $result : -$result;
+			}
+		);
+
+		return new LicensePage(
+			array_map( static fn( License $row ): License => clone $row, array_slice( $found, $query->offset(), $query->per_page ) ),
+			count( $found )
+		);
+	}
+
+	public function status_counts(): array {
+		$counts = array_fill_keys( \Devllo\WPLicenseIt\Licenses\Status::all(), 0 );
+
+		foreach ( $this->rows as $row ) {
+			++$counts[ $row->status ];
+		}
+
+		return $counts;
 	}
 
 	public function find_due_for_expiry( DateTimeImmutable $now, int $limit ): array {

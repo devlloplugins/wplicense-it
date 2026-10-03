@@ -56,6 +56,32 @@ final class WpdbEventLog implements EventLog {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @param int $license_id License ID.
+	 * @param int $limit      Maximum events.
+	 */
+	public function for_license( int $license_id, int $limit = 50 ): array {
+		$rows = $this->db->get_results(
+			$this->db->prepare( "SELECT type, data, created_at FROM {$this->table} WHERE license_id = %d ORDER BY id DESC LIMIT %d", $license_id, max( 1, $limit ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+			ARRAY_A
+		);
+
+		$events = array();
+
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			$data     = is_string( $row['data'] ) ? json_decode( $row['data'], true ) : array();
+			$events[] = array(
+				'type'       => (string) $row['type'],
+				'data'       => is_array( $data ) ? $data : array(),
+				'created_at' => Dates::from_db( $row['created_at'] ) ?? new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) ),
+			);
+		}
+
+		return $events;
+	}
+
+	/**
 	 * Deletes events older than the given date. Meant for a daily job.
 	 *
 	 * @param DateTimeImmutable $before Delete events created before this time.

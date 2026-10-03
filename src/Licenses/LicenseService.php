@@ -193,6 +193,130 @@ final class LicenseService {
 	}
 
 	/**
+	 * Puts a revoked or refunded license back in use (for a revocation made by mistake).
+	 *
+	 * The expiry is not changed. If it has passed, the license is valid again only after a renewal.
+	 *
+	 * @param int $license_id License ID.
+	 * @throws LicenseException If the license does not exist or was not revoked or refunded.
+	 */
+	public function reinstate_license( int $license_id ): License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, 'License not found.' );
+		}
+
+		if ( ! in_array( $license->status, Status::terminal(), true ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, 'Only a revoked or refunded license can be reinstated.' );
+		}
+
+		$now        = $this->now();
+		$reinstated = $license->with_status( $license->is_past_expiry( $now ) ? Status::EXPIRED : Status::ACTIVE, $now );
+		$this->licenses->update( $reinstated );
+
+		$this->events->record( $reinstated->id, EventLog::REINSTATED, array( 'previous_status' => $license->status ) );
+
+		return $reinstated;
+	}
+
+	/**
+	 * Applies an administrator's edits: sites per license, expiry and customer email.
+	 *
+	 * Setting a future expiry on an expired license makes it active again, and a past expiry on an
+	 * active license makes it expired. Lowering the limit below the sites already activated does not
+	 * deactivate them, it only blocks new ones.
+	 *
+	 * @param int            $license_id License ID.
+	 * @param LicenseChanges $changes    The edits.
+	 * @throws LicenseException If the license does not exist or an edit is invalid.
+	 */
+	public function update_license( int $license_id, LicenseChanges $changes ): License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, 'License not found.' );
+		}
+
+		$now     = $this->now();
+		$updated = clone $license;
+		$diff    = array();
+
+		if ( null !== $changes->activation_limit ) {
+			if ( $changes->activation_limit < 0 ) {
+				throw new LicenseException( LicenseException::INVALID_INPUT, 'The activation limit cannot be negative.' );
+			}
+
+			if ( $changes->activation_limit !== $license->activation_limit ) {
+				$diff['activation_limit'] = array( $license->activation_limit, $changes->activation_limit );
+				$updated->activation_limit = $changes->activation_limit;
+			}
+		}
+
+		if ( null !== $changes->email ) {
+			$email = strtolower( trim( $changes->email ) );
+
+			if ( '' === $email || false === strpos( $email, '@' ) ) {
+				throw new LicenseException( LicenseException::INVALID_INPUT, 'A valid email is required.' );
+			}
+
+			if ( $email !== $license->email ) {
+				$diff['email']  = array( $license->email, $email );
+				$updated->email = $email;
+			}
+		}
+
+		if ( $changes->change_expiry && $this->format( $changes->expires_at ) !== $this->format( $license->expires_at ) ) {
+			$diff['expires_at']  = array( $this->format( $license->expires_at ), $this->format( $changes->expires_at ) );
+			$updated->expires_at = $changes->expires_at;
+
+			// Keep the status in step with the new date, but never undo a revocation or refund.
+			if ( ! in_array( $license->status, Status::terminal(), true ) ) {
+				$updated->status = $updated->is_past_expiry( $now ) ? Status::EXPIRED : Status::ACTIVE;
+			}
+		}
+
+		if ( array() === $diff ) {
+			return $license;
+		}
+
+		$updated->updated_at = $now;
+		$this->licenses->update( $updated );
+		$this->events->record( $updated->id, EventLog::UPDATED, $diff );
+
+		return $updated;
+	}
+
+	/**
+	 * Recent events of a license, newest first.
+	 *
+	 * @param License $license License.
+	 * @param int     $limit   Maximum events.
+	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:DateTimeImmutable}>
+	 */
+	public function events( License $license, int $limit = 50 ): array {
+		return $this->events->for_license( $license->id, $limit );
+	}
+
+	/**
+	 * Searches licenses for the admin list.
+	 *
+	 * @param LicenseQuery $query Filters, sort order and page.
+	 */
+	public function search( LicenseQuery $query ): LicensePage {
+		return $this->licenses->search( $query );
+	}
+
+	/**
+	 * Number of licenses per status.
+	 *
+	 * @return array<string, int>
+	 */
+	public function status_counts(): array {
+		return $this->licenses->status_counts();
+	}
+
+	/**
 	 * Finds a license by ID.
 	 *
 	 * @param int $license_id License ID.

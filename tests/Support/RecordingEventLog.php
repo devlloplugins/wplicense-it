@@ -31,6 +31,19 @@ final class RecordingEventLog implements EventLog {
 		);
 	}
 
+	public function for_license( int $license_id, int $limit = 50 ): array {
+		$found = array_filter( $this->events, static fn( array $event ): bool => $event['license_id'] === $license_id );
+
+		return array_map(
+			static fn( array $event ): array => array(
+				'type'       => $event['type'],
+				'data'       => $event['data'],
+				'created_at' => new \DateTimeImmutable( '2026-01-01 00:00:00', new \DateTimeZone( 'UTC' ) ),
+			),
+			array_slice( array_reverse( array_values( $found ) ), 0, $limit )
+		);
+	}
+
 	/**
 	 * Event types in the order they were recorded.
 	 *

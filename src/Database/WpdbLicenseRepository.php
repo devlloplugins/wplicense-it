@@ -11,6 +11,8 @@ namespace Devllo\WPLicenseIt\Database;
 
 use DateTimeImmutable;
 use Devllo\WPLicenseIt\Licenses\License;
+use Devllo\WPLicenseIt\Licenses\LicensePage;
+use Devllo\WPLicenseIt\Licenses\LicenseQuery;
 use Devllo\WPLicenseIt\Licenses\LicenseRepository;
 use Devllo\WPLicenseIt\Licenses\Status;
 use RuntimeException;
@@ -111,6 +113,63 @@ final class WpdbLicenseRepository implements LicenseRepository {
 		$rows = $this->db->get_results( $this->db->prepare( "SELECT * FROM {$this->table} WHERE order_id = %d ORDER BY id ASC", $order_id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
 
 		return array_map( array( $this, 'from_row' ), is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param LicenseQuery $query Filters, sort order and page.
+	 */
+	public function search( LicenseQuery $query ): LicensePage {
+		$where = array( '1=1' );
+		$args  = array();
+
+		if ( null !== $query->status ) {
+			$where[] = 'status = %s';
+			$args[]  = $query->status;
+		}
+
+		if ( null !== $query->product_id ) {
+			$where[] = 'product_id = %d';
+			$args[]  = $query->product_id;
+		}
+
+		if ( '' !== $query->search ) {
+			$like    = '%' . $this->db->esc_like( $query->search ) . '%';
+			$where[] = '(license_key LIKE %s OR email LIKE %s)';
+			$args[]  = $like;
+			$args[]  = $like;
+		}
+
+		$clause = implode( ' AND ', $where );
+
+		// Column and direction come from whitelists, never from the request.
+		$orderby = in_array( $query->orderby, LicenseQuery::ORDERBY, true ) ? $query->orderby : 'id';
+		$order   = 'ASC' === $query->order ? 'ASC' : 'DESC';
+
+		$count_sql = "SELECT COUNT(*) FROM {$this->table} WHERE {$clause}";
+		$total     = (int) $this->db->get_var( array() === $args ? $count_sql : $this->db->prepare( $count_sql, $args ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Clause is built from fixed fragments, values are prepared.
+
+		$rows_sql = "SELECT * FROM {$this->table} WHERE {$clause} ORDER BY {$orderby} {$order}, id DESC LIMIT %d OFFSET %d";
+		$rows     = $this->db->get_results( $this->db->prepare( $rows_sql, array_merge( $args, array( $query->per_page, $query->offset() ) ) ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Clause is built from fixed fragments, values are prepared.
+
+		return new LicensePage( array_map( array( $this, 'from_row' ), is_array( $rows ) ? $rows : array() ), $total );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function status_counts(): array {
+		$counts = array_fill_keys( Status::all(), 0 );
+		$rows   = $this->db->get_results( "SELECT status, COUNT(*) AS total FROM {$this->table} GROUP BY status", ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			if ( isset( $counts[ $row['status'] ] ) ) {
+				$counts[ $row['status'] ] = (int) $row['total'];
+			}
+		}
+
+		return $counts;
 	}
 
 	/**
