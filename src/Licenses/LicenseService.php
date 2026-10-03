@@ -193,6 +193,24 @@ final class LicenseService {
 	}
 
 	/**
+	 * Finds a license by ID.
+	 *
+	 * @param int $license_id License ID.
+	 */
+	public function find( int $license_id ): ?License {
+		return $this->licenses->find( $license_id );
+	}
+
+	/**
+	 * Number of sites currently using a slot of the license.
+	 *
+	 * @param License $license License.
+	 */
+	public function activations_used( License $license ): int {
+		return $this->activations->count_active( $license->id );
+	}
+
+	/**
 	 * Checks a license key.
 	 *
 	 * @param string      $license_key License key.

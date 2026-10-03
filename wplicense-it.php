@@ -84,7 +84,10 @@ class WPLicense_It {
         // Include Files
         include_once( 'includes/wplicense-it-protect-file.php'); 
         include_once( 'includes/wplicense-it-activator.php');
-        include_once( 'includes/wplicense-it-api.php'); 
+        // The 1.x API answers the old /api/... URLs until the 1.x data is migrated; the 2.0 core takes over after.
+        if ( ! \Devllo\WPLicenseIt\Plugin::legacy_data_migrated() ) {
+            include_once( 'includes/wplicense-it-api.php');
+        }
 
         // Pages Files
         include_once( 'includes/pages/wplit-render-product.php'); 
