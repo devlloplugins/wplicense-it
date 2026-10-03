@@ -30,6 +30,7 @@ use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Migration\Command;
 use Devllo\WPLicenseIt\Migration\MigrationRunner;
+use Devllo\WPLicenseIt\Privacy\PrivacyHooks;
 use Devllo\WPLicenseIt\WooCommerce\AccountPage;
 use Devllo\WPLicenseIt\WooCommerce\CartRenewal;
 use Devllo\WPLicenseIt\WooCommerce\LicenseDisplay;
@@ -105,6 +106,9 @@ final class Plugin {
 
 		// Runs from WP-Cron, so it is not limited to admin requests.
 		Maintenance::register();
+
+		// WordPress runs the privacy tools in admin requests and from WP-Cron (the export and erase emails).
+		( new PrivacyHooks() )->register();
 
 		if ( is_admin() ) {
 			( new AdminMenu( $this->licenses() ) )->register();

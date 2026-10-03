@@ -163,7 +163,7 @@ final class SettingsScreen {
 	 */
 	public function field_billing(): void {
 		echo '<label><input type="checkbox" name="wplit_keep_legacy_billing" value="1"' . checked( (bool) get_option( 'wplit_keep_legacy_billing', true ), true, false ) . '> ' . esc_html__( 'Keep the address and phone number from migrated 1.x orders', 'wplicense-it' ) . '</label>';
-		echo '<p class="description">' . esc_html__( 'Only used when the 1.x data is migrated. They contain personal data. Delete them if a customer asks.', 'wplicense-it' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Only used when the 1.x data is migrated. They contain personal data, and are covered by WordPress's personal data export and erase tools.', 'wplicense-it' ) . '</p>';
 	}
 
 	/**

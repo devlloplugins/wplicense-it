@@ -26,7 +26,7 @@ Customers' licenses work throughout. Until the switch-over the 1.x code answers 
   same customer and product that was created closest to it. Colliding order numbers get a suffix (`-2`).
 - Billing details (name, address, phone) are kept as JSON on migrated orders so your records are complete.
   Turn this off with `add_filter( 'wplicense_it_keep_legacy_billing', '__return_false' );` before the
-  migration runs. WordPress's privacy export and erase tools do not cover them yet (planned before release), so remove them by hand if a customer asks.
+  migration runs. They are included in WordPress's personal data export and erase tools (see `docs/PRIVACY.md`).
 - A license whose 1.x product API key no longer matches the product's current key is reported as a warning:
   1.x clients using the old key will stop validating after the switch.
 

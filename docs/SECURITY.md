@@ -28,7 +28,7 @@ them), and a penetration test.
 | 5 | Low | A site path with odd characters was stored as sent; a reported version was stored with whatever characters it had. | Paths may only contain folder-name characters (anything else is an invalid site); versions are reduced to `A-Za-z0-9._+-`. Both are escaped on output as well. |
 | 6 | Low | The client SDK followed whatever download URL the server sent. | The link must be on the configured server's host, or the update is refused. |
 | 7 | Low | Sites-per-license accepted any integer, beyond what the database column holds. | Limited to 0-100000. |
-| 8 | Low (docs) | Docs and a settings help text claimed the WordPress privacy export and erase tools cover migrated billing details. They do not yet. | Text corrected. The hooks are on the release checklist. |
+| 8 | Low (docs) | Docs and a settings help text claimed the WordPress privacy export and erase tools cover migrated billing details. They did not. | Implemented the export and erase hooks (see `docs/PRIVACY.md`), and the text is now true. |
 | 9 | Low (availability) | Rate limiting uses the client IP. Behind a proxy or CDN all customers share one address, so one attacker could lock everyone out. | The settings page and `docs/API.md` now say so, with the `wplicense_it_client_ip` filter and a Cloudflare example. |
 
 ## Checked and found sound
@@ -67,7 +67,7 @@ them), and a penetration test.
 | **Download links are bearer tokens**, usable by anyone who has them for 15 minutes. | A one-time link would break retries and resumed downloads. | Short lifetime, license re-checked on use. |
 | **The "local or staging" check is a name heuristic** (`localhost`, `*.test`, `staging.`, `dev.`...). A customer can run production sites on such names. | Detecting real staging sites reliably is not possible from the outside. | The cap of 25 bounds it. Sellers can set stricter limits per product. |
 | **License keys are stored as plain text** (database and the SDK's option). | A decision made for this release: customers must be able to see their key again. | Treat the database as sensitive. Keys can be revoked, and the SDK masks the key on screen. |
-| **Privacy export and erase hooks are missing.** | Planned for the compliance step before release. | Docs say so. Billing details from 1.x can be switched off before migrating. |
+| **Erasure keeps the license itself** (key, product, dates, activated site addresses, order totals) with the person's identity removed. | The license has to keep working and be supportable, and totals are accounting records. The tool tells the administrator what was kept. | Documented in `docs/PRIVACY.md` and in the suggested privacy policy text. |
 | **The product edit screen is still 1.x code.** | It has a nonce, a capability check, escaped output and checked uploads now, but it is long and old. | To be rewritten with the native admin screens. |
 | **No live testing yet.** | No WordPress or MySQL in the build environment. | Run the CI checks, a manual pass on staging (activation, download, WooCommerce flows, migration) and a penetration test of the REST API before release. |
 
@@ -79,4 +79,4 @@ them), and a penetration test.
    on nginx too), try wrong keys until the rate limit triggers, and try another customer's license IDs in the My Account
    deactivate form (it must refuse).
 3. Test the REST API with a fuzzer (invalid types, huge values, unicode, repeated parameters).
-4. Add the privacy export and erase hooks.
+4. Run an export and an erase on staging for a customer who has a license, an order and a 1.x record (Tools > Export Personal Data / Erase Personal Data), and read the result.

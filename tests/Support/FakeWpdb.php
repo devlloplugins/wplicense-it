@@ -78,6 +78,42 @@ final class FakeWpdb extends \wpdb {
 	}
 
 	/**
+	 * Values returned by get_col().
+	 *
+	 * @var array<int, mixed>
+	 */
+	public array $col = array();
+
+	/**
+	 * Updates made: table, data, where.
+	 *
+	 * @var array<int, array{table:string,data:array<string,mixed>,where:array<string,mixed>}>
+	 */
+	public array $updates = array();
+
+	public function get_col( $query = null, $x = 0 ) {
+		$this->queries[] = $query;
+
+		return $this->col;
+	}
+
+	public function update( $table, $data, $where, $format = null, $where_format = null ) {
+		$this->updates[] = array(
+			'table' => $table,
+			'data'  => $data,
+			'where' => $where,
+		);
+
+		return 1;
+	}
+
+	public function query( $query ) {
+		$this->queries[] = $query;
+
+		return 0;
+	}
+
+	/**
 	 * The last SQL that was run.
 	 */
 	public function last_query(): string {

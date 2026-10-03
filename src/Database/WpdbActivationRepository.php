@@ -87,6 +87,21 @@ final class WpdbActivationRepository implements ActivationRepository {
 	}
 
 	/**
+	 * Every site a license was ever activated on, in any status.
+	 *
+	 * @param int $license_id License ID.
+	 * @return Activation[]
+	 */
+	public function all_for_license( int $license_id ): array {
+		$rows = $this->db->get_results(
+			$this->db->prepare( "SELECT * FROM {$this->table} WHERE license_id = %d ORDER BY activated_at ASC", $license_id ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+			ARRAY_A
+		);
+
+		return array_map( array( $this, 'from_row' ), is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @param Activation $activation Activation.

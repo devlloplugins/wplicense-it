@@ -116,6 +116,27 @@ final class WpdbLicenseRepository implements LicenseRepository {
 	}
 
 	/**
+	 * Licenses that belong to a person: issued to their email address or linked to their account.
+	 *
+	 * @param string   $email   Email address.
+	 * @param int|null $user_id WordPress user ID, if any.
+	 * @param int      $limit   Maximum licenses.
+	 * @param int      $offset  Licenses to skip.
+	 * @return License[]
+	 */
+	public function for_person( string $email, ?int $user_id, int $limit, int $offset ): array {
+		if ( null !== $user_id && $user_id > 0 ) {
+			$sql = $this->db->prepare( "SELECT * FROM {$this->table} WHERE email = %s OR user_id = %d ORDER BY id ASC LIMIT %d OFFSET %d", strtolower( $email ), $user_id, $limit, $offset ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+		} else {
+			$sql = $this->db->prepare( "SELECT * FROM {$this->table} WHERE email = %s ORDER BY id ASC LIMIT %d OFFSET %d", strtolower( $email ), $limit, $offset ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+		}
+
+		$rows = $this->db->get_results( $sql, ARRAY_A );
+
+		return array_map( array( $this, 'from_row' ), is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * @param LicenseQuery $query Filters, sort order and page.
