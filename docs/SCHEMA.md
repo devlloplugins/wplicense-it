@@ -63,6 +63,7 @@ Indexes: `UNIQUE (license_key)`, `UNIQUE (legacy_id)`, `KEY (product_id, status)
 | `id` | `BIGINT UNSIGNED` PK | |
 | `license_id` | `BIGINT UNSIGNED` NOT NULL | |
 | `site` | `VARCHAR(190)` NOT NULL | Normalised site URL (see below). |
+| `is_local` | `TINYINT(1)` NOT NULL DEFAULT 0 | Local or staging site. Recorded, but not counted against the limit. |
 | `status` | `VARCHAR(20)` NOT NULL | `active` or `deactivated`. |
 | `product_version` | `VARCHAR(32)` NULL | Version the client last reported. |
 | `activated_at` | `DATETIME` NOT NULL | |

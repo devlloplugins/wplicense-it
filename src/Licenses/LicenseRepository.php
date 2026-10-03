@@ -1,0 +1,55 @@
+<?php
+/**
+ * License storage contract.
+ *
+ * @package Devllo\WPLicenseIt
+ */
+
+declare( strict_types=1 );
+
+namespace Devllo\WPLicenseIt\Licenses;
+
+use DateTimeImmutable;
+
+/**
+ * Stores licenses.
+ */
+interface LicenseRepository {
+
+	/**
+	 * Saves a new license and returns it with its ID set.
+	 *
+	 * @param License $license License with ID 0.
+	 */
+	public function insert( License $license ): License;
+
+	/**
+	 * Saves changes to an existing license.
+	 *
+	 * @param License $license License with an ID.
+	 */
+	public function update( License $license ): void;
+
+	/**
+	 * Finds a license by ID.
+	 *
+	 * @param int $id License ID.
+	 */
+	public function find( int $id ): ?License;
+
+	/**
+	 * Finds a license by its key (exact match).
+	 *
+	 * @param string $license_key License key.
+	 */
+	public function find_by_key( string $license_key ): ?License;
+
+	/**
+	 * Active licenses whose expiry has passed.
+	 *
+	 * @param DateTimeImmutable $now   Current time.
+	 * @param int               $limit Maximum number to return.
+	 * @return License[]
+	 */
+	public function find_due_for_expiry( DateTimeImmutable $now, int $limit ): array;
+}
