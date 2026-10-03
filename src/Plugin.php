@@ -12,6 +12,7 @@ namespace Devllo\WPLicenseIt;
 use Devllo\WPLicenseIt\Admin\AdminMenu;
 use Devllo\WPLicenseIt\Admin\Maintenance;
 use Devllo\WPLicenseIt\Admin\SettingsScreen;
+use Devllo\WPLicenseIt\Admin\UpgradeNotice;
 use Devllo\WPLicenseIt\Api\ApiService;
 use Devllo\WPLicenseIt\Api\DownloadSigner;
 use Devllo\WPLicenseIt\Api\LegacyApi;
@@ -22,7 +23,9 @@ use Devllo\WPLicenseIt\Api\WpProductCatalog;
 use Devllo\WPLicenseIt\Database\Installer;
 use Devllo\WPLicenseIt\Database\WpdbActivationRepository;
 use Devllo\WPLicenseIt\Database\WpdbEventLog;
+use Devllo\WPLicenseIt\Compat\LegacyShortcodes;
 use Devllo\WPLicenseIt\Database\WpdbLicenseRepository;
+use Devllo\WPLicenseIt\Files\ProtectedStorage;
 use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Migration\Command;
@@ -88,7 +91,13 @@ final class Plugin {
 	 * Registers hooks.
 	 */
 	public function boot(): void {
+		// Updating a plugin does not run its activation hook, so repeat the safe parts here.
 		add_action( 'plugins_loaded', array( Installer::class, 'maybe_install' ) );
+		add_action( 'plugins_loaded', array( ProtectedStorage::class, 'maybe_create' ) );
+
+		$this->load_product_screens();
+
+		add_action( 'init', array( $this, 'register_legacy_shortcodes' ) );
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 
@@ -99,6 +108,7 @@ final class Plugin {
 
 		if ( is_admin() ) {
 			( new AdminMenu( $this->licenses() ) )->register();
+			( new UpgradeNotice() )->register();
 		}
 
 		// WooCommerce adapter. The HPOS declaration has to be registered before WooCommerce initialises.
@@ -112,6 +122,26 @@ final class Plugin {
 		if ( self::legacy_data_migrated() ) {
 			$this->legacy_endpoint()->register();
 		}
+	}
+
+	/**
+	 * Loads the product post type and its edit screen, and, until the 1.x data is migrated,
+	 * the 1.x license API that keeps answering existing customers' update checks.
+	 */
+	private function load_product_screens(): void {
+		require_once WPLICENSE_IT_DIR . 'admin/wplicense-it-product-post.php';
+		require_once WPLICENSE_IT_DIR . 'admin/wplicense-it-product-admin.php';
+
+		if ( ! self::legacy_data_migrated() ) {
+			require_once WPLICENSE_IT_DIR . 'includes/wplicense-it-api.php';
+		}
+	}
+
+	/**
+	 * Registers the shortcodes from 1.x (see LegacyShortcodes).
+	 */
+	public function register_legacy_shortcodes(): void {
+		( new LegacyShortcodes( $this->licenses(), new WpProductCatalog(), $this->signer() ) )->register();
 	}
 
 	/**

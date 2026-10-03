@@ -1,6 +1,6 @@
 === WPLicense It ===
 Contributors: devlloplugins, femiyb
-Tags: key, license, license key, serial key, software license, digital store, stripe
+Tags: key, license, license key, serial key, software license, digital store, woocommerce
 Requires at least: 5.0
 Tested up to: 6.0
 Requires PHP: 7.0
@@ -14,7 +14,8 @@ The best number-one software license management solution for your WordPress appl
 
 = FEATURES =
 
-- Automatically Generate and Sell Licenses for WordPress plugins and Themes
+- Sell licenses for WordPress plugins and themes with WooCommerce
+- Activation limits per license, renewals and refunds handled automatically
 - Check License Status with the API
 - Push New updates for your Plugins and Themes from your dashboard
 - One click update from WordPress Dashboard.
@@ -82,3 +83,10 @@ Security and stability release.
 * Fix: escaped output on product, license and checkout pages.
 * Fix: emails no longer change the content type of other emails sent by the site.
 * Fix: .htaccess protection for product files and database version check.
+
+= 2.0.0 =
+Major release (unreleased). See docs/UPGRADING.md.
+* New: licensing core with activation limits, REST API, native admin screens, WooCommerce integration and a client SDK for plugins and themes.
+* Your 1.x licenses and orders are migrated automatically and keep working.
+* Removed: the built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes. Sell licenses with WooCommerce instead.
+* Requires PHP 8.0 and WordPress 6.2.

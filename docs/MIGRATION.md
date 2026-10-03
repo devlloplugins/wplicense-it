@@ -11,9 +11,8 @@ they were, so you can roll back to 1.0.2.
 3. It then **verifies** the copy: license and order counts must match, and a sample of recent licenses
    must still validate.
 4. Only if verification passes, it **switches over**: the old `/api/wplicense-it-api/...` URLs are served
-   from the 2.0 tables, and new purchases from the 1.x checkout are issued in 2.0 too (the 1.x copy is kept
-   in step, so the licenses page keeps working).
-5. A last pass copies anything 1.x wrote while it was switching, then the migration is done.
+   from the 2.0 tables.
+5. A last pass copies anything written to the 1.x tables meanwhile, then the migration is done.
 
 Customers' licenses work throughout. Until the switch-over the 1.x code answers the API; after it, 2.0 does.
 
@@ -49,5 +48,5 @@ duplicated. It is refused after the switch-over.
 ## Rolling back
 
 Before the switch-over: deactivate 2.0 and reinstall 1.0.2. Nothing in the 1.x tables was changed.
-After it: new purchases are in both table sets, but licenses edited only in 2.0 (renewals, revocations,
-activations) are not copied back, so rolling back means losing those changes.
+After it: licenses issued or changed only in 2.0 (new sales, renewals, revocations, activations) are not
+copied back, so rolling back means losing those changes.

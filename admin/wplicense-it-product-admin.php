@@ -43,7 +43,7 @@ class WP_License_It_Product_Admin {
 
         add_meta_box(
             'wp_license_it_product_shortcode',
-            __( 'License Shortcode', 'wplicense-it' ),
+            __( 'Selling and the client SDK', 'wplicense-it' ),
             array( $this, 'wplit_render_license_shortcode' ),
             'wplit_product',
             'side',
@@ -54,9 +54,16 @@ class WP_License_It_Product_Admin {
 
     public function wplit_render_license_shortcode( $post, $args ) {
         wp_nonce_field( 'wplit_inner_custom_box', 'wplit_inner_custom_box_nonce' );
-        echo "[wplit-product id='". $post->ID . "' download_text='Buy License']";
-
-
+        ?>
+        <p>
+            <strong><?php esc_html_e( 'Product ID', 'wplicense-it' ); ?>:</strong>
+            <code><?php echo esc_html( (string) $post->ID ); ?></code><br>
+            <span class="description"><?php esc_html_e( 'Use this number as "product_id" in the client SDK.', 'wplicense-it' ); ?></span>
+        </p>
+        <p>
+            <?php esc_html_e( 'To sell licenses, create a WooCommerce product and choose this product under "WPLicense It" on its General tab.', 'wplicense-it' ); ?>
+        </p>
+        <?php
     }
 
 
@@ -64,33 +71,25 @@ class WP_License_It_Product_Admin {
 
         wp_nonce_field( 'wplit_inner_custom_box', 'wplit_inner_custom_box_nonce' );
 
-        $wplit_expire = get_post_meta( $post->ID, 'wplit_expire', true );
-        $wplit_expire_time = get_post_meta( $post->ID, 'wplit_expire_time', true );
-
-        $wplit_product_price = get_post_meta( $post->ID, 'wplit_product_price', true );
+        $limit  = (string) get_post_meta( $post->ID, 'wplit_default_activation_limit', true );
+        $period = (string) get_post_meta( $post->ID, 'wplit_period', true );
 
         ?>
-        <div>
-            <p>
-            <label for="wplit_product_price">
-            <h4> <?php _e( 'Product License Price (in USD)', 'wplicense-it' ); ?></h4>
-            <input type="number" step="0.01" id="wplit_product_price" name="wplit_product_price" value="<?php echo esc_attr( $wplit_product_price ); ?>" size="25" />
-            </label> 
-            </p>
-        </div>
-        <hr/>
-        <div>
-            <input type="checkbox" id="wplit_expire" name="wplit_expire" value="yes" <?php echo (($wplit_expire=='yes') ? 'checked="checked"': ''); ?>>
-            <label for="wplit_expire"><?php esc_attr_e( 'Check if this License should expire', 'wplicense-it') ; ?></label><br>
-        </div>
-        <hr/>
-        <div>
-            <div><?php _e( 'Select License Period', 'wplicense-it'); ?></div><br/>
-        <input type="radio" id="1-month wplit_expire_time" name="wplit_expire_time" <?php checked($wplit_expire_time, '1-month'); ?> value="1-month">
-        <label for="html">1 Month (This License will expire 1 month after purchase.) </label><br>
-        <input type="radio" id="1-year wplit_expire_time" name="wplit_expire_time" <?php checked($wplit_expire_time, '1-year'); ?> value="1-year">
-        <label for="css">1 Year (This License will expire 1 Year after purchase.)</label>
-        </div>
+        <p>
+            <label for="wplit_default_activation_limit"><strong><?php esc_html_e( 'Sites per license', 'wplicense-it' ); ?></strong></label><br>
+            <input type="number" min="0" step="1" id="wplit_default_activation_limit" name="wplit_default_activation_limit" value="<?php echo esc_attr( $limit ); ?>" class="small-text" placeholder="1"><br>
+            <span class="description"><?php esc_html_e( 'The default. Empty means 1. 0 is unlimited. A WooCommerce product can override it.', 'wplicense-it' ); ?></span>
+        </p>
+        <p>
+            <label for="wplit_period"><strong><?php esc_html_e( 'License period', 'wplicense-it' ); ?></strong></label><br>
+            <select id="wplit_period" name="wplit_period">
+                <?php foreach ( \Devllo\WPLicenseIt\WooCommerce\ProductFields::periods() as $value => $label ) : ?>
+                    <?php if ( 'lifetime' === $value ) { continue; } // Empty already means lifetime here. ?>
+                    <option value="<?php echo esc_attr( $value ); ?>"<?php selected( $period, $value ); ?>><?php echo esc_html( '' === $value ? __( 'Lifetime (never expires)', 'wplicense-it' ) : $label ); ?></option>
+                <?php endforeach; ?>
+            </select><br>
+            <span class="description"><?php esc_html_e( 'The default. A WooCommerce product can override it.', 'wplicense-it' ); ?></span>
+        </p>
         <?php
     }
 
@@ -225,22 +224,15 @@ class WP_License_It_Product_Admin {
             return $post_id;
         }
 
-        if (isset($_POST['wplit_expire_time'])){
-            $wplit_expire_time = sanitize_key( $_POST['wplit_expire_time'] );
+        // Defaults for new licenses of this product (a WooCommerce product can override them).
+        $default_limit = isset( $_POST['wplit_default_activation_limit'] ) ? \Devllo\WPLicenseIt\WooCommerce\ProductFields::clean_limit( sanitize_text_field( wp_unslash( $_POST['wplit_default_activation_limit'] ) ) ) : null;
+        if ( null !== $default_limit ) {
+            '' === $default_limit ? delete_post_meta( $post_id, 'wplit_default_activation_limit' ) : update_post_meta( $post_id, 'wplit_default_activation_limit', $default_limit );
         }
 
-        if (isset($_POST['wplit_expire_time'])){
-            update_post_meta( $post_id, 'wplit_expire_time', $wplit_expire_time );
-        }
-
-        if (isset($_POST['wplit_expire'])){
-            $wplit_expire = sanitize_key( $_POST['wplit_expire'] );
-        }
-
-        if (isset($_POST['wplit_expire'])){
-            update_post_meta( $post_id, 'wplit_expire', $wplit_expire );
-        }else{
-            delete_post_meta($post_id, 'wplit_expire');
+        $default_period = isset( $_POST['wplit_period'] ) ? \Devllo\WPLicenseIt\WooCommerce\ProductFields::clean_period( sanitize_text_field( wp_unslash( $_POST['wplit_period'] ) ) ) : null;
+        if ( null !== $default_period ) {
+            '' === $default_period ? delete_post_meta( $post_id, 'wplit_period' ) : update_post_meta( $post_id, 'wplit_period', $default_period );
         }
 
         if (isset($_POST['wplit_product_name'])){
@@ -266,16 +258,6 @@ class WP_License_It_Product_Admin {
         if (isset($_POST['wplit_required_wp_version'])){
             update_post_meta( $post_id, 'wplit_required_wp_version', $wplit_required_wp_version );
         }
-
-        if (isset($_POST['wplit_product_price'])){
-            $wplit_product_price = sanitize_text_field( wp_unslash( $_POST['wplit_product_price'] ) );
-            $wplit_product_price = is_numeric( $wplit_product_price ) && $wplit_product_price > 0 ? $wplit_product_price : '0';
-        }
-
-        if (isset($_POST['wplit_product_price'])){
-            update_post_meta( $post_id, 'wplit_product_price', $wplit_product_price );
-        }
-
 
         if (isset($_POST['wplit_product_description'])){
             $wplit_product_description = sanitize_text_field( $_POST['wplit_product_description'] );

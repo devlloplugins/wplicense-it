@@ -61,8 +61,3 @@ every time they are used, so this only keeps the stored status and the list accu
 Every action is a nonce-protected request to `admin-post.php` that also checks the capability. Notices after an
 action carry a short code in the URL and show fixed messages, never text from the request. Sorting and filtering
 use whitelists, and values are prepared before they reach SQL.
-
-## Not yet replaced
-
-The 1.x dashboard and settings pages (checkout page selection and Stripe keys for the old checkout) are still
-there until the 1.x checkout is removed.
