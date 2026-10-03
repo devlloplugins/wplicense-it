@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<ruleset name="WPLicense It">
+	<description>Coding standards for WPLicense It 2.0 (new code only; legacy 1.x code is excluded until it is replaced).</description>
+
+	<file>src</file>
+	<file>tests</file>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="ps"/>
+	<arg name="parallel" value="8"/>
+
+	<config name="minimum_supported_wp_version" value="6.2"/>
+	<config name="testVersion" value="8.0-"/>
+
+	<rule ref="WordPress">
+		<!-- PSR-4 class files are named after the class, not class-*.php. -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+	<rule ref="PHPCompatibilityWP"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="wplicense-it"/>
+			</property>
+		</properties>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="wplicense_it"/>
+				<element value="wplit"/>
+				<element value="Devllo\WPLicenseIt"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>
