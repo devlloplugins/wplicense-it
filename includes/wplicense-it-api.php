@@ -105,25 +105,17 @@
          * @return array            API response.
          */
         private function verify_license_and_execute( $action_function, $params ) {
-            if ( ! isset( $params['p'] ) || ! isset( $params['e'] ) || ! isset( $params['l'] ) || ! isset( $params['k'] ) ) {
+            $request = $this->parse_request_params( $params );
+            if ( ! $request ) {
                 return $this->error_response( 'Invalid request' );
             }
 
-            $product_id = $params['p'];
-            $email = $params['e'];
-            $license_key = $params['l'];
-            $product_api_key = $params['k'];
-
+            list( $product_id, $email, $license_key, $product_api_key ) = $request;
 
             // Find product
-            $product_post = get_post($product_id,
-                array (
-                    'post_type' => 'wplit_product',
-                    'post_status' => 'publish',
-                )
-            );
+            $product_post = $this->get_published_product( $product_id );
 
-            if ( ! isset( $product_post ) ) {
+            if ( ! $product_post ) {
                 return $this->error_response( 'Product not found.' );
             }
 
@@ -137,32 +129,63 @@
         }
 
         private function verify_license_status( $action_function, $params ) {
-            if ( ! isset( $params['p'] ) || ! isset( $params['e'] ) || ! isset( $params['l'] ) || ! isset( $params['k'] ) ) {
+            $request = $this->parse_request_params( $params );
+            if ( ! $request ) {
                 return $this->error_response( 'Invalid request' );
             }
 
-            $product_id = $params['p'];
-            $email = $params['e'];
-            $license_key = $params['l'];
-            $product_api_key = $params['k'];
-
+            list( $product_id, $email, $license_key, $product_api_key ) = $request;
 
             // Find product
-            $product_post = get_post($product_id,
-                array (
-                    'post_type' => 'wplit_product',
-                    'post_status' => 'publish',
-                )
-            );
+            $product_post = $this->get_published_product( $product_id );
 
-            // Verify license
-            if ( ! $this->verify_license( $product_post->ID, $email, $license_key, $product_api_key ) ) {
-                $status = 'inactive';
-            } elseif ( $this->verify_license( $product_post->ID, $email, $license_key, $product_api_key ) ) {
-                $status = 'active';
+            if ( ! $product_post ) {
+                return 'inactive';
             }
 
-            return $status;
+            // Verify license
+            if ( $this->verify_license( $product_post->ID, $email, $license_key, $product_api_key ) ) {
+                return 'active';
+            }
+
+            return 'inactive';
+        }
+
+        /**
+         * Validates and sanitizes the request parameters.
+         *
+         * @param $params   array   Request parameters
+         * @return array|false      array( product_id, email, license_key, product_api_key ) or false if invalid.
+         */
+        private function parse_request_params( $params ) {
+            foreach ( $this->get_api_vars() as $var ) {
+                if ( ! isset( $params[ $var ] ) || ! is_scalar( $params[ $var ] ) || '' === (string) $params[ $var ] ) {
+                    return false;
+                }
+            }
+
+            return array(
+                absint( $params['p'] ),
+                sanitize_text_field( wp_unslash( $params['e'] ) ),
+                sanitize_text_field( wp_unslash( $params['l'] ) ),
+                sanitize_text_field( wp_unslash( $params['k'] ) ),
+            );
+        }
+
+        /**
+         * Returns the product post if it exists, is a published wplit_product.
+         *
+         * @param $product_id   int
+         * @return WP_Post|null
+         */
+        private function get_published_product( $product_id ) {
+            $product_post = get_post( $product_id );
+
+            if ( ! $product_post || 'wplit_product' !== $product_post->post_type || 'publish' !== $product_post->post_status ) {
+                return null;
+            }
+
+            return $product_post;
         }
 
 
@@ -179,7 +202,7 @@
             $table_name = $wpdb->prefix . 'wplit_product_licenses';
 
             $licenses = $wpdb->get_results(
-                $wpdb->prepare( "SELECT * FROM $table_name WHERE product_id = %d AND email = '%s' AND license_key = '%s' AND product_api_key = '%s'",
+                $wpdb->prepare( "SELECT * FROM $table_name WHERE product_id = %d AND email = %s AND license_key = %s AND product_api_key = %s",
                     $product_id, $email, $license_key, $product_api_key ), ARRAY_A );
 
             if ( count( $licenses ) > 0 ) {
@@ -222,7 +245,7 @@
                // 'last_updated' => $last_updated,
                'banner_low' => $wplit_product_logo_url,
                'banner_high' => $wplit_product_banner_url,
-                "package_url" => home_url( '/api/wplicense-it-api/v1/get?p=' . $product_id . '&k=' . urlencode( $product_api_key ) . '&e=' . $email . '&l=' . urlencode( $license_key ) ),
+                "package_url" => home_url( '/api/wplicense-it-api/v1/get?p=' . absint( $product_id ) . '&k=' . rawurlencode( $product_api_key ) . '&e=' . rawurlencode( $email ) . '&l=' . rawurlencode( $license_key ) ),
                 // "description_url" => get_permalink( $product->ID ) . '#v=' . $version
             );
         }
@@ -262,7 +285,10 @@
          * @param $response array   The response as associative array.
          */
         private function send_response( $response ) {
-            echo json_encode( $response );
+            if ( ! headers_sent() ) {
+                header( 'Content-Type: application/json; charset=utf-8' );
+            }
+            echo wp_json_encode( $response );
         }
 
 
@@ -292,14 +318,14 @@
          
             $file_dir_path = get_post_meta( $product_id, 'file_dir_path', true );
 
-            $wpDir = ABSPATH; 
-            $upload_base_dir = wp_upload_dir()['basedir']; 
-            $filePath = $upload_base_dir . '/' . $file_dir_path; 
+            $upload_base_dir = realpath( wp_upload_dir()['basedir'] . '/wplit-files' );
+            $filePath = $file_dir_path ? realpath( wp_upload_dir()['basedir'] . '/' . $file_dir_path ) : false;
 
-            if (file_exists($filePath)) {
+            // Only serve files that exist inside the wplit-files directory
+            if ( $upload_base_dir && $filePath && 0 === strpos( $filePath, $upload_base_dir . DIRECTORY_SEPARATOR ) && is_file( $filePath ) ) {
                 header('Content-type: application/zip');
                 header('Content-Description: File Transfer');
-                header('Content-Disposition: attachment; filename='.basename($filePath));
+                header('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
                 header('Content-Transfer-Encoding: binary');
                 header('Expires: 0');
                 header('Cache-Control: must-revalidate');
@@ -309,13 +335,13 @@
                 flush();
                 readfile($filePath);
                 exit;
-            }else{
-                      echo "File not found.";
-              }
+            } else {
+                status_header( 404 );
+                echo wp_json_encode( array( 'error' => 'File not found.' ) );
+            }
 
         }
 
     }
 
-    new Wp_License_It_API();
-    $api = new Wp_License_It_API();
+    new Wp_License_It_API();

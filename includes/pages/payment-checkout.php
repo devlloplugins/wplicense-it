@@ -132,7 +132,7 @@ class WPLit_Payment_Function {
                 </div>
                 <div class="col-4">
                 <input type="hidden" name="action" value="stripe"/>
-                <input type="hidden" name="redirect" value="<?php  echo get_permalink(); ?>"/>
+                <input type="hidden" name="redirect" value="<?php  echo esc_url( get_permalink() ); ?>"/>
                 <input type="hidden" name="stripe_nonce" value="<?php  echo wp_create_nonce('stripe-nonce'); ?>"/>
                 <input class="btn btn-primary" type="submit" id="stripe-pay stripe-submit" name="wplitsubmit" value="Submit">
                 </div>

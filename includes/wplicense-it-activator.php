@@ -12,14 +12,11 @@ class WP_License_It_Activator {
     public static function activate() {
         define( 'WPLICENSE_IT_VERSION', '1.0' );
 
-        $wplit_db_version = 1.0;
+        $wplit_db_version = '1.0';
 
-        $current_wplit_db_version = get_option('wplit_db_version');
-        if ( !$current_wplit_db_version ) {
-            $current_wplit_db_version = $wplit_db_version;
-        }
+        $current_wplit_db_version = get_option('wplit_db_version', '0');
 
-        if (intval($current_wplit_db_version) < $wplit_db_version) {
+        if (version_compare((string) $current_wplit_db_version, $wplit_db_version, '<')) {
             if(WP_License_It_Activator::create_upgrade_db()) {
                 update_option('wplit_db_version', $wplit_db_version, true);
             }
@@ -30,11 +27,11 @@ class WP_License_It_Activator {
         $upload_dir = $upload['basedir'];
         $upload_dir = $upload_dir . '/wplit-files';
         if (! is_dir($upload_dir)) {
-        mkdir( $upload_dir, 0755 );
+        wp_mkdir_p( $upload_dir );
         }
         $wplit_protect_file = new WP_License_It_Protect_File();
 
-        $wplit_protect_file->blockHTTPAccess($upload_dir, $fileType = '".zip"');
+        $wplit_protect_file->blockHTTPAccess($upload_dir);
 
         flush_rewrite_rules(); 
 

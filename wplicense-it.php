@@ -4,7 +4,7 @@
     Plugin URI: https://wplicenseit.com/
     Description: WordPress Plugin and Theme Licensing plugin
     Author: Devllo Plugins
-    Version: 1.0.1
+    Version: 1.0.2
     Author URI: http://devlloplugins.com/
     Text Domain: wplicense-it
     Domain Path: /languages
