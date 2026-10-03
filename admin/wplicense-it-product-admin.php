@@ -428,8 +428,6 @@ class WP_License_It_Product_Admin {
             $upload_file_type = $file_type['type'];
 
             if(in_array($upload_file_type, $supported_file_type)) {
-                $target_dir_location = $wp_files_directory_path;
-
                 $thefile = sanitize_file_name(basename($_FILES['wplit_product_file_upload']['name']));
                 if (validate_file($thefile) !== 0) {
                     wp_die('Invalid file name');
@@ -439,25 +437,32 @@ class WP_License_It_Product_Admin {
                 if (! is_uploaded_file($tmp_name)) {
                     wp_die('Invalid upload');
                 }
-                
 
-                if( $target_dir_location ) {
-                    move_uploaded_file($tmp_name, $target_dir_location . $thefile);
-                } else {
+                // A zip file starts with "PK". The extension alone proves nothing.
+                $handle = fopen( $tmp_name, 'rb' );
+                $magic  = $handle ? (string) fread( $handle, 2 ) : '';
+                if ( $handle ) {
+                    fclose( $handle );
+                }
+                if ( 'PK' !== $magic ) {
+                    wp_die('The uploaded file is not a zip file.');
+                }
+
+                // Each upload gets a folder with a random name, so the package cannot be found by guessing its address
+                // even on servers that ignore .htaccess. Packages are only served through the license API.
+                $package_directory = \Devllo\WPLicenseIt\Files\ProtectedStorage::new_package_directory( $wp_files_directory_path );
+                $package_token     = basename( $package_directory );
+
+                if ( ! move_uploaded_file( $tmp_name, $package_directory . $thefile ) ) {
                     wp_die('There was an error uploading the product to the directory.');
                 }
-                
-                $file_dir_location = $wplit_files_version_url . $thefile;
 
-                // $get_file_dir_path = 'wplit-files/' .$product_slug. '/v' .$wplit_product_version. '/' . $thefile;
-                // $file_dir_path = validate_file( $get_file_dir_path  );
-
-                $file_dir_path = 'wplit-files/' .$product_slug. '/v' .$wplit_product_version. '/' . $thefile;
-
+                $file_dir_path     = 'wplit-files/' . $product_slug . '/v' . $wplit_product_version . '/' . $package_token . '/' . $thefile;
+                $file_dir_location = $wplit_files_version_url . $package_token . '/' . $thefile;
 
                 update_post_meta( $post_id, 'file_dir_location', $file_dir_location );
                 update_post_meta( $post_id, 'file_dir_path', $file_dir_path );
-                update_post_meta( $post_id, 'file_name', $thefile );                   
+                update_post_meta( $post_id, 'file_name', $thefile );
 
             } else {
                 wp_die('Incorrect File Format');

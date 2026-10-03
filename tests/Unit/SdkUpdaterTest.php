@@ -45,7 +45,7 @@ final class SdkUpdaterTest extends TestCase {
 		$this->store     = new SdkArrayStore();
 		$this->config    = Config::from_array( array( 'server' => 'https://shop.example.com', 'product_id' => 7, 'name' => 'Great Plugin', 'version' => '1.2.0', 'file' => '/x', 'basename' => 'great-plugin/great-plugin.php' ) );
 		$api             = new ServerApi( $this->config, $this->transport );
-		$this->service   = new UpdateService( $api, $this->store );
+		$this->service   = new UpdateService( $api, $this->store, 'https://shop.example.com' );
 		$manager         = new LicenseManager( $api, $this->store, 'https://customer.example.com', fn(): int => time() );
 		$this->updater   = new Updater( $this->config, $this->service, $manager );
 
@@ -126,6 +126,22 @@ final class SdkUpdaterTest extends TestCase {
 
 		$this->assertSame( 'https://shop.example.com/wp-json/wplicense-it/v1/download?token=abc', $url );
 		$this->assertCount( 2, $this->transport->requests );
+	}
+
+	public function test_a_download_link_for_another_host_is_never_used(): void {
+		$response                 = $this->update_response();
+		$response['download_url'] = 'https://evil.example.net/steal.zip';
+		$this->transport->reply( 200, $response );
+
+		$result = $this->service->download_url( $this->store->load() );
+
+		$this->assertInstanceOf( ApiResult::class, $result );
+		$this->assertStringContainsString( 'another site', $result->message );
+
+		// The same host on another port or with other capitals is still the configured server.
+		$response['download_url'] = 'https://SHOP.example.com:8443/wp-json/wplicense-it/v1/download?token=abc';
+		$this->transport->reply( 200, $response );
+		$this->assertSame( 'https://SHOP.example.com:8443/wp-json/wplicense-it/v1/download?token=abc', $this->service->download_url( $this->store->load() ) );
 	}
 
 	public function test_a_missing_package_is_reported(): void {

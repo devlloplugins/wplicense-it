@@ -192,6 +192,6 @@ Goals: no customer loses access, running the migration twice does nothing, and t
 
 1. **License key storage:** keys are stored as-is with a unique index and compared with `hash_equals()`, so customers can always see their key. The table is treated as sensitive.
 2. **Time zone of migrated dates:** 1.x dates are treated as site-local and converted to UTC.
-3. **Billing data in migrated orders:** kept as `legacy_billing` JSON behind a setting, and covered by the WordPress privacy exporter and eraser.
+3. **Billing data in migrated orders:** kept as `legacy_billing` JSON behind a setting, (WordPress privacy exporter and eraser hooks are planned before release).
 4. **Guest purchases:** not at launch. `user_id` stays nullable so the WooCommerce adapter can add guest checkout later.
 5. **Event retention:** two years, filterable, pruned by a daily job.

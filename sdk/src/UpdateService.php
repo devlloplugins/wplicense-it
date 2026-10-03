@@ -25,6 +25,13 @@ final class UpdateService {
 	private $api;
 
 	/**
+	 * The server the download link must point to.
+	 *
+	 * @var string
+	 */
+	private $server_host;
+
+	/**
 	 * Storage.
 	 *
 	 * @var Store
@@ -34,12 +41,15 @@ final class UpdateService {
 	/**
 	 * Constructor.
 	 *
-	 * @param ServerApi $api   Server API.
-	 * @param Store     $store Storage.
+	 * @param ServerApi $api         Server API.
+	 * @param Store     $store       Storage.
+	 * @param string    $server_url  The configured license server URL.
 	 */
-	public function __construct( ServerApi $api, Store $store ) {
-		$this->api   = $api;
-		$this->store = $store;
+	public function __construct( ServerApi $api, Store $store, string $server_url = '' ) {
+		$this->api         = $api;
+		$this->store       = $store;
+		$parts             = parse_url( $server_url ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- Works without WordPress.
+		$this->server_host = is_array( $parts ) && isset( $parts['host'] ) ? strtolower( $parts['host'] ) : '';
 	}
 
 	/**
@@ -104,6 +114,18 @@ final class UpdateService {
 
 		$url = isset( $result->data['download_url'] ) ? (string) $result->data['download_url'] : '';
 
-		return '' === $url ? new ApiResult( false, 'no_package', ServerApi::message_for( 'no_package', '' ) ) : $url;
+		if ( '' === $url ) {
+			return new ApiResult( false, 'no_package', ServerApi::message_for( 'no_package', '' ) );
+		}
+
+		// The link must lead to the license server the site is configured for, whatever the response says.
+		$parts = parse_url( $url ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- Works without WordPress.
+		$host  = is_array( $parts ) && isset( $parts['host'] ) ? strtolower( $parts['host'] ) : '';
+
+		if ( '' !== $this->server_host && $host !== $this->server_host ) {
+			return new ApiResult( false, 'bad_response', 'The license server returned a download link for another site, so it was not used.' );
+		}
+
+		return $url;
 	}
 }

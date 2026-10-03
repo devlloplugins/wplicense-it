@@ -40,6 +40,10 @@ final class SiteNormalizerTest extends TestCase {
 			'blank'                          => array( '   ', null ),
 			'no host'                        => array( 'http:///', null ),
 			'invalid characters'             => array( 'ex ample.com', null ),
+			'markup in the path'             => array( 'example.com/<script>alert(1)</script>', null ),
+			'quotes in the path'             => array( 'example.com/a"b', null ),
+			'a newline in the path'          => array( "example.com/a\nb", 'example.com/a_b' ), // parse_url already neutralises control characters.
+			'normal folder names'            => array( 'https://example.com/my-blog_2/sub.dir/', 'example.com/my-blog_2/sub.dir' ),
 		);
 	}
 

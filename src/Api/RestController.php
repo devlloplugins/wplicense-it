@@ -134,7 +134,11 @@ final class RestController {
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => function ( WP_REST_Request $request ) use ( $method ): WP_REST_Response {
-					return $this->respond( $this->api->$method( $request->get_params(), self::client_id() ) );
+					try {
+						return $this->respond( $this->api->$method( $request->get_params(), self::client_id() ) );
+					} catch ( \Throwable $e ) {
+						return $this->failed( $e );
+					}
 				},
 				'permission_callback' => '__return_true',
 				'args'                => $args,
@@ -143,12 +147,28 @@ final class RestController {
 	}
 
 	/**
+	 * A generic error for something unexpected (for example the database is down). Details go to the log,
+	 * never to the client.
+	 *
+	 * @param \Throwable $error What went wrong.
+	 */
+	private function failed( \Throwable $error ): WP_REST_Response {
+		error_log( 'WPLicense It API error: ' . $error->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operators need to see this.
+
+		return $this->respond( ApiResponse::error( 500, 'server_error', 'The license server could not process the request. Try again later.' ) );
+	}
+
+	/**
 	 * Download endpoint. Streams the file, or returns an error response.
 	 *
 	 * @param WP_REST_Request $request Request.
 	 */
 	public function download( WP_REST_Request $request ): WP_REST_Response {
-		$result = $this->api->download( (string) $request->get_param( 'token' ), self::client_id() );
+		try {
+			$result = $this->api->download( (string) $request->get_param( 'token' ), self::client_id() );
+		} catch ( \Throwable $e ) {
+			return $this->failed( $e );
+		}
 
 		if ( null !== $result->file ) {
 			FileStreamer::send( $result->file );

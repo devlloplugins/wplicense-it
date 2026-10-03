@@ -57,19 +57,21 @@ class WP_License_It_Product_Post {
 			'supports'           	=> array( 'title', 'editor', 'author', 'thumbnail' ),
 			'rewrite'				=> array('slug' => 'license'),
 			'hierarchical'          => true,
-			'public'                => true,
+			// Products are internal records that the license API and WooCommerce look up by ID. They are not web pages,
+			// and are not exposed through the REST API. Without the block editor, the product screen's file uploads work.
+			'public'                => false,
 			'show_ui'               => true,
 			'show_in_menu'          => true,
 			'menu_position'         => 20,
 			'menu_icon'             => 'dashicons-plugins-checked',
 			'show_in_admin_bar'     => true,
-			'show_in_nav_menus'     => true,
+			'show_in_nav_menus'     => false,
 			'can_export'            => false,
-			'has_archive'           => true,
+			'has_archive'           => false,
 			'exclude_from_search'   => true,
-			'publicly_queryable'    => true,
+			'publicly_queryable'    => false,
 			'capabilities'          => $capabilities,
-			'show_in_rest'          => true,
+			'show_in_rest'          => false,
 		);
 		register_post_type( 'wplit_product', $args );
 

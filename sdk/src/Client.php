@@ -84,7 +84,7 @@ final class Client {
 
 		self::$clients[ $config->slug ] = $client;
 
-		$client->hook( new Updater( $config, new UpdateService( $api, $store ), $manager ) );
+		$client->hook( new Updater( $config, new UpdateService( $api, $store, $config->server ), $manager ) );
 
 		return $client;
 	}

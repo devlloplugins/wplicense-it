@@ -57,9 +57,13 @@ final class SiteNormalizer {
 
 		if ( isset( $parts['path'] ) ) {
 			$path = rtrim( $parts['path'], '/' );
-			if ( '' !== $path ) {
-				$site .= $path;
+
+			// A path is only ever a folder name. Anything else is not a WordPress install worth recording.
+			if ( '' !== $path && 1 !== preg_match( '#^[A-Za-z0-9._~%/\-]+$#', $path ) ) {
+				return null;
 			}
+
+			$site .= $path;
 		}
 
 		if ( strlen( $site ) > self::MAX_LENGTH ) {

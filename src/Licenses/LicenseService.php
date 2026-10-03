@@ -24,6 +24,17 @@ final class LicenseService {
 	private const KEY_ATTEMPTS = 5;
 
 	/**
+	 * Local and staging sites do not use a slot, but they are not unlimited either: without a cap, one key
+	 * could create endless activation rows.
+	 */
+	public const MAX_LOCAL_SITES = 25;
+
+	/**
+	 * The largest sites-per-license value accepted (the column is a 32 bit integer, and nobody needs more).
+	 */
+	public const MAX_ACTIVATION_LIMIT = 100000;
+
+	/**
 	 * Clock, returns the current time in UTC.
 	 *
 	 * @var callable
@@ -76,8 +87,8 @@ final class LicenseService {
 		if ( '' === $email || false === strpos( $email, '@' ) ) {
 			throw new LicenseException( LicenseException::INVALID_INPUT, 'A valid email is required.' );
 		}
-		if ( $activation_limit < 0 ) {
-			throw new LicenseException( LicenseException::INVALID_INPUT, 'The activation limit cannot be negative.' );
+		if ( $activation_limit < 0 || $activation_limit > self::MAX_ACTIVATION_LIMIT ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, 'The activation limit must be between 0 and ' . self::MAX_ACTIVATION_LIMIT . '.' );
 		}
 
 		$now = $this->now();
@@ -243,8 +254,8 @@ final class LicenseService {
 		$diff    = array();
 
 		if ( null !== $changes->activation_limit ) {
-			if ( $changes->activation_limit < 0 ) {
-				throw new LicenseException( LicenseException::INVALID_INPUT, 'The activation limit cannot be negative.' );
+			if ( $changes->activation_limit < 0 || $changes->activation_limit > self::MAX_ACTIVATION_LIMIT ) {
+				throw new LicenseException( LicenseException::INVALID_INPUT, 'The activation limit must be between 0 and ' . self::MAX_ACTIVATION_LIMIT . '.' );
 			}
 
 			if ( $changes->activation_limit !== $license->activation_limit ) {
@@ -464,6 +475,10 @@ final class LicenseService {
 					return new ActivationResult( ActivationResult::LIMIT_REACHED, $license );
 				}
 
+				if ( $is_local && $this->count_local_sites( $license ) >= self::MAX_LOCAL_SITES ) {
+					return new ActivationResult( ActivationResult::LIMIT_REACHED, $license );
+				}
+
 				if ( null !== $existing ) {
 					$existing->status          = Activation::ACTIVE;
 					$existing->is_local        = $is_local;
@@ -543,6 +558,20 @@ final class LicenseService {
 		}
 
 		return count( $due );
+	}
+
+	/**
+	 * How many local or staging sites are active on a license.
+	 *
+	 * @param License $license License.
+	 */
+	private function count_local_sites( License $license ): int {
+		return count(
+			array_filter(
+				$this->activations->list_active( $license->id ),
+				static fn( Activation $activation ): bool => $activation->is_local
+			)
+		);
 	}
 
 	/**

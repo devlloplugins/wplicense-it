@@ -113,9 +113,11 @@ final class ApiService {
 			return $input;
 		}
 
-		$version = isset( $params['product_version'] ) && is_string( $params['product_version'] ) && '' !== $params['product_version']
-			? substr( $params['product_version'], 0, 32 )
-			: null;
+		// A version is shown in the admin. Keep only what a version number can contain.
+		$version = isset( $params['product_version'] ) && is_string( $params['product_version'] )
+			? substr( (string) preg_replace( '/[^A-Za-z0-9._+\-]/', '', $params['product_version'] ), 0, 32 )
+			: '';
+		$version = '' === $version ? null : $version;
 
 		$result = $this->licenses->activate( $input['license_key'], $this->string_param( $params, 'site_url' ), $input['product_id'], $version );
 

@@ -89,6 +89,36 @@ final class LicenseServiceTest extends TestCase {
 		}
 	}
 
+	// Abuse limits.
+
+	public function test_local_sites_are_capped_so_one_key_cannot_create_endless_rows(): void {
+		$license = $this->service->issue_license( 7, 'a@example.com', null, null, 1 );
+
+		for ( $i = 1; $i <= LicenseService::MAX_LOCAL_SITES; $i++ ) {
+			$this->assertSame( ActivationResult::ACTIVATED, $this->service->activate( $license->license_key, "site{$i}.test" )->code );
+		}
+
+		$this->assertSame( ActivationResult::LIMIT_REACHED, $this->service->activate( $license->license_key, 'one-too-many.test' )->code );
+
+		// Freeing one makes room again, and real sites are unaffected by the local count.
+		$this->service->deactivate( $license->license_key, 'site1.test' );
+		$this->assertSame( ActivationResult::ACTIVATED, $this->service->activate( $license->license_key, 'one-too-many.test' )->code );
+		$this->assertSame( ActivationResult::ACTIVATED, $this->service->activate( $license->license_key, 'live.com' )->code );
+	}
+
+	public function test_absurd_activation_limits_are_rejected(): void {
+		foreach ( array( LicenseService::MAX_ACTIVATION_LIMIT + 1, PHP_INT_MAX ) as $limit ) {
+			try {
+				$this->service->issue_license( 7, 'a@example.com', null, null, $limit );
+				$this->fail( 'Expected an exception.' );
+			} catch ( LicenseException $e ) {
+				$this->assertSame( LicenseException::INVALID_INPUT, $e->reason() );
+			}
+		}
+
+		$this->assertSame( LicenseService::MAX_ACTIVATION_LIMIT, $this->service->issue_license( 7, 'a@example.com', null, null, LicenseService::MAX_ACTIVATION_LIMIT )->activation_limit );
+	}
+
 	// Validation.
 
 	public function test_validate_accepts_a_good_license(): void {

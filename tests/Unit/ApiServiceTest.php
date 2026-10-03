@@ -201,6 +201,15 @@ final class ApiServiceTest extends TestCase {
 		$this->assertSame( 'not_active', $twice->body['code'] );
 	}
 
+	public function test_a_hostile_product_version_is_cleaned_before_it_is_stored(): void {
+		$license = $this->license( 2 );
+
+		$response = $this->api->activate( array( 'license_key' => $license->license_key, 'product_id' => 7, 'site_url' => 'one.com', 'product_version' => '1.0<script>alert(1)</script>' ), self::CLIENT );
+
+		$this->assertSame( 200, $response->status );
+		$this->assertSame( '1.0scriptalert1script', $this->licenses->active_sites( $license )[0]->product_version );
+	}
+
 	public function test_activate_needs_a_site(): void {
 		$license = $this->license();
 

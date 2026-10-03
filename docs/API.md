@@ -58,4 +58,11 @@ activation limits, because 1.x clients send no site. New integrations should use
 ## Configuration
 
 - `wplicense_it_client_ip` filter: return the real client IP when the site is behind a trusted proxy
-  (the default is `REMOTE_ADDR`, because forwarding headers can be forged).
+  (the default is `REMOTE_ADDR`, because forwarding headers can be forged). **Set this if the license server is
+  behind a proxy or CDN such as Cloudflare.** Otherwise every customer shares the proxy's address, and one
+  attacker sending wrong keys can block everyone on that address. Example for Cloudflare, only on a site that
+  accepts traffic exclusively through Cloudflare:
+
+      add_filter( 'wplicense_it_client_ip', function ( $ip ) {
+          return isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) : $ip;
+      } );

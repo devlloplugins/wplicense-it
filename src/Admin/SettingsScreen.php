@@ -134,6 +134,7 @@ final class SettingsScreen {
 	 */
 	public function section_api(): void {
 		echo '<p>' . esc_html__( 'Clients that send many wrong license keys are blocked for the rest of the time window. Right keys that are expired or revoked do not count.', 'wplicense-it' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'If this site is behind a proxy or CDN (for example Cloudflare), WordPress sees the proxy\'s address, so all customers would share one counter. Return the visitor\'s real address with the wplicense_it_client_ip filter.', 'wplicense-it' ) . '</p>';
 	}
 
 	/**
@@ -162,7 +163,7 @@ final class SettingsScreen {
 	 */
 	public function field_billing(): void {
 		echo '<label><input type="checkbox" name="wplit_keep_legacy_billing" value="1"' . checked( (bool) get_option( 'wplit_keep_legacy_billing', true ), true, false ) . '> ' . esc_html__( 'Keep the address and phone number from migrated 1.x orders', 'wplicense-it' ) . '</label>';
-		echo '<p class="description">' . esc_html__( 'Only used when the 1.x data is migrated. Kept details are included in the WordPress privacy export and erase tools.', 'wplicense-it' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Only used when the 1.x data is migrated. They contain personal data. Delete them if a customer asks.', 'wplicense-it' ) . '</p>';
 	}
 
 	/**
