@@ -75,6 +75,20 @@ final class WpdbActivationRepository implements ActivationRepository {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @param int $license_id License ID.
+	 */
+	public function list_active( int $license_id ): array {
+		$rows = $this->db->get_results(
+			$this->db->prepare( "SELECT * FROM {$this->table} WHERE license_id = %d AND status = %s ORDER BY activated_at ASC", $license_id, Activation::ACTIVE ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+			ARRAY_A
+		);
+
+		return array_map( array( $this, 'from_row' ), is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @param Activation $activation Activation.
 	 * @throws RuntimeException If the row could not be saved.
 	 */

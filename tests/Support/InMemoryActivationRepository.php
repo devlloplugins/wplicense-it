@@ -53,6 +53,15 @@ final class InMemoryActivationRepository implements ActivationRepository {
 		return $count;
 	}
 
+	public function list_active( int $license_id ): array {
+		return array_values(
+			array_filter(
+				array_map( static fn( Activation $row ): Activation => clone $row, $this->rows ),
+				static fn( Activation $row ): bool => $row->license_id === $license_id && $row->is_active()
+			)
+		);
+	}
+
 	public function save( Activation $activation ): Activation {
 		if ( 0 === $activation->id ) {
 			$activation->id = ++$this->last_id;

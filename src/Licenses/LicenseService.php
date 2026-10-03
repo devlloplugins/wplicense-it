@@ -202,6 +202,26 @@ final class LicenseService {
 	}
 
 	/**
+	 * A customer's licenses, newest first.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return License[]
+	 */
+	public function licenses_for_user( int $user_id ): array {
+		return $this->licenses->find_by_user( $user_id );
+	}
+
+	/**
+	 * The sites a license is currently active on.
+	 *
+	 * @param License $license License.
+	 * @return Activation[]
+	 */
+	public function active_sites( License $license ): array {
+		return $this->activations->list_active( $license->id );
+	}
+
+	/**
 	 * Number of sites currently using a slot of the license.
 	 *
 	 * @param License $license License.

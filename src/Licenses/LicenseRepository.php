@@ -45,6 +45,22 @@ interface LicenseRepository {
 	public function find_by_key( string $license_key ): ?License;
 
 	/**
+	 * A customer's licenses, newest first.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return License[]
+	 */
+	public function find_by_user( int $user_id ): array;
+
+	/**
+	 * Licenses issued for an order, in the order they were created.
+	 *
+	 * @param int $order_id Row ID in the license orders table.
+	 * @return License[]
+	 */
+	public function find_by_order( int $order_id ): array;
+
+	/**
 	 * Active licenses whose expiry has passed.
 	 *
 	 * @param DateTimeImmutable $now   Current time.

@@ -58,6 +58,18 @@ final class InMemoryLicenseRepository implements LicenseRepository {
 		return null;
 	}
 
+	public function find_by_user( int $user_id ): array {
+		$found = array_filter( $this->rows, static fn( License $row ): bool => $row->user_id === $user_id );
+
+		return array_map( static fn( License $row ): License => clone $row, array_reverse( array_values( $found ) ) );
+	}
+
+	public function find_by_order( int $order_id ): array {
+		$found = array_filter( $this->rows, static fn( License $row ): bool => $row->order_id === $order_id );
+
+		return array_map( static fn( License $row ): License => clone $row, array_values( $found ) );
+	}
+
 	public function find_due_for_expiry( DateTimeImmutable $now, int $limit ): array {
 		$due = array();
 

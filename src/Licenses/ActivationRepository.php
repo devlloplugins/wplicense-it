@@ -30,6 +30,14 @@ interface ActivationRepository {
 	public function count_active( int $license_id ): int;
 
 	/**
+	 * The sites a license is currently active on (including local and staging sites).
+	 *
+	 * @param int $license_id License ID.
+	 * @return Activation[]
+	 */
+	public function list_active( int $license_id ): array;
+
+	/**
 	 * Saves an activation (insert if its ID is 0), and returns it with its ID set.
 	 *
 	 * @param Activation $activation Activation.

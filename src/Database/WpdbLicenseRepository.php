@@ -94,6 +94,28 @@ final class WpdbLicenseRepository implements LicenseRepository {
 	/**
 	 * {@inheritDoc}
 	 *
+	 * @param int $user_id WordPress user ID.
+	 */
+	public function find_by_user( int $user_id ): array {
+		$rows = $this->db->get_results( $this->db->prepare( "SELECT * FROM {$this->table} WHERE user_id = %d ORDER BY id DESC", $user_id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+
+		return array_map( array( $this, 'from_row' ), is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param int $order_id Row ID in the license orders table.
+	 */
+	public function find_by_order( int $order_id ): array {
+		$rows = $this->db->get_results( $this->db->prepare( "SELECT * FROM {$this->table} WHERE order_id = %d ORDER BY id ASC", $order_id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+
+		return array_map( array( $this, 'from_row' ), is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
 	 * @param DateTimeImmutable $now   Current time.
 	 * @param int               $limit Maximum number to return.
 	 */
