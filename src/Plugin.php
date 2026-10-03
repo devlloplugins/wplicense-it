@@ -24,6 +24,15 @@ use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Migration\Command;
 use Devllo\WPLicenseIt\Migration\MigrationRunner;
+use Devllo\WPLicenseIt\WooCommerce\AccountPage;
+use Devllo\WPLicenseIt\WooCommerce\CartRenewal;
+use Devllo\WPLicenseIt\WooCommerce\LicenseDisplay;
+use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
+use Devllo\WPLicenseIt\WooCommerce\OrderReader;
+use Devllo\WPLicenseIt\WooCommerce\ProductFields;
+use Devllo\WPLicenseIt\WooCommerce\WooAdapter;
+use Devllo\WPLicenseIt\WooCommerce\WooItemLicenseStore;
+use Devllo\WPLicenseIt\WooCommerce\WpdbLicenseOrderRepository;
 
 /**
  * Wires the plugin into WordPress.
@@ -46,6 +55,13 @@ final class Plugin {
 	 * @var LicenseService|null
 	 */
 	private ?LicenseService $licenses = null;
+
+	/**
+	 * Download link signer, built on first use.
+	 *
+	 * @var DownloadSigner|null
+	 */
+	private ?DownloadSigner $signer = null;
 
 	/**
 	 * Shared rate limiter for the REST API and the legacy endpoint.
@@ -75,6 +91,10 @@ final class Plugin {
 
 		( new MigrationRunner() )->register();
 
+		// WooCommerce adapter. The HPOS declaration has to be registered before WooCommerce initialises.
+		add_action( 'before_woocommerce_init', array( WooAdapter::class, 'declare_hpos_compatibility' ) );
+		add_action( 'plugins_loaded', array( $this, 'boot_woocommerce' ), 30 );
+
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'wplit migration', Command::class );
 		}
@@ -82,6 +102,37 @@ final class Plugin {
 		if ( self::legacy_data_migrated() ) {
 			$this->legacy_endpoint()->register();
 		}
+	}
+
+	/**
+	 * Connects to WooCommerce when it is active.
+	 */
+	public function boot_woocommerce(): void {
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$reader    = new OrderReader();
+		$processor = new OrderProcessor( $this->licenses(), new WpdbLicenseOrderRepository( $wpdb ), new WooItemLicenseStore() );
+
+		( new WooAdapter( $processor, $reader ) )->register();
+		( new ProductFields() )->register();
+		( new CartRenewal( $this->licenses(), $reader ) )->register();
+		( new LicenseDisplay( $this->licenses() ) )->register();
+		( new AccountPage( $this->licenses(), new WpProductCatalog(), $this->signer() ) )->register();
+	}
+
+	/**
+	 * Signs short-lived download links.
+	 */
+	public function signer(): DownloadSigner {
+		if ( null === $this->signer ) {
+			$this->signer = new DownloadSigner( wp_salt( 'auth' ) );
+		}
+
+		return $this->signer;
 	}
 
 	/**
@@ -99,7 +150,7 @@ final class Plugin {
 		$api = new ApiService(
 			$this->licenses(),
 			new WpProductCatalog(),
-			new DownloadSigner( wp_salt( 'auth' ) ),
+			$this->signer(),
 			$this->limiter(),
 			static function ( string $token ): string {
 				return add_query_arg( 'token', rawurlencode( $token ), rest_url( RestController::ROUTE_NAMESPACE . '/download' ) );
