@@ -15,9 +15,7 @@ class WPLit_Add_License {
         $user = wp_get_current_user();
         $user_id = $user->ID;
 
-        if (isset($_COOKIE['wplit_product_id'] )){
-        $product_id = intval($_COOKIE['wplit_product_id']); 
-        }
+        $product_id = isset($_COOKIE['wplit_product_id']) ? intval($_COOKIE['wplit_product_id']) : 0;
         
         $today = date("Ymd");
         $order_number = strtoupper('#' .$today. '-' .wp_generate_password( 3, false, false ));
@@ -27,18 +25,22 @@ class WPLit_Add_License {
         $total_amount = $amount;
         $order_email = (string) $current_user->user_email;
 
-        if(isset($_POST['action']) && $_POST['action'] == 'stripe' && wp_verify_nonce($_POST['stripe_nonce'], 'stripe-nonce')) {
-            $first_name = sanitize_text_field($_POST['wplit_billing_user_first']) ;
-            $last_name = sanitize_text_field($_POST['wplit_billing_user_last']) ;
-            $billing_company = sanitize_text_field($_POST['wplit_billing_company']) ;
-            $billing_address = sanitize_text_field($_POST['wplit_billing_address']) ;
-            $billing_state = sanitize_text_field($_POST['wplit_billing_state']) ;
-            $billing_city = sanitize_text_field($_POST['wplit_billing_city']) ;
-            $billing_country = sanitize_text_field($_POST['wplit_billing_countryl']) ;
-            $postal_code = sanitize_text_field($_POST['wplit_billing_postal']) ;
-            $billing_phone = sanitize_text_field($_POST['wplit_billing_phone']) ;
-            $discount_code = '';
-            $order_status = '';
+        // Defaults, used for free products that skip the billing form
+        $first_name = $last_name = $billing_company = $billing_address = '';
+        $billing_state = $billing_city = $billing_country = $postal_code = $billing_phone = '';
+        $discount_code = '';
+        $order_status = 'completed';
+
+        if(isset($_POST['action']) && $_POST['action'] == 'stripe' && isset($_POST['stripe_nonce']) && wp_verify_nonce($_POST['stripe_nonce'], 'stripe-nonce')) {
+            $first_name = isset($_POST['wplit_billing_user_first']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_user_first'])) : '';
+            $last_name = isset($_POST['wplit_billing_user_last']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_user_last'])) : '';
+            $billing_company = isset($_POST['wplit_billing_company']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_company'])) : '';
+            $billing_address = isset($_POST['wplit_billing_address']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_address'])) : '';
+            $billing_state = isset($_POST['wplit_billing_state']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_state'])) : '';
+            $billing_city = isset($_POST['wplit_billing_city']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_city'])) : '';
+            $billing_country = isset($_POST['wplit_billing_countryl']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_countryl'])) : '';
+            $postal_code = isset($_POST['wplit_billing_postal']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_postal'])) : '';
+            $billing_phone = isset($_POST['wplit_billing_phone']) ? sanitize_text_field(wp_unslash($_POST['wplit_billing_phone'])) : '';
         }
 
         $table_name = $wpdb->prefix . 'wplit_orders';
@@ -90,13 +92,19 @@ class WPLit_Add_License {
     }
 
     // Add License to Databse
-    function wplit_add_license() {
+    function wplit_add_license( $echo_notice = true ) {
 
         if (isset($_COOKIE['wplit_product_id'] )){
 
-            do_action('wplit_before_add_license');
-
             $product_id = intval($_COOKIE['wplit_product_id']); 
+
+            // The product must exist and be published
+            $product = get_post($product_id);
+            if (! $product || 'wplit_product' !== $product->post_type || 'publish' !== $product->post_status || ! is_user_logged_in()) {
+                return;
+            }
+
+            do_action('wplit_before_add_license');
 
             global $wpdb;
             global $current_user;
@@ -116,16 +124,15 @@ class WPLit_Add_License {
 
             $wplit_expire_time = get_post_meta( $product_id, 'wplit_expire_time', true );
 
+            // Default to no expiry
+            $valid_until = '0000-00-00 00:00:00';
+
             if ($wplit_expire == 'yes'){
                 if ($wplit_expire_time == '1-year' ){
-                    $futureDate=date('Y-m-d', strtotime('+1 year'));
-                    $valid_until = $futureDate;
+                    $valid_until = date('Y-m-d', strtotime('+1 year'));
                 } elseif ($wplit_expire_time == '1-month' ){
-                    $futureDate=date('Y-m-d', strtotime('+1 month'));
-                    $valid_until = $futureDate;
+                    $valid_until = date('Y-m-d', strtotime('+1 month'));
                 }
-            }else{
-                $valid_until = '0000-00-00 00:00:00';
             }
             
             
@@ -162,7 +169,9 @@ class WPLit_Add_License {
 
             do_action('wplit_after_add_license');
 
-            echo '<br/>License Purchased. Please visit Licenses page for License Information.';
+            if ($echo_notice) {
+                echo '<br/>License Purchased. Please visit Licenses page for License Information.';
+            }
 
         }
     }

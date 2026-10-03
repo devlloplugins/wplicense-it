@@ -37,7 +37,7 @@ class WPLit_Render_Product {
         $wplit_get_product_price = get_post_meta( $args['id'], 'wplit_product_price', true );
 
         if ($wplit_get_product_price){
-            $wplit_product_price =  '<strong class="d-inline-block mb-2 text-success">Price: $' . $wplit_get_product_price . '</strong>';
+            $wplit_product_price =  '<strong class="d-inline-block mb-2 text-success">Price: $' . esc_html($wplit_get_product_price) . '</strong>';
         } else {
             $wplit_product_price = '';
         }
@@ -51,17 +51,17 @@ class WPLit_Render_Product {
             <div class="col-md-6">
                 <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
                     <div class="col-auto d-none d-lg-block">
-                    <img style="width: 200px;" src="' . $wplit_product_logo_url. '">
+                    <img style="width: 200px;" src="' . esc_url($wplit_product_logo_url) . '">
                     </div>
                 
                     <div class="col p-4 d-flex flex-column position-static">
                     <h3 style="margin-bottom: 2px;" class="mb-0">'. esc_attr($wplit_product_name) .'</h3>
                     ' . $wplit_product_price . '
-                    <div class="mb-1 text-muted">Version: ' .$wplit_product_version . '</div>
+                    <div class="mb-1 text-muted">Version: ' . esc_html($wplit_product_version) . '</div>
                     <p style="margin-bottom: 26px;" class="mb-auto">' . esc_html($wplit_product_description ).'</p>
                     <form action="" method="POST">
-                            <input type="hidden" name="id" value="' . $product_id . '" />
-                    <input type="submit" name="add-license" class="button button-primary" value="' . $args['download_text'] . '" />
+                            <input type="hidden" name="id" value="' . esc_attr($product_id) . '" />
+                    <input type="submit" name="add-license" class="button button-primary" value="' . esc_attr($args['download_text']) . '" />
                     </form>
 
                     </div>
@@ -80,7 +80,12 @@ class WPLit_Render_Product {
     public function set_cookie() {
         if(isset($_POST['add-license'])) {
             $product_id = intval( $_POST['id'] );
-            setcookie("wplit_product_id", $product_id, time()+600, '/');
+
+            // Only set the cookie for published products
+            $product = get_post( $product_id );
+            if ( $product && 'wplit_product' === $product->post_type && 'publish' === $product->post_status ) {
+                setcookie("wplit_product_id", $product_id, time()+600, '/', '', is_ssl(), true);
+            }
 
         }
     }
@@ -109,6 +114,12 @@ class WPLit_Render_Product {
 
         if(isset($_POST['add-license'])) {
             $product_id = intval( $_POST['id'] );
+
+            // The product must exist and be published
+            $product = get_post( $product_id );
+            if ( ! $product || 'wplit_product' !== $product->post_type || 'publish' !== $product->post_status ) {
+                return;
+            }
 
             // Is User logged in
             if ( is_user_logged_in() ) {         

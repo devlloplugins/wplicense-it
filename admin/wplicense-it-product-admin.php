@@ -210,6 +210,11 @@ class WP_License_It_Product_Admin {
         if ( ! wp_verify_nonce( $nonce, 'wplit_inner_custom_box' ) ) {
             return $post_id;
         }
+
+        // Only handle our product post type, and only for users allowed to edit it.
+        if ( 'wplit_product' !== $post->post_type || ! current_user_can( 'edit_post', $post_id ) ) {
+            return $post_id;
+        }
         
         /*
         * If this is an autosave, our form has not been submitted,
@@ -263,7 +268,8 @@ class WP_License_It_Product_Admin {
         }
 
         if (isset($_POST['wplit_product_price'])){
-            $wplit_product_price = sanitize_text_field( $_POST['wplit_product_price'] );
+            $wplit_product_price = sanitize_text_field( wp_unslash( $_POST['wplit_product_price'] ) );
+            $wplit_product_price = is_numeric( $wplit_product_price ) && $wplit_product_price > 0 ? $wplit_product_price : '0';
         }
 
         if (isset($_POST['wplit_product_price'])){
@@ -280,7 +286,11 @@ class WP_License_It_Product_Admin {
         }
 
         if (isset($_POST['wplit_product_version'])){
-            $wplit_product_version = sanitize_text_field( $_POST['wplit_product_version'] );
+            // The version is used in a folder name, so only allow safe characters
+            $wplit_product_version = preg_replace( '/[^A-Za-z0-9._-]/', '', sanitize_text_field( wp_unslash( $_POST['wplit_product_version'] ) ) );
+            $wplit_product_version = trim( str_replace( '..', '', $wplit_product_version ), '.' );
+        } else {
+            $wplit_product_version = (string) get_post_meta( $post_id, 'wplit_product_version', true );
         }
 
         if (isset($_POST['wplit_product_version'])){
@@ -336,22 +346,14 @@ class WP_License_It_Product_Admin {
             $upload_file_type = $file_type['type'];
 
             if(in_array($upload_file_type, $supported_file_type)) {
-                $upload = wp_upload_bits($_FILES['wplit_product_logo']['name'], null, file_get_contents($_FILES['wplit_product_logo']));
-
-                if(isset($upload['error']) && $upload['error'] != 0){
-                    wp_die('There was an error uploading the logo' . $upload['error'] . '.');
-                } else {
-                    add_post_meta($post_id, 'wplit_product_logo', $upload);
-
-                    update_post_meta($post_id, 'wplit_product_logo', $upload);
+                $thefile = sanitize_file_name(basename($_FILES['wplit_product_logo']['name']));
+                if (validate_file($thefile) !== 0) {
+                    wp_die('Invalid file name');
                 }
 
-                if (validate_file($_FILES['wplit_product_logo']['name'], $upload_file_type)){
-                $thefile = sanitize_file_name($_FILES['wplit_product_logo']['name']);
-                }
-
-                if(sanitize_file_name($_FILES['wplit_product_logo']['tmp_name'])) {
                 $tmp_name = $_FILES['wplit_product_logo']['tmp_name'];
+                if (! is_uploaded_file($tmp_name)) {
+                    wp_die('Invalid upload');
                 }
 
                 if( $wp_files_directory_slug ) {
@@ -394,22 +396,14 @@ class WP_License_It_Product_Admin {
             $upload_file_type = $file_type['type'];
 
             if(in_array($upload_file_type, $supported_file_type)) {
-                $upload = wp_upload_bits($_FILES['wplit_product_banner']['name'], null, file_get_contents($_FILES['wplit_product_logo']));
-
-                if(isset($upload['error']) && $upload['error'] != 0){
-                    wp_die('There was an error uploading the logo' . $upload['error'] . '.');
-                } else {
-                    add_post_meta($post_id, 'wplit_product_banner', $upload);
-
-                    update_post_meta($post_id, 'wplit_product_banner', $upload);
+                $thefile = sanitize_file_name(basename($_FILES['wplit_product_banner']['name']));
+                if (validate_file($thefile) !== 0) {
+                    wp_die('Invalid file name');
                 }
 
-                if (validate_file($_FILES['wplit_product_banner']['name'], $upload_file_type)){
-                $thefile = sanitize_file_name($_FILES['wplit_product_banner']['name']);
-                }
-
-                if(sanitize_file_name($_FILES['wplit_product_banner']['tmp_name'])) {
                 $tmp_name = $_FILES['wplit_product_banner']['tmp_name'];
+                if (! is_uploaded_file($tmp_name)) {
+                    wp_die('Invalid upload');
                 }
                 
 
@@ -452,24 +446,16 @@ class WP_License_It_Product_Admin {
             $upload_file_type = $file_type['type'];
 
             if(in_array($upload_file_type, $supported_file_type)) {
-                $upload = wp_upload_bits($_FILES['wplit_product_file_upload']['name'], null, file_get_contents($_FILES['wplit_product_file_upload']));
-
-                if(isset($upload['error']) && $upload['error'] != 0){
-                    wp_die('There was an error uploading the product' . $upload['error'] . '.');
-                } else {
-                    add_post_meta($post_id, 'wplit_product_file_upload', $upload);
-
-                    update_post_meta($post_id, 'wplit_product_file_upload', $upload);
-                }
-
                 $target_dir_location = $wp_files_directory_path;
 
-                if (validate_file( $_FILES['wplit_product_file_upload']['name'], $upload_file_type )){
-                $thefile = sanitize_file_name($_FILES['wplit_product_file_upload']['name']);
+                $thefile = sanitize_file_name(basename($_FILES['wplit_product_file_upload']['name']));
+                if (validate_file($thefile) !== 0) {
+                    wp_die('Invalid file name');
                 }
 
-                if(sanitize_file_name($_FILES['wplit_product_file_upload']['tmp_name'])) {
                 $tmp_name = $_FILES['wplit_product_file_upload']['tmp_name'];
+                if (! is_uploaded_file($tmp_name)) {
+                    wp_die('Invalid upload');
                 }
                 
 

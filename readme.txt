@@ -4,7 +4,7 @@ Tags: key, license, license key, serial key, software license, digital store, st
 Requires at least: 5.0
 Tested up to: 6.0
 Requires PHP: 7.0
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 
 Sell and manage license keys for WordPress Applications (Plugins and Themes)
@@ -70,3 +70,15 @@ Fix issue with Checkout and Stripe Tokens
 
 = 1.0.1 =
 Bug fix: Activation Functions.
+
+= 1.0.2 =
+Security and stability release.
+* Fix: payments are only treated as successful when Stripe confirms the charge.
+* Fix: checkout no longer fails with an undefined redirect, and redirects are validated.
+* Fix: license API validates input, handles unknown products, and only serves files from the WPLicense It folder.
+* Fix: product edits now require permission to edit the product, and file uploads work on PHP 8.
+* Fix: uploaded product files are no longer copied to the public uploads folder.
+* Fix: Stripe secret keys are no longer printed in the settings page.
+* Fix: escaped output on product, license and checkout pages.
+* Fix: emails no longer change the content type of other emails sent by the site.
+* Fix: .htaccess protection for product files and database version check.

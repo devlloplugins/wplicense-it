@@ -25,14 +25,32 @@ class WP_License_It_Admin_Settings {
     }
 
     public function init_settings() {
-		register_setting( 'wplit-settings-pages', 'wplit-checkout-page' );
-		register_setting( 'wplit-settings-pages', 'wplit-licenses-page' );
-		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-test-mode' );
-		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-live-pk' );
-		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-live-sk' );
-		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-test-pk' );
-		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-test-sk' );
+		register_setting( 'wplit-settings-pages', 'wplit-checkout-page', array( 'sanitize_callback' => 'absint' ) );
+		register_setting( 'wplit-settings-pages', 'wplit-licenses-page', array( 'sanitize_callback' => 'absint' ) );
+		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-test-mode', array( 'sanitize_callback' => 'absint' ) );
+		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-live-pk', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-live-sk', array( 'sanitize_callback' => array( $this, 'sanitize_secret_key_live' ) ) );
+		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-test-pk', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		register_setting( 'wplit-settings-payment', 'wplit-stripe-settings-test-sk', array( 'sanitize_callback' => array( $this, 'sanitize_secret_key_test' ) ) );
     }
+
+	/**
+	 * Secret keys are never printed back into the settings form, so an empty
+	 * submission means "keep the saved key".
+	 */
+	private function sanitize_secret_key( $value, $option ) {
+		$value = sanitize_text_field( $value );
+
+		return '' === $value ? get_option( $option ) : $value;
+	}
+
+	public function sanitize_secret_key_live( $value ) {
+		return $this->sanitize_secret_key( $value, 'wplit-stripe-settings-live-sk' );
+	}
+
+	public function sanitize_secret_key_test( $value ) {
+		return $this->sanitize_secret_key( $value, 'wplit-stripe-settings-test-sk' );
+	}
 
 
     function enqueue_scripts() {   
@@ -218,7 +236,7 @@ class WP_License_It_Admin_Settings {
 							<?php _e('Live Publishable Key', 'wplicense-it'); ?>
 						</th>
 						<td>
-							<input id="wplit-stripe-settings-live-pk" name="wplit-stripe-settings-live-pk" type="text" class="regular-text" value="<?php echo get_option('wplit-stripe-settings-live-pk'); ?>"/>
+							<input id="wplit-stripe-settings-live-pk" name="wplit-stripe-settings-live-pk" type="text" class="regular-text" value="<?php echo esc_attr( get_option('wplit-stripe-settings-live-pk') ); ?>"/>
 							<label class="description" for="wplit-stripe-settings-live-pk"><?php _e('Paste your live publishable key.', 'wplicense-it'); ?></label>
 						</td>
 					</tr>
@@ -228,7 +246,7 @@ class WP_License_It_Admin_Settings {
 							<?php _e('Live Secret Key', 'wplicense-it'); ?>
 						</th>
 						<td>
-							<input id="wplit-stripe-settings-live-sk" name="wplit-stripe-settings-live-sk" type="password" class="regular-text" value="<?php echo get_option('wplit-stripe-settings-live-sk'); ?>"/>
+							<input id="wplit-stripe-settings-live-sk" name="wplit-stripe-settings-live-sk" type="password" class="regular-text" value="" autocomplete="off" placeholder="<?php echo get_option('wplit-stripe-settings-live-sk') ? esc_attr__( 'Saved. Leave blank to keep the current key.', 'wplicense-it' ) : ''; ?>"/>
 							<label class="description" for="wplit-stripe-settings-live-sk"><?php _e('Paste your live secret key.', 'wplicense-it'); ?></label>
 						</td>
 					</tr>
@@ -238,7 +256,7 @@ class WP_License_It_Admin_Settings {
 							<?php _e('Test Publishable Key', 'wplicense-it'); ?>
 						</th>
 						<td>
-							<input id="wplit-stripe-settings-test-pk" name="wplit-stripe-settings-test-pk" class="regular-text" type="text" value="<?php echo get_option('wplit-stripe-settings-test-pk'); ?>"/>
+							<input id="wplit-stripe-settings-test-pk" name="wplit-stripe-settings-test-pk" class="regular-text" type="text" value="<?php echo esc_attr( get_option('wplit-stripe-settings-test-pk') ); ?>"/>
 							<label class="description" for="wplit-stripe-settings-test-pk"><?php _e('Paste your test publishable key.', 'wplicense-it'); ?></label>
 						</td>
 					</tr>
@@ -248,7 +266,7 @@ class WP_License_It_Admin_Settings {
 							<?php _e('Test Secret Key', 'wplicense-it'); ?>
 						</th>
 						<td>
-							<input id="wplit-stripe-settings-test-sk" name="wplit-stripe-settings-test-sk" type="password" class="regular-text" value="<?php echo get_option('wplit-stripe-settings-test-sk'); ?>"/>
+							<input id="wplit-stripe-settings-test-sk" name="wplit-stripe-settings-test-sk" type="password" class="regular-text" value="" autocomplete="off" placeholder="<?php echo get_option('wplit-stripe-settings-test-sk') ? esc_attr__( 'Saved. Leave blank to keep the current key.', 'wplicense-it' ) : ''; ?>"/>
 							<label class="description" for="wplit-stripe-settings-test-sk"><?php _e('Paste your test secret key.', 'wplicense-it'); ?></label>
 						</td>
 					</tr>

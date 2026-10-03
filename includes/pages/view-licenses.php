@@ -16,9 +16,17 @@ class WPLit_View_Licenses {
 
         ob_start();
 
-        $result =  $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "wplit_product_licenses
-            WHERE user_id =" . $user_id,
-            );
+        if ( ! is_user_logged_in() ) {
+            ob_end_clean();
+            return esc_html__( 'Please log in to view your licenses.', 'wplicense-it' );
+        }
+
+        $result = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM " . $wpdb->prefix . "wplit_product_licenses WHERE user_id = %d",
+                $user_id
+            )
+        );
 
             foreach ($result as $print){ 
                 $license_key = $print->license_key;
@@ -27,18 +35,20 @@ class WPLit_View_Licenses {
 
                 $user_id = $print->user_id;
                 $product_id = $print->product_id;
+                     $download_url = home_url( '/api/wplicense-it-api/v1/get?p=' . absint( $product_id ) . '&k=' . rawurlencode( $product_api_key ) . '&e=' . rawurlencode( $license_email ) . '&l=' . rawurlencode( $license_key ) );
+
                      echo '<div style="display: grid;">
                         <div> Product: '
-                            . get_the_title( $product_id ) .
+                            . esc_html( get_the_title( $product_id ) ) .
                         '</div>
                         <div> License Key: '
-                            . $license_key .
+                            . esc_html( $license_key ) .
                         '</div>
                         <div> License Email: '
-                            . $license_email .
+                            . esc_html( $license_email ) .
                         '</div>
                         <div> Download Product: 
-                            <a href="/api/wplicense-it-api/v1/get?p=' . $product_id  .'&k=' . $product_api_key .'&e=' . $license_email .'&l=' . $license_key . '">Download</a>
+                            <a href="' . esc_url( $download_url ) . '">Download</a>
                         </div>
                     </div>';    
             }
