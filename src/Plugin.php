@@ -22,6 +22,8 @@ use Devllo\WPLicenseIt\Database\WpdbEventLog;
 use Devllo\WPLicenseIt\Database\WpdbLicenseRepository;
 use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
+use Devllo\WPLicenseIt\Migration\Command;
+use Devllo\WPLicenseIt\Migration\MigrationRunner;
 
 /**
  * Wires the plugin into WordPress.
@@ -70,6 +72,12 @@ final class Plugin {
 		add_action( 'plugins_loaded', array( Installer::class, 'maybe_install' ) );
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+
+		( new MigrationRunner() )->register();
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::add_command( 'wplit migration', Command::class );
+		}
 
 		if ( self::legacy_data_migrated() ) {
 			$this->legacy_endpoint()->register();

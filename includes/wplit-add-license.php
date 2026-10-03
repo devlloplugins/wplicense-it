@@ -137,6 +137,26 @@ class WPLit_Add_License {
             
             
             $license_key = wp_generate_password( 24, false, false );
+
+            // Once the 1.x data is migrated, the 2.0 tables are what the API reads. Issue the
+            // license there and reuse its key, so the 1.x copy below (still shown on the
+            // licenses page) matches.
+            if ( \Devllo\WPLicenseIt\Plugin::legacy_data_migrated() ) {
+                try {
+                    $expires = null;
+                    if ( '0000-00-00 00:00:00' !== $valid_until ) {
+                        $expires = ( new \DateTimeImmutable( $valid_until, wp_timezone() ) )->setTimezone( new \DateTimeZone( 'UTC' ) );
+                    }
+
+                    // 1.x never limited sites, so neither does this checkout unless the product sets a limit.
+                    $activation_limit = max( 0, (int) get_post_meta( $product_id, 'wplit_default_activation_limit', true ) );
+
+                    $issued      = \Devllo\WPLicenseIt\Plugin::instance()->licenses()->issue_license( $product_id, $email, $user_id, null, $activation_limit, $expires );
+                    $license_key = $issued->license_key;
+                } catch ( \Throwable $e ) {
+                    error_log( 'WPLicense It: could not issue the license in the 2.0 tables: ' . $e->getMessage() );
+                }
+            }
             // Save data to database
             $table_name = $wpdb->prefix . 'wplit_product_licenses';
             $wpdb->insert(
