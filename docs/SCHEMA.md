@@ -1,6 +1,6 @@
 # WPLicense It 2.0: Schema and Migration
 
-Status: **draft for review**. Nothing here is implemented yet.
+Status: **approved design**. Nothing here is implemented yet.
 
 This follows `docs/DECISIONS.md`: a licensing core with payment adapters (decision 3: activation limits,
 decision 7: migrate 1.x data and keep the old API working).
@@ -44,7 +44,7 @@ Prefix is `{$wpdb->prefix}wplit_`. The 1.x tables are `wplit_product_licenses` a
 | `product_id` | `BIGINT UNSIGNED` NOT NULL | Post ID of the `wplit_product` post. |
 | `user_id` | `BIGINT UNSIGNED` NULL | NULL allows guest purchases later. |
 | `order_id` | `BIGINT UNSIGNED` NULL | Row in `wplit_license_orders`. |
-| `license_key` | `VARCHAR(64)` NOT NULL | Random, 128 bits or more. See open question 1. |
+| `license_key` | `VARCHAR(64)` NOT NULL | Random, 128 bits or more. Stored as-is (see Resolved questions). |
 | `email` | `VARCHAR(190)` NOT NULL | Lower-cased on write. |
 | `status` | `VARCHAR(20)` NOT NULL | `active`, `expired`, `revoked`, `refunded`. |
 | `activation_limit` | `INT UNSIGNED` NOT NULL DEFAULT 1 | `0` means unlimited. |
@@ -91,7 +91,7 @@ Minimal record of where a license came from.
 | `total_minor` | `BIGINT` NOT NULL | Cents. |
 | `status` | `VARCHAR(20)` NOT NULL | `completed`, `refunded`. |
 | `legacy_id` | `BIGINT UNSIGNED` NULL | `id` in 1.x `wplit_orders`. |
-| `legacy_billing` | `LONGTEXT` NULL | JSON of the 1.x billing fields, only for migrated orders (see open question 3). |
+| `legacy_billing` | `LONGTEXT` NULL | JSON of the 1.x billing fields, only for migrated orders (see Resolved questions). |
 | `created_at`, `updated_at` | `DATETIME` NOT NULL | UTC. |
 
 Indexes: `UNIQUE (order_number)`, `UNIQUE (source, external_id)`, `UNIQUE (legacy_id)`, `KEY (user_id)`, `KEY (product_id)`.
@@ -139,7 +139,7 @@ Goals: no customer loses access, running the migration twice does nothing, and t
 | `email` | `email` | Lower-cased. |
 | `product_api_key` | (dropped) | Compared against the product meta instead. A mismatch is logged. |
 | `license_status` | `status` | `active` becomes `active`, or `expired` if the expiry has passed. Anything else is logged and becomes `revoked`. |
-| `valid_until` | `expires_at` | `0000-00-00 00:00:00` becomes NULL. Other values are converted from the site time zone to UTC (assumption in open question 2). |
+| `valid_until` | `expires_at` | `0000-00-00 00:00:00` becomes NULL. Other values are converted from the site time zone to UTC (see Resolved questions). |
 | `created_at`, `updated_at` | same | Converted to UTC. Zero values become the migration time. |
 | (none) | `activation_limit` | **`0` (unlimited)** for migrated licenses. 1.x never limited sites, and a new limit would break existing customers. |
 
@@ -153,7 +153,7 @@ Goals: no customer loses access, running the migration twice does nothing, and t
 | (none) | `currency` | `USD`, since 1.x hardcoded it. |
 | `order_status` | `status` | Empty becomes `completed`. |
 | (none) | `source` | `legacy_stripe` for paid orders, `free` for a total of 0. |
-| billing columns | `legacy_billing` JSON | Only if the retention option is on (open question 3). |
+| billing columns | `legacy_billing` JSON | Only if the retention option is on (see Resolved questions). |
 | (none) | `wplit_licenses.order_id` | The license is linked to its order by matching `user_id`, `product_id` and the closest `created_at`. Unmatched orders are kept without a link. |
 
 ### Procedure
@@ -187,10 +187,10 @@ Goals: no customer loses access, running the migration twice does nothing, and t
 | Count active sites for a license | `UNIQUE (license_id, site)` |
 | Order lookup from WooCommerce: `source = 'woocommerce' AND external_id = ?` | `UNIQUE (source, external_id)` |
 
-## Open questions
+## Resolved questions
 
-1. **License key storage.** Customers need to see their key (account page, email), so I recommend storing it as-is with a unique index, comparing with `hash_equals()`, and treating the table as sensitive. The alternative is to store only a hash and show the key once at purchase, which is safer if the database leaks but means lost keys can only be regenerated. Which do you prefer?
-2. **Time zone of migrated dates.** 1.x used `current_time('mysql')` for created and updated times, and PHP `date()` (server time zone) for expiry. I propose converting both from the site's time zone. Expiries may be off by a few hours for sites whose server and WordPress time zones differ, which is harmless for date-granularity expiry.
-3. **Billing data in migrated orders.** 1.x stored full address and phone. Options: keep it as `legacy_billing` (retained, covered by the WordPress privacy exporter and eraser), or drop it. I recommend keeping it, behind a setting, with the eraser hook.
-4. **Guest purchases.** The schema allows `user_id = NULL`. The WooCommerce adapter can then sell without an account, with licenses looked up by email. Should guest purchases be supported at launch, or later?
-5. **Event retention.** Two years by default, filterable. Is that right?
+1. **License key storage:** keys are stored as-is with a unique index and compared with `hash_equals()`, so customers can always see their key. The table is treated as sensitive.
+2. **Time zone of migrated dates:** 1.x dates are treated as site-local and converted to UTC.
+3. **Billing data in migrated orders:** kept as `legacy_billing` JSON behind a setting, and covered by the WordPress privacy exporter and eraser.
+4. **Guest purchases:** not at launch. `user_id` stays nullable so the WooCommerce adapter can add guest checkout later.
+5. **Event retention:** two years, filterable, pruned by a daily job.
