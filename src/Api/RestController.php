@@ -62,9 +62,14 @@ final class RestController {
 			'/licenses/validate',
 			'validate',
 			$license_args + array(
-				'email' => array(
+				'email'    => array(
 					'type'              => 'string',
 					'maxLength'         => 190,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'site_url' => array(
+					'type'              => 'string',
+					'maxLength'         => 255,
 					'sanitize_callback' => 'sanitize_text_field',
 				),
 			)

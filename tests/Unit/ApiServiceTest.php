@@ -122,6 +122,27 @@ final class ApiServiceTest extends TestCase {
 		}
 	}
 
+	public function test_validate_reports_whether_the_calling_site_is_still_activated(): void {
+		$license = $this->license( 2 );
+		$params  = array( 'license_key' => $license->license_key, 'product_id' => 7, 'site_url' => 'https://www.one.com/' );
+
+		$this->assertFalse( $this->api->validate( $params, self::CLIENT )->body['site_active'] );
+
+		$this->api->activate( $params, self::CLIENT );
+		$this->assertTrue( $this->api->validate( $params, self::CLIENT )->body['site_active'] );
+
+		$this->api->deactivate( $params, self::CLIENT );
+		$this->assertFalse( $this->api->validate( $params, self::CLIENT )->body['site_active'] );
+	}
+
+	public function test_validate_without_a_site_does_not_mention_site_state(): void {
+		$license = $this->license();
+
+		$body = $this->api->validate( array( 'license_key' => $license->license_key, 'product_id' => 7 ), self::CLIENT )->body;
+
+		$this->assertArrayNotHasKey( 'site_active', $body );
+	}
+
 	// Rate limiting.
 
 	public function test_clients_are_blocked_after_too_many_bad_keys(): void {

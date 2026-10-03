@@ -23,7 +23,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Devllo\\WPLicenseIt\\Tests\\": "tests/"
+            "Devllo\\WPLicenseIt\\Tests\\": "tests/",
+            "WPLicenseIt\\Client\\": "sdk/src/"
         }
     },
     "config": {
@@ -33,7 +34,10 @@
         "sort-packages": true
     },
     "scripts": {
-        "lint": "phpcs",
+        "lint": [
+            "phpcs",
+            "phpcs --standard=sdk/phpcs.xml.dist"
+        ],
         "lint:fix": "phpcbf",
         "analyse": "phpstan analyse --memory-limit=1G",
         "test": "phpunit"

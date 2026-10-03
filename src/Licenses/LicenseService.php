@@ -346,6 +346,32 @@ final class LicenseService {
 	}
 
 	/**
+	 * Whether a site is currently activated on a license. Also records that the site checked in.
+	 *
+	 * @param License $license  License.
+	 * @param string  $site_url Site URL as reported by the client.
+	 * @return bool|null True if active, false if not, null if the URL is not a usable site.
+	 */
+	public function site_is_active( License $license, string $site_url ): ?bool {
+		$site = SiteNormalizer::normalize( $site_url );
+
+		if ( null === $site ) {
+			return null;
+		}
+
+		$activation = $this->activations->find( $license->id, $site );
+
+		if ( null === $activation || ! $activation->is_active() ) {
+			return false;
+		}
+
+		$activation->last_checked_at = $this->now();
+		$this->activations->save( $activation );
+
+		return true;
+	}
+
+	/**
 	 * Number of sites currently using a slot of the license.
 	 *
 	 * @param License $license License.

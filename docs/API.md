@@ -29,7 +29,7 @@ The license object: `status`, `expires_at` (ISO 8601 UTC, or `null` for lifetime
 ## Endpoints
 
 ### `POST /licenses/validate`
-`license_key`, `product_id`, `email` (optional). Returns `{ success, code: "ok", license }`.
+`license_key`, `product_id`, `email` (optional), `site_url` (optional). Returns `{ success, code: "ok", license }`. When `site_url` is sent the response also has `site_active`: whether that site is still activated on the license (and the check-in is recorded).
 
 ### `POST /licenses/activate`
 `license_key`, `product_id`, `site_url`, `product_version` (optional). Uses one slot, unless the site

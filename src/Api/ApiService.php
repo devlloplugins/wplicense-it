@@ -55,7 +55,7 @@ final class ApiService {
 	/**
 	 * Checks a license.
 	 *
-	 * @param array<string, mixed> $params Request parameters: license_key, product_id, email (optional).
+	 * @param array<string, mixed> $params Request parameters: license_key, product_id, email and site_url (both optional).
 	 * @param string               $client Client identifier for rate limiting.
 	 */
 	public function validate( array $params, string $client ): ApiResponse {
@@ -77,14 +77,23 @@ final class ApiService {
 			return $error;
 		}
 
-		return new ApiResponse(
-			200,
-			array(
-				'success' => true,
-				'code'    => ValidationResult::OK,
-				'license' => $this->license_body( $result->license ),
-			)
+		$body = array(
+			'success' => true,
+			'code'    => ValidationResult::OK,
+			'license' => $this->license_body( $result->license ),
 		);
+
+		// Clients that send their site_url also learn whether this site is still activated.
+		$site_url = $this->string_param( $params, 'site_url' );
+		if ( '' !== $site_url ) {
+			$active = $this->licenses->site_is_active( $result->license, $site_url );
+
+			if ( null !== $active ) {
+				$body['site_active'] = $active;
+			}
+		}
+
+		return new ApiResponse( 200, $body );
 	}
 
 	/**
