@@ -32,3 +32,12 @@ Sellers must not need a paid plugin to use WPLicense It, so renewals are layered
 2. **Free WooCommerce:** renewal by repurchase. The adapter extends the existing license when the customer buys again.
 3. **Optional integration:** if a subscriptions plugin (such as WooCommerce Subscriptions) is active, each successful renewal payment extends the license, and a cancelled or failed subscription expires it. Nothing breaks if none is installed.
 4. **Pro, later:** built-in automatic renewal (for example on Stripe Billing), if there is demand.
+
+## Revamp decisions (product setup)
+
+| # | Topic | Decision |
+|---|---|---|
+| 12 | Revamp scope | This round redesigns process 1 only (adding a product). Purchase, license checking, updates, renewal and the other processes stay as built and are reviewed one at a time afterwards. |
+| 13 | WooCommerce product type | One simple WooCommerce product per plan. A variable product is not used. |
+| 14 | Price conflicts | The plugin's Plans table wins. A price edited in WooCommerce is flagged on the Plans screen, with a choice to accept it or restore the plugin's price. |
+| 15 | WooCommerce product status | Products are created as drafts. A Publish button appears after the test purchase passes. |
