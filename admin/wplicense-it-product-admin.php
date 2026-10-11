@@ -16,6 +16,7 @@ class WP_License_It_Product_Admin {
         add_action( 'save_post', array( $this, 'save_metabox' ), 1, 2 );
         add_action ('add_meta_boxes', array ($this, 'wplit_add_metabox' ));
         add_action('post_edit_form_tag', array ($this, 'update_edit_form'));
+        add_action( 'admin_notices', array( '\Devllo\WPLicenseIt\Packages\UploadReport', 'render' ) );
 
     }
 
@@ -275,7 +276,31 @@ class WP_License_It_Product_Admin {
             $wplit_product_version = (string) get_post_meta( $post_id, 'wplit_product_version', true );
         }
 
-        if (isset($_POST['wplit_product_version'])){
+        // Read the uploaded zip first: its header is the source of truth for the version and the requirements.
+        $package_rejected = false;
+        $package_tmp      = ! empty( $_FILES['wplit_product_file_upload']['name'] ) && isset( $_FILES['wplit_product_file_upload']['tmp_name'] ) ? (string) $_FILES['wplit_product_file_upload']['tmp_name'] : '';
+        if ( '' !== $package_tmp && is_uploaded_file( $package_tmp ) ) {
+            try {
+                $package_info = \Devllo\WPLicenseIt\Packages\PackageReader::read( $package_tmp );
+
+                $wplit_product_version = preg_replace( '/[^A-Za-z0-9._-]/', '', $package_info->version );
+                update_post_meta( $post_id, 'wplit_product_version', $wplit_product_version );
+                update_post_meta( $post_id, 'wplit_package_type', $package_info->type );
+                update_post_meta( $post_id, 'wplit_required_php_version', $package_info->requires_php );
+                if ( '' !== $package_info->requires_wp ) {
+                    update_post_meta( $post_id, 'wplit_required_wp_version', $package_info->requires_wp );
+                }
+                if ( '' !== $package_info->tested_up_to ) {
+                    update_post_meta( $post_id, 'wplit_tested_wp_version', $package_info->tested_up_to );
+                }
+                \Devllo\WPLicenseIt\Packages\UploadReport::queue( \Devllo\WPLicenseIt\Packages\UploadReport::success( $package_info ) );
+            } catch ( \Devllo\WPLicenseIt\Packages\PackageException $e ) {
+                $package_rejected = true;
+                \Devllo\WPLicenseIt\Packages\UploadReport::queue( \Devllo\WPLicenseIt\Packages\UploadReport::failure( $e ) );
+            }
+        }
+
+        if ( isset( $_POST['wplit_product_version'] ) && ! ( '' !== $package_tmp && ! $package_rejected ) ) {
             update_post_meta( $post_id, 'wplit_product_version', $wplit_product_version );
         }
 
@@ -421,7 +446,7 @@ class WP_License_It_Product_Admin {
         }
 
         // Create Plugin Theme folders
-        if(!empty($_FILES['wplit_product_file_upload']['name'])){
+        if ( ! $package_rejected && ! empty( $_FILES['wplit_product_file_upload']['name'] ) ) {
             $supported_file_type = array('application/zip');
 
             $file_type = wp_check_filetype(basename($_FILES['wplit_product_file_upload']['name']));
