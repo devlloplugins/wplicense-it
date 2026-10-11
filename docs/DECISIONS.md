@@ -41,3 +41,11 @@ Sellers must not need a paid plugin to use WPLicense It, so renewals are layered
 | 13 | WooCommerce product type | One simple WooCommerce product per plan. A variable product is not used. |
 | 14 | Price conflicts | The plugin's Plans table wins. A price edited in WooCommerce is flagged on the Plans screen, with a choice to accept it or restore the plugin's price. |
 | 15 | WooCommerce product status | Products are created as drafts. A Publish button appears after the test purchase passes. |
+
+## Test purchase decisions
+
+| # | Topic | Decision |
+|---|---|---|
+| 16 | Kind of test | A dry run unlocks Publish. It runs the real purchase code on an order built in memory, with in-memory storage, so it writes nothing and needs no cleanup. A live test order is not built; it can be added later as an extra. |
+| 17 | API reachability check | If this site's own license API does not answer a request from the server, the test shows a warning but does not block Publish, because some hosts block requests from the server to itself while the public can reach the site. |
+| 18 | When a pass stops counting | A pass is tied to a fingerprint of the product link, sites, period and zip file. Changing any of them cancels the pass. Price changes do not. |
