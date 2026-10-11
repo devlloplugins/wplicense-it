@@ -36,4 +36,23 @@ final class Money {
 
 		return (int) round( (float) $amount * $factor );
 	}
+
+	/**
+	 * Converts minor units back to a plain decimal string, for example 4900 and USD to "49.00".
+	 *
+	 * @param int    $minor    Amount in minor units, from 0.
+	 * @param string $currency ISO 4217 code.
+	 */
+	public static function from_minor( int $minor, string $currency ): string {
+		$currency = strtoupper( $currency );
+
+		if ( in_array( $currency, self::ZERO_DECIMAL, true ) ) {
+			return (string) $minor;
+		}
+
+		$decimals = in_array( $currency, self::THREE_DECIMAL, true ) ? 3 : 2;
+		$factor   = 10 ** $decimals;
+
+		return intdiv( $minor, $factor ) . '.' . str_pad( (string) ( $minor % $factor ), $decimals, '0', STR_PAD_LEFT );
+	}
 }

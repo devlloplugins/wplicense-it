@@ -90,3 +90,42 @@ if ( ! function_exists( 'wc_get_order' ) ) {
 	function _n( $single, $plural, $number ) { return 1 === $number ? $single : $plural; }
 	function delete_transient( $name ) { $store = &wplit_test_transients(); unset( $store[ $name ] ); return true; }
 }
+
+// Product creation, as the plan gateway uses it.
+if ( ! class_exists( 'WC_Product_Simple' ) ) {
+	class WC_Product_Simple extends WC_Product {
+		public string $name = '';
+		public string $status = 'publish';
+		public string $regular_price = '';
+		public bool $virtual = false;
+		public bool $fail_on_save = false;
+
+		public function __construct() {
+			$this->id = 0;
+		}
+
+		public function set_name( $name ) { $this->name = $name; }
+		public function set_status( $status ) { $this->status = $status; }
+		public function set_virtual( $virtual ) { $this->virtual = (bool) $virtual; }
+		public function set_regular_price( $price ) { $this->regular_price = (string) $price; }
+		public function get_regular_price( $context = 'view' ) { return $this->regular_price; }
+		public function get_status( $context = 'view' ) { return $this->status; }
+		public function update_meta_data( $key, $value ) { $this->meta[ $key ] = $value; }
+
+		public function save() {
+			if ( $this->fail_on_save ) {
+				throw new Exception( 'Invalid or duplicated SKU.' );
+			}
+			if ( 0 === $this->id ) {
+				$this->id = 900 + count( $GLOBALS['wplit_test_products'] ?? array() );
+			}
+			$GLOBALS['wplit_test_products'][ $this->id ] = $this;
+
+			return $this->id;
+		}
+	}
+}
+
+if ( ! function_exists( 'get_woocommerce_currency' ) ) {
+	function get_woocommerce_currency() { return $GLOBALS['wplit_test_currency'] ?? 'USD'; }
+}

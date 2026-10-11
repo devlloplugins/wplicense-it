@@ -11,6 +11,7 @@ namespace Devllo\WPLicenseIt;
 
 use Devllo\WPLicenseIt\Admin\AdminMenu;
 use Devllo\WPLicenseIt\Admin\Maintenance;
+use Devllo\WPLicenseIt\Admin\PlansBox;
 use Devllo\WPLicenseIt\Admin\SettingsScreen;
 use Devllo\WPLicenseIt\Admin\UpgradeNotice;
 use Devllo\WPLicenseIt\Api\ApiService;
@@ -30,6 +31,8 @@ use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Migration\Command;
 use Devllo\WPLicenseIt\Migration\MigrationRunner;
+use Devllo\WPLicenseIt\Plans\PostMetaPlanRepository;
+use Devllo\WPLicenseIt\Plans\WcProductGateway;
 use Devllo\WPLicenseIt\Privacy\PrivacyHooks;
 use Devllo\WPLicenseIt\WooCommerce\AccountPage;
 use Devllo\WPLicenseIt\WooCommerce\CartRenewal;
@@ -163,6 +166,7 @@ final class Plugin {
 
 		( new WooAdapter( $processor, $reader ) )->register();
 		( new ProductFields() )->register();
+		( new PlansBox( new PostMetaPlanRepository(), new WcProductGateway() ) )->register();
 		( new CartRenewal( $this->licenses(), $reader ) )->register();
 		( new LicenseDisplay( $this->licenses() ) )->register();
 		( new AccountPage( $this->licenses(), new WpProductCatalog(), $this->signer() ) )->register();

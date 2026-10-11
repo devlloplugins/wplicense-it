@@ -4,7 +4,31 @@ WPLicense It sells nothing itself in 2.0. WooCommerce takes the payment, and the
 orders into licenses. It loads only when WooCommerce is active, and works with the classic and the
 high-performance (HPOS) order storage.
 
-## Setting up a product
+## Plans (the recommended way)
+
+Open a product under **License Products**. The **Plans** box lists what customers can buy, one row each:
+name, price, sites per license (0 is unlimited) and how long the license lasts.
+
+Saving the product creates **one simple WooCommerce product per plan**, as a **draft**, marked virtual and
+linked to the license product with the plan's terms. Later saves keep the price and terms current.
+
+| Situation | What happens |
+|---|---|
+| You change a plan's price or terms | They are sent to WooCommerce on save. |
+| Someone changes a price in WooCommerce | Nothing is overwritten. The row shows both prices and asks: **keep the plan price** or **use the WooCommerce price**. |
+| Both prices changed | The plan's price wins. |
+| Someone edits a plan's license terms in WooCommerce | They are put back to the plan's terms on the next save. |
+| A plan's WooCommerce product is deleted | The row says so. **Create it again** makes a new draft. |
+| You clear a plan's row | Its WooCommerce product is set back to **draft**, so it can no longer be bought. It is not deleted. Existing licenses keep working. |
+| A save is refused (bad price, duplicate name) | Nothing is saved, and every mistake is listed. |
+
+A plan can be **published** in the shop only after a test purchase of it has passed. The test purchase button
+is not built yet, so for now publish the draft from WooCommerce itself.
+
+Prices are compared in minor units (cents) using the store currency, so 49 and 49.00 are the same price.
+A sale price set in WooCommerce is ignored: only the regular price is managed.
+
+## Setting up a product by hand
 
 Edit a WooCommerce product, General tab, **WPLicense It** section:
 
