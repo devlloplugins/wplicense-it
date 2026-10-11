@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace Devllo\WPLicenseIt;
 
 use Devllo\WPLicenseIt\Admin\AdminMenu;
+use Devllo\WPLicenseIt\Admin\ConnectBox;
 use Devllo\WPLicenseIt\Admin\Maintenance;
 use Devllo\WPLicenseIt\Admin\PlansBox;
 use Devllo\WPLicenseIt\Admin\SettingsScreen;
@@ -116,6 +117,12 @@ final class Plugin {
 		if ( is_admin() ) {
 			( new AdminMenu( $this->licenses() ) )->register();
 			( new UpgradeNotice() )->register();
+			( new ConnectBox(
+				new PostMetaPlanRepository(),
+				static function () {
+					return class_exists( 'WooCommerce' ) ? new WcProductGateway() : null;
+				}
+			) )->register();
 		}
 
 		// WooCommerce adapter. The HPOS declaration has to be registered before WooCommerce initialises.

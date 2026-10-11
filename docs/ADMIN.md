@@ -39,6 +39,18 @@ Issue a license by hand (gifts, support, licenses sold elsewhere). Choose the pr
 and optionally a WordPress user (so it shows in their account), sites per license, expiry (never, after a
 period, or through a date), and whether to email the key to the customer.
 
+## Connect box (on the product edit screen)
+
+Shows a checklist of what is left before the product can be sold (zip uploaded, a plan added, a WooCommerce
+product for every plan, HTTPS, test purchase, on sale) and the code to paste into the seller's own plugin or
+theme. The code has this site's address and the product ID already filled in, and the product name is written
+safely, so a name with quotes or backslashes still gives code that runs. The type (plugin or theme), name and
+folder come from the uploaded zip when there is one. The plugin version is read from the plugin's own header
+when the plugin runs, so it never goes stale. Themes read theirs from `style.css`.
+
+The seller still has to copy the `sdk` folder from the WPLicense It plugin into their own plugin or theme as
+`vendor/wplicense-it-client`. There is no download button for it yet.
+
 ## Licensing settings
 
 | Setting | Meaning |

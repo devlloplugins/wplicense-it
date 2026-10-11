@@ -286,6 +286,8 @@ class WP_License_It_Product_Admin {
                 $wplit_product_version = preg_replace( '/[^A-Za-z0-9._-]/', '', $package_info->version );
                 update_post_meta( $post_id, 'wplit_product_version', $wplit_product_version );
                 update_post_meta( $post_id, 'wplit_package_type', $package_info->type );
+                update_post_meta( $post_id, 'wplit_package_name', $package_info->name );
+                update_post_meta( $post_id, 'wplit_package_folder', $package_info->folder );
                 update_post_meta( $post_id, 'wplit_required_php_version', $package_info->requires_php );
                 if ( '' !== $package_info->requires_wp ) {
                     update_post_meta( $post_id, 'wplit_required_wp_version', $package_info->requires_wp );
