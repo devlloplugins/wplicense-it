@@ -80,3 +80,13 @@ if ( ! function_exists( 'esc_url' ) ) {
 if ( ! function_exists( 'esc_html_e' ) ) {
 	function esc_html_e( $text, $domain = '' ) { echo esc_html( $text ); }
 }
+
+// Records the boxes the product screen adds, so a test can check every tab's boxes exist.
+if ( ! function_exists( 'add_meta_box' ) ) {
+	function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advanced', $priority = 'default' ) {
+		$GLOBALS['wplit_test_meta_boxes'][ $id ] = array( $title, $callback, $context );
+	}
+}
+if ( ! function_exists( 'esc_attr__' ) ) {
+	function esc_attr__( $text, $domain = '' ) { return esc_attr( $text ); }
+}

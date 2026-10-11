@@ -13,6 +13,7 @@ use Devllo\WPLicenseIt\Admin\AdminMenu;
 use Devllo\WPLicenseIt\Admin\ConnectBox;
 use Devllo\WPLicenseIt\Admin\Maintenance;
 use Devllo\WPLicenseIt\Admin\PlansBox;
+use Devllo\WPLicenseIt\Admin\ProductScreen;
 use Devllo\WPLicenseIt\Admin\SettingsScreen;
 use Devllo\WPLicenseIt\Admin\UpgradeNotice;
 use Devllo\WPLicenseIt\Api\ApiService;
@@ -120,6 +121,7 @@ final class Plugin {
 		if ( is_admin() ) {
 			( new AdminMenu( $this->licenses() ) )->register();
 			( new UpgradeNotice() )->register();
+			( new ProductScreen() )->register();
 			( new ConnectBox(
 				new PostMetaPlanRepository(),
 				static function () {

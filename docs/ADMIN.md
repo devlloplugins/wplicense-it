@@ -39,6 +39,26 @@ Issue a license by hand (gifts, support, licenses sold elsewhere). Choose the pr
 and optionally a WordPress user (so it shows in their account), sites per license, expiry (never, after a
 period, or through a date), and whether to email the key to the customer.
 
+## The product screen (tabs)
+
+A product (**License Products**, add or edit) is still a WordPress post, so saving and the file upload work as
+before. Under the title and description, a tab bar shows one section at a time:
+
+| Tab | What is on it |
+|---|---|
+| **Software** | Name, short description, minimum and tested WordPress versions, logo and banner. Defaults for licenses issued by hand (sites and period). |
+| **Plans** | The plans table, the WooCommerce sync, and **Test this plan** / **Publish**. |
+| **Releases** | Upload a new zip, the version, and the stored file with what was read from it. |
+| **Connect** | The checklist and the code to paste into the seller's plugin or theme. The old 1.x API key is here too. |
+
+The last tab is remembered per product, and a link such as `post.php?post=7&action=edit#wplit-plans` opens a
+given tab (the Plans actions return there). Without JavaScript every box is shown and the tab bar stays hidden.
+The old 1.x boxes were removed; the save code in `admin/wplicense-it-product-admin.php` is unchanged, and a test
+checks that every field it reads has an input on these tabs.
+
+The browser test for the tab bar is `tests/js/product-tabs.cjs` (needs Playwright with Chromium and PHP):
+`NODE_PATH=$(npm root -g) node tests/js/product-tabs.cjs`.
+
 ## Connect box (on the product edit screen)
 
 Shows a checklist of what is left before the product can be sold (zip uploaded, a plan added, a WooCommerce

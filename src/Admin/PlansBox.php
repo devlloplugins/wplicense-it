@@ -306,7 +306,8 @@ final class PlansBox {
 		}
 
 		$this->queue_report( $post_id, $errors, $results, $done );
-		wp_safe_redirect( (string) get_edit_post_link( $post_id, 'raw' ) );
+		// Back to the Plans tab of the product.
+		wp_safe_redirect( (string) get_edit_post_link( $post_id, 'raw' ) . '#wplit-plans' );
 		exit;
 	}
 
