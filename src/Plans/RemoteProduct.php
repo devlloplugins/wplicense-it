@@ -23,6 +23,7 @@ final class RemoteProduct {
 	 * @param int      $software_id License product the WooCommerce product is linked to, 0 if none.
 	 * @param string   $sites       Sites per license setting, as stored.
 	 * @param string   $period      License period setting, as stored.
+	 * @param string   $type        WooCommerce product type, such as simple or variable.
 	 */
 	public function __construct(
 		public int $id,
@@ -30,7 +31,8 @@ final class RemoteProduct {
 		public ?int $price_minor,
 		public int $software_id,
 		public string $sites,
-		public string $period
+		public string $period,
+		public string $type = 'simple'
 	) {
 	}
 

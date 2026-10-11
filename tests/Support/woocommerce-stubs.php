@@ -51,8 +51,12 @@ if ( ! class_exists( 'WC_Order_Item' ) ) {
 	class WC_Product {
 		public array $meta = array();
 		public int $id = 55;
+		public string $name = 'Great Plugin';
+		public string $type = 'simple';
 
 		public function get_id() { return $this->id; }
+		public function get_name() { return $this->name; }
+		public function get_type() { return $this->type; }
 		public function get_meta( $key, $single = true ) { return $this->meta[ $key ] ?? ''; }
 	}
 
@@ -94,7 +98,6 @@ if ( ! function_exists( 'wc_get_order' ) ) {
 // Product creation, as the plan gateway uses it.
 if ( ! class_exists( 'WC_Product_Simple' ) ) {
 	class WC_Product_Simple extends WC_Product {
-		public string $name = '';
 		public string $status = 'publish';
 		public string $regular_price = '';
 		public bool $virtual = false;

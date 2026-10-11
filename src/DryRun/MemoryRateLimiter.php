@@ -1,20 +1,20 @@
 <?php
 /**
- * In-memory rate limiter for tests.
+ * In-memory rate limiter.
  *
  * @package Devllo\WPLicenseIt
  */
 
 declare( strict_types=1 );
 
-namespace Devllo\WPLicenseIt\Tests\Support;
+namespace Devllo\WPLicenseIt\DryRun;
 
 use Devllo\WPLicenseIt\Api\RateLimiter;
 
 /**
- * Blocks a client after a number of failures.
+ * Blocks a client after a number of failures. Nothing is stored outside the object.
  */
-final class InMemoryRateLimiter implements RateLimiter {
+final class MemoryRateLimiter implements RateLimiter {
 
 	/**
 	 * Failures per client.

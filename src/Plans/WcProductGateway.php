@@ -37,7 +37,8 @@ final class WcProductGateway implements ProductGateway {
 			'' === $price ? null : Money::to_minor( $price, $this->currency() ),
 			(int) $product->get_meta( OrderReader::META_PRODUCT, true ),
 			(string) $product->get_meta( OrderReader::META_LIMIT, true ),
-			(string) $product->get_meta( OrderReader::META_PERIOD, true )
+			(string) $product->get_meta( OrderReader::META_PERIOD, true ),
+			(string) $product->get_type()
 		);
 	}
 

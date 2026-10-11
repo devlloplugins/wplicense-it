@@ -9,6 +9,9 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\DryRun;
 
+use Devllo\WPLicenseIt\Api\ApiService;
+use Devllo\WPLicenseIt\Api\DownloadSigner;
+use Devllo\WPLicenseIt\Api\ProductCatalog;
 use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
@@ -76,6 +79,26 @@ final class Sandbox {
 	 */
 	public function licenses(): LicenseService {
 		return $this->licenses;
+	}
+
+	/**
+	 * The license API logic (validate, activate, deactivate, update check, download) over the sandbox licenses.
+	 *
+	 * Download links are signed with a throwaway secret and the "URL" handed out is the bare token, so the whole
+	 * update path can be followed without a web request. Failures are counted by an in-memory limiter.
+	 *
+	 * @param ProductCatalog $products Where software products and their zip files are looked up.
+	 */
+	public function api( ProductCatalog $products ): ApiService {
+		return new ApiService(
+			$this->licenses,
+			$products,
+			new DownloadSigner( bin2hex( random_bytes( 16 ) ) ),
+			new MemoryRateLimiter( 1000 ),
+			static function ( string $token ): string {
+				return $token;
+			}
+		);
 	}
 
 	/**

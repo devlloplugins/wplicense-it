@@ -1,6 +1,7 @@
 # Test purchase (design)
 
-Status: designed, not built. Decisions 16 to 18 in `DECISIONS.md`.
+Status: the seven checks are built (`src/TestPurchase`). The Test link, results panel and Publish gate are not
+(board card 122). Decisions 16 to 18 in `DECISIONS.md`.
 
 ## Purpose
 
@@ -11,7 +12,8 @@ for that plan.
 ## Dry run
 
 The dry run uses the real purchase code with nothing saved: an order built in memory (never saved to WooCommerce)
-and in-memory copies of the storage. It writes no order, no license rows and no emails, appears in no sales
+and in-memory copies of the storage (`src/DryRun`). The real license service, order processor and API logic run
+over that storage. It writes no order, no license rows and no emails, appears in no sales
 report, and needs no cleanup.
 
 | # | Check | Fails when |
@@ -37,12 +39,21 @@ A pass stores a fingerprint: a hash of the software ID, the WooCommerce product 
 file name, with the time. Publish works only while the stored fingerprint equals the current one. Changing any of
 those, or uploading a different zip file, cancels the pass. Changing the price does not.
 
-## Needed
+## How it was built
 
-- In-memory implementations of the license, activation, event log, license-order and item-license stores, in the
-  plugin (they exist only in tests today).
-- An unsaved `WC_Order` with the product added. This is assumed to work in WooCommerce and has not been checked.
-  If it does not, the order data is built directly from the product and check 2 reads the real product settings.
+- **The order.** `WcOrderBuilder` reads the license terms of the real WooCommerce product with
+  `OrderReader::current_terms()`, the same code a real order uses, and builds the order data itself. It does not
+  use a WooCommerce order object: adding a product to one normally saves it, and a test must write nothing. This
+  replaces the design's "unsaved `WC_Order`" idea, so that assumption is no longer needed.
+- **Check 7.** The probe requests the license API's route index (`/wp-json/wplicense-it/v1`) from the server. It
+  needs no license key and counts as no failed lookup, so it can never lock anyone out. A wrong-key request would
+  have counted against the server's own address.
+- **Check 3** also fails if the license product is not published, because the API reports an unpublished product
+  as unknown.
+- **Checks 5 and 6** run through the real `ApiService` over the sandbox, with a throwaway download signing secret.
+  The site limit is tried only for plans of 1 to 10 sites. Unlimited plans, and plans of more than 10 sites, get
+  one activation and the report says the limit was not tried.
+- A check whose earlier steps failed is shown as skipped, and a skipped check counts as not passed.
 
 ## Not built
 

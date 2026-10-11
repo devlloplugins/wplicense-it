@@ -53,7 +53,7 @@ final class FakeProductGateway implements ProductGateway {
 		}
 		$p = $this->products[ $id ];
 
-		return new RemoteProduct( $id, $p['status'], $p['price'], $p['software'], (string) $p['sites'], $p['period'] );
+		return new RemoteProduct( $id, $p['status'], $p['price'], $p['software'], (string) $p['sites'], $p['period'], $p['type'] ?? 'simple' );
 	}
 
 	public function create( string $plan_id, string $title, int $price_minor, int $software_id, int $sites, string $period ): int {
