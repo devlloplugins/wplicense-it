@@ -1,20 +1,20 @@
 <?php
 /**
- * In-memory order line to license links for tests.
+ * In-memory order line to license links.
  *
  * @package Devllo\WPLicenseIt
  */
 
 declare( strict_types=1 );
 
-namespace Devllo\WPLicenseIt\Tests\Support;
+namespace Devllo\WPLicenseIt\DryRun;
 
 use Devllo\WPLicenseIt\WooCommerce\ItemLicenseStore;
 
 /**
- * Keeps the links in an array.
+ * Keeps the links in an array. Nothing is written to the order.
  */
-final class InMemoryItemLicenseStore implements ItemLicenseStore {
+final class MemoryItemLicenseStore implements ItemLicenseStore {
 
 	/**
 	 * License IDs by order item ID.

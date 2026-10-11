@@ -13,10 +13,10 @@ use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Licenses\Status;
 use Devllo\WPLicenseIt\Tests\Support\FixedClock;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryActivationRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseOrderRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseRepository;
-use Devllo\WPLicenseIt\Tests\Support\RecordingEventLog;
+use Devllo\WPLicenseIt\DryRun\MemoryActivationRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseOrderRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryEventLog;
 use Devllo\WPLicenseIt\WooCommerce\Money;
 use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
 use Devllo\WPLicenseIt\WooCommerce\OrderReader;
@@ -53,9 +53,9 @@ final class WooAdapterTest extends TestCase {
 		\WC_Order_Factory::$items        = array();
 
 		$clock         = new FixedClock( '2026-03-01 00:00:00' );
-		$this->service = new LicenseService( new InMemoryLicenseRepository(), new InMemoryActivationRepository(), new RecordingEventLog(), new KeyGenerator(), $clock );
+		$this->service = new LicenseService( new MemoryLicenseRepository(), new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), $clock );
 		$reader        = new OrderReader();
-		$processor     = new OrderProcessor( $this->service, new InMemoryLicenseOrderRepository(), new WooItemLicenseStore(), $clock );
+		$processor     = new OrderProcessor( $this->service, new MemoryLicenseOrderRepository(), new WooItemLicenseStore(), $clock );
 		$this->adapter = new WooAdapter( $processor, $reader );
 
 		// A WooCommerce product linked to license product 7, selling 2 sites per license.

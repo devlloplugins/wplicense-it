@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Tests\Support;
 
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
 use Devllo\WPLicenseIt\Licenses\License;
 use Devllo\WPLicenseIt\Privacy\PrivacyRepository;
 
@@ -51,9 +52,9 @@ final class InMemoryPrivacyRepository implements PrivacyRepository {
 	/**
 	 * Constructor.
 	 *
-	 * @param InMemoryLicenseRepository $repo Licenses.
+	 * @param MemoryLicenseRepository $repo Licenses.
 	 */
-	public function __construct( private InMemoryLicenseRepository $repo ) {
+	public function __construct( private MemoryLicenseRepository $repo ) {
 	}
 
 	public function licenses( string $email, ?int $user_id, int $page, int $per_page ): array {

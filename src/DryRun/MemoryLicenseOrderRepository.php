@@ -1,21 +1,21 @@
 <?php
 /**
- * In-memory license order records for tests.
+ * In-memory license order records.
  *
  * @package Devllo\WPLicenseIt
  */
 
 declare( strict_types=1 );
 
-namespace Devllo\WPLicenseIt\Tests\Support;
+namespace Devllo\WPLicenseIt\DryRun;
 
 use Devllo\WPLicenseIt\WooCommerce\LicenseOrderRepository;
 use Devllo\WPLicenseIt\WooCommerce\OrderData;
 
 /**
- * Keeps one record per WooCommerce order.
+ * Keeps one record per WooCommerce order. Nothing is written to the database.
  */
-final class InMemoryLicenseOrderRepository implements LicenseOrderRepository {
+final class MemoryLicenseOrderRepository implements LicenseOrderRepository {
 
 	/**
 	 * Records by WooCommerce order ID: id, number, total and status.

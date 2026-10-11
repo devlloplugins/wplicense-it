@@ -19,9 +19,9 @@ use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Licenses\Status;
 use Devllo\WPLicenseIt\Tests\Support\FixedClock;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryActivationRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseRepository;
-use Devllo\WPLicenseIt\Tests\Support\RecordingEventLog;
+use Devllo\WPLicenseIt\DryRun\MemoryActivationRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryEventLog;
 use PHPUnit\Framework\TestCase;
 
 require_once dirname( __DIR__ ) . '/Support/woocommerce-stubs.php';
@@ -63,7 +63,7 @@ final class AdminHelpersTest extends TestCase {
 
 	public function test_expiring_everything_due_works_in_batches(): void {
 		$clock   = new FixedClock( '2026-01-01 00:00:00' );
-		$service = new LicenseService( new InMemoryLicenseRepository(), new InMemoryActivationRepository(), new RecordingEventLog(), new KeyGenerator(), $clock );
+		$service = new LicenseService( new MemoryLicenseRepository(), new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), $clock );
 		$soon    = new DateTimeImmutable( '2026-02-01 00:00:00', new DateTimeZone( 'UTC' ) );
 
 		for ( $i = 0; $i < 7; $i++ ) {
@@ -79,7 +79,7 @@ final class AdminHelpersTest extends TestCase {
 
 	public function test_a_huge_backlog_is_capped_per_run(): void {
 		$clock   = new FixedClock( '2026-01-01 00:00:00' );
-		$service = new LicenseService( new InMemoryLicenseRepository(), new InMemoryActivationRepository(), new RecordingEventLog(), new KeyGenerator(), $clock );
+		$service = new LicenseService( new MemoryLicenseRepository(), new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), $clock );
 		$soon    = new DateTimeImmutable( '2026-02-01 00:00:00', new DateTimeZone( 'UTC' ) );
 
 		for ( $i = 0; $i < 10; $i++ ) {

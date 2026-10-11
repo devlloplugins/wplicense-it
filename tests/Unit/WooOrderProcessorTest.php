@@ -14,11 +14,11 @@ use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Licenses\Status;
 use Devllo\WPLicenseIt\Tests\Support\FixedClock;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryActivationRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryItemLicenseStore;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseOrderRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseRepository;
-use Devllo\WPLicenseIt\Tests\Support\RecordingEventLog;
+use Devllo\WPLicenseIt\DryRun\MemoryActivationRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryItemLicenseStore;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseOrderRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryEventLog;
 use Devllo\WPLicenseIt\WooCommerce\LicenseTerms;
 use Devllo\WPLicenseIt\WooCommerce\OrderData;
 use Devllo\WPLicenseIt\WooCommerce\OrderItemData;
@@ -34,16 +34,16 @@ use PHPUnit\Framework\TestCase;
 final class WooOrderProcessorTest extends TestCase {
 
 	private LicenseService $service;
-	private InMemoryItemLicenseStore $store;
-	private InMemoryLicenseOrderRepository $orders;
+	private MemoryItemLicenseStore $store;
+	private MemoryLicenseOrderRepository $orders;
 	private OrderProcessor $processor;
 	private FixedClock $clock;
 
 	protected function setUp(): void {
 		$this->clock     = new FixedClock( '2026-03-01 00:00:00' );
-		$this->service   = new LicenseService( new InMemoryLicenseRepository(), new InMemoryActivationRepository(), new RecordingEventLog(), new KeyGenerator(), $this->clock );
-		$this->store     = new InMemoryItemLicenseStore();
-		$this->orders    = new InMemoryLicenseOrderRepository();
+		$this->service   = new LicenseService( new MemoryLicenseRepository(), new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), $this->clock );
+		$this->store     = new MemoryItemLicenseStore();
+		$this->orders    = new MemoryLicenseOrderRepository();
 		$this->processor = new OrderProcessor( $this->service, $this->orders, $this->store, $this->clock );
 	}
 

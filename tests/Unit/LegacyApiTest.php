@@ -15,10 +15,10 @@ use Devllo\WPLicenseIt\Licenses\License;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Tests\Support\FakeProductCatalog;
 use Devllo\WPLicenseIt\Tests\Support\FixedClock;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryActivationRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryActivationRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
 use Devllo\WPLicenseIt\Tests\Support\InMemoryRateLimiter;
-use Devllo\WPLicenseIt\Tests\Support\RecordingEventLog;
+use Devllo\WPLicenseIt\DryRun\MemoryEventLog;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,7 +36,7 @@ final class LegacyApiTest extends TestCase {
 
 	protected function setUp(): void {
 		$this->clock    = new FixedClock( '2026-01-01 00:00:00' );
-		$this->licenses = new LicenseService( new InMemoryLicenseRepository(), new InMemoryActivationRepository(), new RecordingEventLog(), new KeyGenerator(), $this->clock );
+		$this->licenses = new LicenseService( new MemoryLicenseRepository(), new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), $this->clock );
 		$this->limiter  = new InMemoryRateLimiter( 3 );
 		$this->products = new FakeProductCatalog();
 		$this->api      = new LegacyApi(

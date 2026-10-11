@@ -19,11 +19,11 @@ use Devllo\WPLicenseIt\Migration\MigrationState;
 use Devllo\WPLicenseIt\Migration\Migrator;
 use Devllo\WPLicenseIt\Tests\Support\ArrayLegacySource;
 use Devllo\WPLicenseIt\Tests\Support\FixedClock;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryActivationRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryActivationRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
 use Devllo\WPLicenseIt\Tests\Support\InMemoryMigrationTarget;
 use Devllo\WPLicenseIt\Tests\Support\InMemoryStateStore;
-use Devllo\WPLicenseIt\Tests\Support\RecordingEventLog;
+use Devllo\WPLicenseIt\DryRun\MemoryEventLog;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -33,7 +33,7 @@ use PHPUnit\Framework\TestCase;
 final class MigratorTest extends TestCase {
 
 	private ArrayLegacySource $source;
-	private InMemoryLicenseRepository $repo;
+	private MemoryLicenseRepository $repo;
 	private InMemoryMigrationTarget $target;
 	private InMemoryStateStore $store;
 	private LicenseService $service;
@@ -63,10 +63,10 @@ final class MigratorTest extends TestCase {
 	protected function setUp(): void {
 		$this->clock   = new FixedClock( '2026-06-01 00:00:00' );
 		$this->source  = new ArrayLegacySource();
-		$this->repo    = new InMemoryLicenseRepository();
+		$this->repo    = new MemoryLicenseRepository();
 		$this->target  = new InMemoryMigrationTarget( $this->repo );
 		$this->store   = new InMemoryStateStore();
-		$this->service = new LicenseService( $this->repo, new InMemoryActivationRepository(), new RecordingEventLog(), new KeyGenerator(), $this->clock );
+		$this->service = new LicenseService( $this->repo, new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), $this->clock );
 	}
 
 	private function migrator( bool $keep_billing = true, ?callable $api_key_for = null, float $tick = 0.0 ): Migrator {

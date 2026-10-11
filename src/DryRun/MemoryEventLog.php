@@ -1,25 +1,25 @@
 <?php
 /**
- * Recording event log for tests.
+ * In-memory event log.
  *
  * @package Devllo\WPLicenseIt
  */
 
 declare( strict_types=1 );
 
-namespace Devllo\WPLicenseIt\Tests\Support;
+namespace Devllo\WPLicenseIt\DryRun;
 
 use Devllo\WPLicenseIt\Licenses\EventLog;
 
 /**
- * Remembers recorded events.
+ * Remembers recorded events. Nothing is written to the database.
  */
-final class RecordingEventLog implements EventLog {
+final class MemoryEventLog implements EventLog {
 
 	/**
 	 * Recorded events.
 	 *
-	 * @var array<int, array{license_id:int,type:string,data:array<string,mixed>}>
+	 * @var array<int, array{license_id:int,type:string,data:array<string,mixed>,created_at:\DateTimeImmutable}>
 	 */
 	public array $events = array();
 
@@ -28,6 +28,7 @@ final class RecordingEventLog implements EventLog {
 			'license_id' => $license_id,
 			'type'       => $type,
 			'data'       => $data,
+			'created_at' => new \DateTimeImmutable( 'now', new \DateTimeZone( 'UTC' ) ),
 		);
 	}
 
@@ -38,7 +39,7 @@ final class RecordingEventLog implements EventLog {
 			static fn( array $event ): array => array(
 				'type'       => $event['type'],
 				'data'       => $event['data'],
-				'created_at' => new \DateTimeImmutable( '2026-01-01 00:00:00', new \DateTimeZone( 'UTC' ) ),
+				'created_at' => $event['created_at'],
 			),
 			array_slice( array_reverse( array_values( $found ) ), 0, $limit )
 		);

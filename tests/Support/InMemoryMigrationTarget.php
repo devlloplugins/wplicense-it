@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Tests\Support;
 
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
 use Devllo\WPLicenseIt\Licenses\License;
 use Devllo\WPLicenseIt\Migration\MigratedOrder;
 use Devllo\WPLicenseIt\Migration\MigrationTarget;
@@ -36,9 +37,9 @@ final class InMemoryMigrationTarget implements MigrationTarget {
 	/**
 	 * Constructor.
 	 *
-	 * @param InMemoryLicenseRepository $repo License repository shared with the service.
+	 * @param MemoryLicenseRepository $repo License repository shared with the service.
 	 */
-	public function __construct( private InMemoryLicenseRepository $repo ) {
+	public function __construct( private MemoryLicenseRepository $repo ) {
 	}
 
 	public function import_license( License $license, int $legacy_id ): string {

@@ -18,10 +18,10 @@ use Devllo\WPLicenseIt\Privacy\PrivacyService;
 use Devllo\WPLicenseIt\Privacy\WpdbPrivacyRepository;
 use Devllo\WPLicenseIt\Tests\Support\FakeWpdb;
 use Devllo\WPLicenseIt\Tests\Support\FixedClock;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryActivationRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryActivationRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
 use Devllo\WPLicenseIt\Tests\Support\InMemoryPrivacyRepository;
-use Devllo\WPLicenseIt\Tests\Support\RecordingEventLog;
+use Devllo\WPLicenseIt\DryRun\MemoryEventLog;
 use PHPUnit\Framework\TestCase;
 
 require_once dirname( __DIR__ ) . '/Support/woocommerce-stubs.php';
@@ -33,14 +33,14 @@ require_once dirname( __DIR__ ) . '/Support/woocommerce-stubs.php';
 final class PrivacyTest extends TestCase {
 
 	private LicenseService $licenses;
-	private InMemoryLicenseRepository $repo;
+	private MemoryLicenseRepository $repo;
 	private InMemoryPrivacyRepository $data;
 	private PrivacyService $privacy;
 
 	protected function setUp(): void {
-		$this->repo     = new InMemoryLicenseRepository();
+		$this->repo     = new MemoryLicenseRepository();
 		$this->data     = new InMemoryPrivacyRepository( $this->repo );
-		$this->licenses = new LicenseService( $this->repo, new InMemoryActivationRepository(), new RecordingEventLog(), new KeyGenerator(), new FixedClock( '2026-03-01 00:00:00' ) );
+		$this->licenses = new LicenseService( $this->repo, new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), new FixedClock( '2026-03-01 00:00:00' ) );
 		$this->privacy  = new PrivacyService( $this->data );
 	}
 

@@ -1,21 +1,21 @@
 <?php
 /**
- * In-memory activation repository for tests.
+ * In-memory activation repository.
  *
  * @package Devllo\WPLicenseIt
  */
 
 declare( strict_types=1 );
 
-namespace Devllo\WPLicenseIt\Tests\Support;
+namespace Devllo\WPLicenseIt\DryRun;
 
 use Devllo\WPLicenseIt\Licenses\Activation;
 use Devllo\WPLicenseIt\Licenses\ActivationRepository;
 
 /**
- * Keeps activations in an array.
+ * Keeps activations in an array. Nothing is written to the database.
  */
-final class InMemoryActivationRepository implements ActivationRepository {
+final class MemoryActivationRepository implements ActivationRepository {
 
 	/**
 	 * Activations by ID.

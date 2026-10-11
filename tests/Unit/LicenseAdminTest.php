@@ -22,9 +22,9 @@ use Devllo\WPLicenseIt\Licenses\Status;
 use Devllo\WPLicenseIt\Licenses\ValidationResult;
 use Devllo\WPLicenseIt\Tests\Support\FakeWpdb;
 use Devllo\WPLicenseIt\Tests\Support\FixedClock;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryActivationRepository;
-use Devllo\WPLicenseIt\Tests\Support\InMemoryLicenseRepository;
-use Devllo\WPLicenseIt\Tests\Support\RecordingEventLog;
+use Devllo\WPLicenseIt\DryRun\MemoryActivationRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
+use Devllo\WPLicenseIt\DryRun\MemoryEventLog;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,12 +36,12 @@ final class LicenseAdminTest extends TestCase {
 
 	private LicenseService $service;
 	private FixedClock $clock;
-	private RecordingEventLog $events;
+	private MemoryEventLog $events;
 
 	protected function setUp(): void {
 		$this->clock   = new FixedClock( '2026-03-01 00:00:00' );
-		$this->events  = new RecordingEventLog();
-		$this->service = new LicenseService( new InMemoryLicenseRepository(), new InMemoryActivationRepository(), $this->events, new KeyGenerator(), $this->clock );
+		$this->events  = new MemoryEventLog();
+		$this->service = new LicenseService( new MemoryLicenseRepository(), new MemoryActivationRepository(), $this->events, new KeyGenerator(), $this->clock );
 	}
 
 	private function utc( string $date ): DateTimeImmutable {

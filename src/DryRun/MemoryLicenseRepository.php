@@ -1,13 +1,13 @@
 <?php
 /**
- * In-memory license repository for tests.
+ * In-memory license repository.
  *
  * @package Devllo\WPLicenseIt
  */
 
 declare( strict_types=1 );
 
-namespace Devllo\WPLicenseIt\Tests\Support;
+namespace Devllo\WPLicenseIt\DryRun;
 
 use DateTimeImmutable;
 use Devllo\WPLicenseIt\Licenses\License;
@@ -17,9 +17,9 @@ use Devllo\WPLicenseIt\Licenses\LicenseRepository;
 use Devllo\WPLicenseIt\Licenses\Status;
 
 /**
- * Keeps licenses in an array.
+ * Keeps licenses in an array. Nothing is written to the database, so it is used by the test purchase dry run.
  */
-final class InMemoryLicenseRepository implements LicenseRepository {
+final class MemoryLicenseRepository implements LicenseRepository {
 
 	/**
 	 * Licenses by ID.
