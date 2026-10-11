@@ -59,6 +59,37 @@ final class WpFileStore implements FileStore {
 		return new StoredFile( $relative, $uploads['baseurl'] . '/' . $relative, $name );
 	}
 
+	public function delete_package( string $relative ): void {
+		$uploads = wp_upload_dir();
+		$root    = realpath( $uploads['basedir'] . '/wplit-files' );
+		$file    = realpath( $uploads['basedir'] . '/' . $relative );
+
+		if ( false === $file ) {
+			return; // Already gone.
+		}
+
+		if ( false === $root || 0 !== strpos( $file, $root . DIRECTORY_SEPARATOR ) || 'zip' !== strtolower( pathinfo( $file, PATHINFO_EXTENSION ) ) || ! is_file( $file ) ) {
+			throw new FileStoreException( 'That file is not a release zip in the releases folder, so it was not deleted.' );
+		}
+
+		if ( ! @unlink( $file ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink -- The result is checked.
+			throw new FileStoreException( 'The file could not be deleted. Check the permissions of the uploads folder.' );
+		}
+
+		// Tidy up the folders that only held this file: the random one, then the version's.
+		foreach ( array( dirname( $file ), dirname( $file, 2 ) ) as $dir ) {
+			if ( 0 !== strpos( $dir, $root . DIRECTORY_SEPARATOR ) ) {
+				break;
+			}
+			$left = array_diff( (array) scandir( $dir ), array( '.', '..', 'index.php' ) );
+			if ( $left ) {
+				break;
+			}
+			@unlink( $dir . '/index.php' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink -- Our own placeholder file.
+			@rmdir( $dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- Only empty folders.
+		}
+	}
+
 	public function store_image( int $product_id, string $kind, array $file ): StoredFile {
 		if ( ! function_exists( 'wp_handle_upload' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';

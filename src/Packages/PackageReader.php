@@ -20,6 +20,8 @@ final class PackageReader {
 	private const MAX_ENTRIES     = 20000;
 	private const MAX_PHP_FILES   = 60;
 	private const HEADER_BYTES    = 8192;
+	private const README_BYTES    = 65536;
+	private const MAX_CHANGELOG   = 2000;
 	private const MAX_NAME_LENGTH = 120;
 	private const MAX_VERSION     = 40;
 
@@ -247,7 +249,7 @@ final class PackageReader {
 			return;
 		}
 
-		$head = self::head( $zip, $files['readme.txt'] );
+		$head = self::head( $zip, $files['readme.txt'], self::README_BYTES );
 
 		if ( '' === $info->requires_wp ) {
 			$info->requires_wp = self::clean( self::header( $head, 'Requires at least' ), 20 );
@@ -256,6 +258,8 @@ final class PackageReader {
 			$info->requires_php = self::clean( self::header( $head, 'Requires PHP' ), 20 );
 		}
 		$info->tested_up_to = self::clean( self::header( $head, 'Tested up to' ), 20 );
+
+		$info->changelog = self::changelog_for( $head, $info->version );
 
 		$stable = self::clean( self::header( $head, 'Stable tag' ), self::MAX_VERSION );
 		if ( '' !== $stable && 'trunk' !== strtolower( $stable ) && $stable !== $info->version ) {
@@ -277,17 +281,48 @@ final class PackageReader {
 	}
 
 	/**
+	 * The entry for one version from the "== Changelog ==" section of a readme.txt, as plain lines.
+	 *
+	 * @param string $readme  Start of readme.txt.
+	 * @param string $version Version to find.
+	 */
+	private static function changelog_for( string $readme, string $version ): string {
+		if ( ! preg_match( '/^==\s*Changelog\s*==\s*$(.*?)(?=^==[^=].*==\s*$|\z)/ims', $readme, $section ) ) {
+			return '';
+		}
+
+		$pattern = '/^=\s*v?' . preg_quote( $version, '/' ) . '(?:\s[^=\n]*)?=\s*$(.*?)(?=^=[^=].*=\s*$|\z)/ims';
+		if ( ! preg_match( $pattern, $section[1], $entry ) ) {
+			return '';
+		}
+
+		$lines = array();
+		foreach ( explode( "\n", $entry[1] ) as $line ) {
+			$line = trim( strip_tags( $line ) );
+			if ( '' !== $line ) {
+				$lines[] = $line;
+			}
+		}
+
+		$text = implode( "\n", $lines );
+
+		return function_exists( 'mb_substr' ) ? mb_substr( $text, 0, self::MAX_CHANGELOG ) : substr( $text, 0, self::MAX_CHANGELOG );
+	}
+
+	/**
 	 * Reads the first bytes of a file in the zip.
 	 *
 	 * @param \ZipArchive $zip   Archive.
 	 * @param string      $entry Entry name.
+	 * @param int         $bytes How much to read.
 	 */
-	private static function head( \ZipArchive $zip, string $entry ): string {
+	private static function head( \ZipArchive $zip, string $entry, int $bytes = self::HEADER_BYTES ): string {
 		$stream = $zip->getStream( $entry );
 		if ( ! is_resource( $stream ) ) {
 			return '';
 		}
-		$data = (string) fread( $stream, self::HEADER_BYTES );
+		// fread() on a zip stream returns at most one chunk (8 KB), so read until the amount is collected.
+		$data = (string) stream_get_contents( $stream, $bytes );
 		fclose( $stream );
 
 		return str_replace( "\r", "\n", $data );

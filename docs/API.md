@@ -41,7 +41,7 @@ limit it returns 403 `limit_reached`. Returns `{ success, code, license, activat
 
 ### `POST /updates/check`
 `license_key`, `product_id`, `current_version` (optional). For a valid license returns the product
-(`name`, `version`, `requires`, `tested`, `description`, `banners`), `update_available` (`null` if no
+(`name`, `version`, `requires`, `tested`, `description`, `changelog` (plain text lines for this version, empty if none), `banners`), `update_available` (`null` if no
 `current_version` was sent), a `download_url` valid for 15 minutes, and `expires_in`.
 
 ### `GET /download?token=...`

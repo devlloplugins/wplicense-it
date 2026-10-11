@@ -33,6 +33,15 @@ interface FileStore {
 	public function store_package( int $product_id, string $tmp, string $original_name, string $version ): StoredFile;
 
 	/**
+	 * Deletes a stored release zip, and its folder when nothing else is left in it. A zip that is already gone is
+	 * not an error. Only files inside the releases folder are ever deleted.
+	 *
+	 * @param string $relative Path relative to the uploads folder, as returned when it was stored.
+	 * @throws FileStoreException If the path is not a zip in the releases folder, or the file cannot be deleted.
+	 */
+	public function delete_package( string $relative ): void;
+
+	/**
 	 * Keeps a logo or banner image, which is shown publicly in the update details.
 	 *
 	 * @param int                  $product_id License product ID.

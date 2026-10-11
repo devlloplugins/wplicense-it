@@ -15,6 +15,11 @@ require_once dirname( __DIR__ ) . '/Support/connect-stubs.php';
 use Devllo\WPLicenseIt\Admin\ConnectBox;
 use Devllo\WPLicenseIt\Admin\PlansBox;
 use Devllo\WPLicenseIt\Admin\ProductScreen;
+use Devllo\WPLicenseIt\Admin\ReleasesBox;
+use Devllo\WPLicenseIt\Releases\MetaReleaseRepository;
+use Devllo\WPLicenseIt\Releases\ReleaseService;
+use Devllo\WPLicenseIt\Tests\Support\FakeFileStore;
+use Devllo\WPLicenseIt\Tests\Support\InMemoryProductMeta;
 use Devllo\WPLicenseIt\Tests\Support\ConfigurableProductCatalog;
 use Devllo\WPLicenseIt\Tests\Support\FakeOrderBuilder;
 use Devllo\WPLicenseIt\Tests\Support\FakeProductGateway;
@@ -74,7 +79,7 @@ final class ProductScreenTest extends TestCase {
 	public function test_the_saver_covers_the_same_fields_the_screen_lists(): void {
 		// ProductSaverTest posts every field and upload name listed here and checks each one is saved.
 		$this->assertSame(
-			array( 'wplit_product_name', 'wplit_product_description', 'wplit_tested_wp_version', 'wplit_required_wp_version', 'wplit_product_version', 'wplit_product_api_key', 'wplit_default_activation_limit', 'wplit_period' ),
+			array( 'wplit_product_name', 'wplit_product_description', 'wplit_tested_wp_version', 'wplit_required_wp_version', 'wplit_product_version', 'wplit_release_notes', 'wplit_product_api_key', 'wplit_default_activation_limit', 'wplit_period' ),
 			ProductScreen::FIELDS
 		);
 		$this->assertSame( array( 'wplit_product_file_upload', 'wplit_product_logo', 'wplit_product_banner' ), ProductScreen::FILE_FIELDS );
@@ -94,6 +99,8 @@ final class ProductScreenTest extends TestCase {
 		$catalog = new ConfigurableProductCatalog();
 
 		( new ProductScreen() )->add_boxes();
+		$meta = new InMemoryProductMeta();
+		( new ReleasesBox( new ReleaseService( new MetaReleaseRepository( $meta ), $meta ), new FakeFileStore() ) )->add_box();
 		( new PlansBox( $plans, $woo, new TestPurchase( $woo, $catalog, new FakeOrderBuilder( $woo ), $probe ), $catalog ) )->add_box();
 		( new ConnectBox( $plans, static function () {
 			return null;

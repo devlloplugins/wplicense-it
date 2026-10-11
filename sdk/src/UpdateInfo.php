@@ -51,6 +51,13 @@ final class UpdateInfo {
 	public $description;
 
 	/**
+	 * What changed in this version, plain text lines. Empty if the seller wrote nothing.
+	 *
+	 * @var string
+	 */
+	public $changelog = '';
+
+	/**
 	 * Small banner URL.
 	 *
 	 * @var string
@@ -85,6 +92,7 @@ final class UpdateInfo {
 		$info->requires    = (string) ( $product['requires'] ?? '' );
 		$info->tested      = (string) ( $product['tested'] ?? '' );
 		$info->description = (string) ( $product['description'] ?? '' );
+		$info->changelog   = (string) ( $product['changelog'] ?? '' );
 		$info->banner_low  = (string) ( $banners['low'] ?? '' );
 		$info->banner_high = (string) ( $banners['high'] ?? '' );
 
@@ -112,7 +120,7 @@ final class UpdateInfo {
 
 		$info = new self();
 
-		foreach ( array( 'name', 'version', 'requires', 'tested', 'description', 'banner_low', 'banner_high' ) as $field ) {
+		foreach ( array( 'name', 'version', 'requires', 'tested', 'description', 'changelog', 'banner_low', 'banner_high' ) as $field ) {
 			$info->$field = isset( $data[ $field ] ) ? (string) $data[ $field ] : '';
 		}
 

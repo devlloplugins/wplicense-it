@@ -242,6 +242,13 @@ final class ApiServiceTest extends TestCase {
 		$this->assertStringNotContainsString( $license->license_key, $response->body['download_url'] );
 	}
 
+	public function test_the_update_check_carries_the_changelog(): void {
+		$license  = $this->license();
+		$response = $this->api->check_update( array( 'license_key' => $license->license_key, 'product_id' => 7 ), self::CLIENT );
+
+		$this->assertSame( 'Fixed the sitemap.', $response->body['product']['changelog'] );
+	}
+
 	public function test_update_available_is_false_when_current_and_unknown_when_not_sent(): void {
 		$license = $this->license();
 		$params  = array( 'license_key' => $license->license_key, 'product_id' => 7 );

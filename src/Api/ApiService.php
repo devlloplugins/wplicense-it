@@ -238,6 +238,7 @@ final class ApiService {
 					'requires'    => $product->requires,
 					'tested'      => $product->tested,
 					'description' => $product->description,
+					'changelog'   => $product->changelog,
 					'banners'     => array(
 						'low'  => $product->logo_url,
 						'high' => $product->banner_url,

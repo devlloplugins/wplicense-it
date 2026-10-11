@@ -219,6 +219,26 @@ final class SdkUpdaterTest extends TestCase {
 		$this->assertFalse( $this->updater->plugin_information( false, 'query_plugins', (object) array( 'slug' => 'great-plugin' ) ) );
 	}
 
+	public function test_the_changelog_gets_its_own_tab_in_the_popup_when_there_is_one(): void {
+		$response                         = $this->update_response( '2.0.0' );
+		$response['product']['changelog'] = "Fixed the sitemap.\n<script>alert(1)</script>Added a setting.";
+		$this->transport->reply( 200, $response );
+
+		$details = $this->updater->plugin_information( false, 'plugin_information', (object) array( 'slug' => 'great-plugin' ) );
+
+		$this->assertStringContainsString( 'Fixed the sitemap.', $details->sections['changelog'] );
+		$this->assertStringNotContainsString( '<script>', $details->sections['changelog'] );
+		$this->assertStringContainsString( '&lt;script&gt;', $details->sections['changelog'] );
+	}
+
+	public function test_no_changelog_tab_when_the_seller_wrote_nothing(): void {
+		$this->transport->reply( 200, $this->update_response( '2.0.0' ) );
+
+		$details = $this->updater->plugin_information( false, 'plugin_information', (object) array( 'slug' => 'great-plugin' ) );
+
+		$this->assertArrayNotHasKey( 'changelog', $details->sections );
+	}
+
 	// Installing.
 
 	public function test_the_marker_is_replaced_by_a_fresh_download_at_install_time(): void {

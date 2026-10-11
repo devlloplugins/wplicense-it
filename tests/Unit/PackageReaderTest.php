@@ -308,4 +308,48 @@ final class PackageReaderTest extends TestCase {
 		$this->expectException( PackageException::class );
 		$this->read_zip( array( 'p/p.php' => "<?php\n" . str_repeat( '// x' . "\n", 5000 ) . "/*\nPlugin Name: Late\nVersion: 1.0\n*/\n" ) );
 	}
+
+	private function with_changelog( string $changelog, string $version = '1.4.2' ): PackageInfo {
+		return $this->read_zip(
+			array(
+				'seo-pro/seo-pro.php' => "<?php\n/*\nPlugin Name: SEO Pro\nVersion: " . $version . "\n*/\n",
+				'seo-pro/readme.txt'  => "=== SEO Pro ===\nStable tag: " . $version . "\n\n== Description ==\nText.\n\n" . $changelog,
+			)
+		);
+	}
+
+	public function test_the_changelog_entry_for_this_version_is_read_from_the_readme(): void {
+		$info = $this->with_changelog( "== Changelog ==\n\n= 1.4.2 =\n* Fixed the sitemap.\n* Added a setting.\n\n= 1.4.1 =\n* Older change.\n\n== Upgrade Notice ==\n\n= 1.4.2 =\nUpgrade now.\n" );
+
+		$this->assertSame( "* Fixed the sitemap.\n* Added a setting.", $info->changelog );
+	}
+
+	public function test_a_dated_or_v_prefixed_heading_is_found(): void {
+		$this->assertSame( '* Fixed.', $this->with_changelog( "== Changelog ==\n\n= 1.4.2 - 2026-03-01 =\n* Fixed.\n" )->changelog );
+		$this->assertSame( '* Fixed.', $this->with_changelog( "== Changelog ==\n\n= v1.4.2 =\n* Fixed.\n" )->changelog );
+	}
+
+	public function test_no_entry_for_this_version_gives_no_changelog(): void {
+		$this->assertSame( '', $this->with_changelog( "== Changelog ==\n\n= 1.4.1 =\n* Older.\n" )->changelog );
+		$this->assertSame( '', $this->with_changelog( "== Description ==\nNo changelog section.\n" )->changelog );
+	}
+
+	public function test_a_version_that_only_starts_the_same_is_not_confused(): void {
+		$info = $this->with_changelog( "== Changelog ==\n\n= 1.4.20 =\n* Wrong one.\n\n= 1.4.2 =\n* Right one.\n" );
+
+		$this->assertSame( '* Right one.', $info->changelog );
+	}
+
+	public function test_tags_are_stripped_and_a_long_entry_is_cut(): void {
+		$this->assertSame( '* alert(1)', $this->with_changelog( "== Changelog ==\n\n= 1.4.2 =\n* <script>alert(1)</script>\n" )->changelog );
+
+		$long = "== Changelog ==\n\n= 1.4.2 =\n" . str_repeat( "* A long line of notes.\n", 400 );
+		$this->assertSame( 2000, strlen( $this->with_changelog( $long )->changelog ) );
+	}
+
+	public function test_a_changelog_far_into_a_big_readme_is_still_found(): void {
+		$info = $this->with_changelog( str_repeat( "Filler line of text for the description.\n", 400 ) . "== Changelog ==\n\n= 1.4.2 =\n* Deep.\n" );
+
+		$this->assertSame( '* Deep.', $info->changelog );
+	}
 }

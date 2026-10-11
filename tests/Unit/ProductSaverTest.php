@@ -407,6 +407,7 @@ final class ProductSaverTest extends TestCase {
 			'wplit_tested_wp_version'        => '6.7',
 			'wplit_required_wp_version'      => '6.2',
 			'wplit_product_version'          => '1.0',
+			'wplit_release_notes'            => 'Notes',
 			'wplit_product_api_key'          => 'key',
 			'wplit_default_activation_limit' => '2',
 			'wplit_period'                   => 'P1Y',
@@ -414,10 +415,13 @@ final class ProductSaverTest extends TestCase {
 
 		$this->assertSame( ProductScreen::FIELDS, array_keys( $values ), 'The test must cover every field the screen has' );
 
+		// Notes belong to a release, so the product needs one first.
+		$this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip() ) );
 		$this->save( $values );
 
 		foreach ( $values as $key => $value ) {
-			$this->assertSame( $value, $this->meta( $key ), $key . ' was not saved' );
+			$setting = 'wplit_release_notes' === $key ? 'wplit_changelog' : $key;
+			$this->assertSame( $value, $this->meta( $setting ), $key . ' was not saved' );
 		}
 	}
 
@@ -436,6 +440,112 @@ final class ProductSaverTest extends TestCase {
 		$this->assertSame( 'seo-pro.zip', $this->meta( 'file_name' ) );
 		$this->assertTrue( '' !== $this->meta( 'wplit_product_logo_url' ) );
 		$this->assertTrue( '' !== $this->meta( 'wplit_product_banner_url' ) );
+	}
+
+	// Release history.
+
+	private function release_versions(): array {
+		$releases = new \Devllo\WPLicenseIt\Releases\ReleaseService( new \Devllo\WPLicenseIt\Releases\MetaReleaseRepository( $this->meta ), $this->meta );
+
+		return array_map( static fn( $r ): string => $r->version, $releases->all( self::ID ) );
+	}
+
+	public function test_every_upload_is_kept_as_a_release_with_its_size_and_notes(): void {
+		$zip = $this->plugin_zip();
+		$this->save( array( 'wplit_release_notes' => 'Typed notes.' ), array( 'wplit_product_file_upload' => $zip ) );
+
+		$this->assertSame( array( '1.4.2' ), $this->release_versions() );
+		$this->assertSame( 'Typed notes.', $this->meta( 'wplit_changelog' ) );
+
+		$releases = new \Devllo\WPLicenseIt\Releases\ReleaseService( new \Devllo\WPLicenseIt\Releases\MetaReleaseRepository( $this->meta ), $this->meta );
+		$this->assertSame( $zip['size'], $releases->current( self::ID )->size );
+	}
+
+	public function test_the_readme_changelog_is_used_when_no_notes_are_typed(): void {
+		$zip = $this->zip(
+			array(
+				'seo-pro/seo-pro.php' => "<?php\n/*\nPlugin Name: SEO Pro\nVersion: 1.4.2\n*/\n",
+				'seo-pro/readme.txt'  => "=== SEO Pro ===\nStable tag: 1.4.2\n\n== Changelog ==\n\n= 1.4.2 =\n* Fixed the sitemap.\n",
+			)
+		);
+
+		$this->save( array(), array( 'wplit_product_file_upload' => $zip ) );
+
+		$this->assertSame( '* Fixed the sitemap.', $this->meta( 'wplit_changelog' ) );
+	}
+
+	public function test_typed_notes_win_over_the_readme(): void {
+		$zip = $this->zip(
+			array(
+				'seo-pro/seo-pro.php' => "<?php\n/*\nPlugin Name: SEO Pro\nVersion: 1.4.2\n*/\n",
+				'seo-pro/readme.txt'  => "=== SEO Pro ===\nStable tag: 1.4.2\n\n== Changelog ==\n\n= 1.4.2 =\n* From the readme.\n",
+			)
+		);
+
+		$this->save( array( 'wplit_release_notes' => 'Typed.' ), array( 'wplit_product_file_upload' => $zip ) );
+
+		$this->assertSame( 'Typed.', $this->meta( 'wplit_changelog' ) );
+	}
+
+	public function test_a_second_upload_is_a_new_release_and_the_first_is_kept(): void {
+		$this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip( "Plugin Name: SEO Pro\nVersion: 1.4.2" ) ) );
+
+		$report = $this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip( "Plugin Name: SEO Pro\nVersion: 1.5.0" ) ) );
+
+		$this->assertSame( array( '1.5.0', '1.4.2' ), $this->release_versions() );
+		$this->assertSame( '1.5.0', $this->meta( 'wplit_product_version' ) );
+		$this->assertSame( array(), $report->errors );
+	}
+
+	public function test_uploading_the_same_version_again_warns(): void {
+		$this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip() ) );
+
+		$report = $this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip() ) );
+
+		$this->assertTrue( (bool) array_filter( $report->warnings, static fn( string $w ): bool => false !== strpos( $w, 'already released' ) ) );
+		$this->assertCount( 2, $this->release_versions() );
+	}
+
+	public function test_notes_typed_with_no_zip_replace_the_current_notes(): void {
+		$this->save( array( 'wplit_release_notes' => 'First.' ), array( 'wplit_product_file_upload' => $this->plugin_zip() ) );
+
+		$report = $this->save( array( 'wplit_release_notes' => 'Better notes.' ) );
+
+		$this->assertSame( 'Better notes.', $this->meta( 'wplit_changelog' ) );
+		$this->assertSame( array( 'The release notes were updated.' ), $report->messages );
+	}
+
+	public function test_notes_with_no_release_yet_are_not_lost_silently(): void {
+		$report = $this->save( array( 'wplit_release_notes' => 'Orphan notes.' ) );
+
+		$this->assertSame( '', $this->meta( 'wplit_changelog' ) );
+		$this->assertStringContainsString( 'Upload a zip first', $report->warnings[0] );
+	}
+
+	public function test_empty_notes_with_no_zip_change_nothing(): void {
+		$this->save( array( 'wplit_release_notes' => 'Keep.' ), array( 'wplit_product_file_upload' => $this->plugin_zip() ) );
+
+		$report = $this->save( array( 'wplit_release_notes' => '' ) );
+
+		$this->assertSame( 'Keep.', $this->meta( 'wplit_changelog' ) );
+		$this->assertTrue( $report->is_empty() );
+	}
+
+	public function test_a_typed_version_with_no_zip_also_corrects_the_current_release(): void {
+		$this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip() ) );
+
+		$this->save( array( 'wplit_product_version' => '1.4.3' ) );
+
+		$this->assertSame( array( '1.4.3' ), $this->release_versions() );
+		$this->assertSame( '1.4.3', $this->meta( 'wplit_product_version' ) );
+	}
+
+	public function test_a_refused_zip_adds_no_release(): void {
+		$this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip() ) );
+
+		$this->save( array(), array( 'wplit_product_file_upload' => $this->zip( array( 'x.txt' => 'nothing' ) ) ) );
+
+		$this->assertSame( array( '1.4.2' ), $this->release_versions() );
 	}
 
 	// The report.

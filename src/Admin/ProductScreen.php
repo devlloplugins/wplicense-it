@@ -33,6 +33,7 @@ final class ProductScreen {
 		'wplit_tested_wp_version',
 		'wplit_required_wp_version',
 		'wplit_product_version',
+		'wplit_release_notes',
 		'wplit_product_api_key',
 		'wplit_default_activation_limit',
 		'wplit_period',
@@ -53,7 +54,7 @@ final class ProductScreen {
 	public const TABS = array(
 		'software' => array( 'wplit_software', 'wplit_defaults' ),
 		'plans'    => array( 'wplit_plans' ),
-		'releases' => array( 'wplit_release' ),
+		'releases' => array( 'wplit_release', 'wplit_release_history' ),
 		'connect'  => array( 'wplit_connect', 'wplit_legacy_key' ),
 	);
 
@@ -85,7 +86,7 @@ final class ProductScreen {
 	public function add_boxes(): void {
 		add_meta_box( 'wplit_software', __( 'About the software', 'wplicense-it' ), array( $this, 'render_software' ), 'wplit_product', 'normal', 'high' );
 		add_meta_box( 'wplit_defaults', __( 'Defaults for licenses issued by hand', 'wplicense-it' ), array( $this, 'render_defaults' ), 'wplit_product', 'normal', 'default' );
-		add_meta_box( 'wplit_release', __( 'Current release', 'wplicense-it' ), array( $this, 'render_release' ), 'wplit_product', 'normal', 'high' );
+		add_meta_box( 'wplit_release', __( 'Upload a release', 'wplicense-it' ), array( $this, 'render_release' ), 'wplit_product', 'normal', 'high' );
 		add_meta_box( 'wplit_legacy_key', __( 'Old API key (1.x clients)', 'wplicense-it' ), array( $this, 'render_legacy_key' ), 'wplit_product', 'normal', 'low' );
 	}
 
@@ -234,6 +235,10 @@ final class ProductScreen {
 		echo '<p><label for="wplit_product_file_upload"><strong>' . esc_html__( 'Upload a new release (zip)', 'wplicense-it' ) . '</strong></label><br>';
 		echo '<input type="file" id="wplit_product_file_upload" name="wplit_product_file_upload" accept=".zip,application/zip"><br>';
 		echo '<span class="description">' . esc_html__( 'When you save, the name, version and requirements are read from the file, and a zip that is not a plugin or theme is refused. The folder inside the zip should match your plugin\'s folder name.', 'wplicense-it' ) . '</span></p>';
+
+		echo '<p><label for="wplit_release_notes"><strong>' . esc_html__( 'What is new in this release', 'wplicense-it' ) . '</strong></label><br>';
+		echo '<textarea id="wplit_release_notes" name="wplit_release_notes" rows="4" class="large-text"></textarea><br>';
+		echo '<span class="description">' . esc_html__( 'Shown to customers in the "View details" popup. Leave it empty to use the entry for this version in the zip\'s readme.txt changelog. With no new zip, text here replaces the current release\'s notes.', 'wplicense-it' ) . '</span></p>';
 
 		$this->text_field( 'wplit_product_version', __( 'Version', 'wplicense-it' ), $version, __( 'Set from the zip when you upload. Change it only if you have to.', 'wplicense-it' ) );
 

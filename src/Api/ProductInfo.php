@@ -26,6 +26,7 @@ final class ProductInfo {
 	 * @param string $logo_url    Logo URL (used as the small banner).
 	 * @param string $banner_url  Banner URL (used as the large banner).
 	 * @param bool   $has_package Whether a downloadable file has been uploaded.
+	 * @param string $changelog   What changed in this version, plain text lines, or ''.
 	 */
 	public function __construct(
 		public int $id,
@@ -36,7 +37,8 @@ final class ProductInfo {
 		public string $description,
 		public string $logo_url,
 		public string $banner_url,
-		public bool $has_package
+		public bool $has_package,
+		public string $changelog = ''
 	) {
 	}
 }

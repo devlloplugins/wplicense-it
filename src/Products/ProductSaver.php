@@ -12,6 +12,10 @@ namespace Devllo\WPLicenseIt\Products;
 use Devllo\WPLicenseIt\Packages\PackageException;
 use Devllo\WPLicenseIt\Packages\PackageInfo;
 use Devllo\WPLicenseIt\Packages\PackageReader;
+use Devllo\WPLicenseIt\Releases\MetaReleaseRepository;
+use Devllo\WPLicenseIt\Releases\Release;
+use Devllo\WPLicenseIt\Releases\ReleaseException;
+use Devllo\WPLicenseIt\Releases\ReleaseService;
 use Devllo\WPLicenseIt\WooCommerce\ProductFields;
 
 /**
@@ -40,16 +44,23 @@ final class ProductSaver {
 	private $upload_limit;
 
 	/**
+	 * @var ReleaseService
+	 */
+	private $releases;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ProductMeta $meta         Where settings are kept.
-	 * @param FileStore   $files        Where uploaded files go.
-	 * @param string|null $upload_limit The server's upload limit for messages. Defaults to ini upload_max_filesize.
+	 * @param ProductMeta         $meta         Where settings are kept.
+	 * @param FileStore           $files        Where uploaded files go.
+	 * @param string|null         $upload_limit The server's upload limit for messages. Defaults to ini upload_max_filesize.
+	 * @param ReleaseService|null $releases     Release history. Defaults to one kept in the product settings.
 	 */
-	public function __construct( ProductMeta $meta, FileStore $files, ?string $upload_limit = null ) {
+	public function __construct( ProductMeta $meta, FileStore $files, ?string $upload_limit = null, ?ReleaseService $releases = null ) {
 		$this->meta         = $meta;
 		$this->files        = $files;
 		$this->upload_limit = $upload_limit ?? (string) ini_get( 'upload_max_filesize' );
+		$this->releases     = $releases ?? new ReleaseService( new MetaReleaseRepository( $meta ), $meta );
 	}
 
 	/**
@@ -73,9 +84,13 @@ final class ProductSaver {
 		$version_posted = null !== $posted_version;
 		$version        = $version_posted ? Version::clean( $posted_version ) : $this->meta->get( $product_id, 'wplit_product_version' );
 
-		$package_saved = $this->save_package( $product_id, $uploads, $report );
-		if ( $version_posted && ! $package_saved ) {
-			$this->meta->set( $product_id, 'wplit_product_version', $version );
+		$notes         = self::posted( $post, 'wplit_release_notes' ) ?? '';
+		$package_saved = $this->save_package( $product_id, $uploads, $notes, $report );
+		if ( ! $package_saved ) {
+			if ( $version_posted ) {
+				$this->save_version( $product_id, $version );
+			}
+			$this->save_notes( $product_id, $notes, $report );
 		}
 
 		$this->save_image( $product_id, $uploads, 'wplit_product_logo', 'logo', 'wplit_product_logo_url', 'logo', $report );
@@ -140,10 +155,11 @@ final class ProductSaver {
 	 *
 	 * @param int                  $product_id License product ID.
 	 * @param array<string, mixed> $uploads    The $_FILES array.
+	 * @param string               $notes      Notes typed for this release. Empty uses the readme's changelog.
 	 * @param SaveReport           $report     Report, added to.
 	 * @return bool Whether a new release was stored.
 	 */
-	private function save_package( int $product_id, array $uploads, SaveReport $report ): bool {
+	private function save_package( int $product_id, array $uploads, string $notes, SaveReport $report ): bool {
 		$file = $this->upload( $uploads, 'wplit_product_file_upload' );
 		if ( null === $file ) {
 			return false;
@@ -169,38 +185,81 @@ final class ProductSaver {
 			return false;
 		}
 
-		$this->apply_package( $product_id, $info, $stored );
+		$warnings = $this->releases->add( $product_id, $this->release_from( $info, $stored, (int) ( $file['size'] ?? 0 ), $notes ) );
 
 		$report->messages[] = self::package_message( $info );
-		$report->warnings   = array_merge( $report->warnings, $info->warnings );
+		$report->warnings   = array_merge( $report->warnings, $info->warnings, $warnings );
 
 		return true;
 	}
 
 	/**
-	 * Records a stored release and what was read from it.
+	 * The release record for an upload.
 	 *
-	 * @param int         $product_id License product ID.
-	 * @param PackageInfo $info       Details read from the zip.
-	 * @param StoredFile  $stored     Where the zip was stored.
+	 * @param PackageInfo $info   Details read from the zip.
+	 * @param StoredFile  $stored Where the zip was stored.
+	 * @param int         $size   Size in bytes.
+	 * @param string      $notes  Notes typed for this release. Empty uses the readme's changelog.
 	 */
-	private function apply_package( int $product_id, PackageInfo $info, StoredFile $stored ): void {
-		$this->meta->set( $product_id, 'wplit_product_version', Version::clean( $info->version ) );
-		$this->meta->set( $product_id, 'wplit_package_type', $info->type );
-		$this->meta->set( $product_id, 'wplit_package_name', $info->name );
-		$this->meta->set( $product_id, 'wplit_package_folder', $info->folder );
-		$this->meta->set( $product_id, 'wplit_required_php_version', $info->requires_php );
+	private function release_from( PackageInfo $info, StoredFile $stored, int $size, string $notes ): Release {
+		return new Release(
+			'',
+			Version::clean( $info->version ),
+			$stored->relative,
+			$stored->url,
+			$stored->name,
+			max( 0, $size ),
+			'',
+			'' !== trim( $notes ) ? $notes : $info->changelog,
+			$info->type,
+			$info->name,
+			$info->folder,
+			$info->requires_php,
+			$info->requires_wp,
+			$info->tested_up_to
+		);
+	}
 
-		if ( '' !== $info->requires_wp ) {
-			$this->meta->set( $product_id, 'wplit_required_wp_version', $info->requires_wp );
+	/**
+	 * A typed version with no new zip: the setting changes, and so does the current release.
+	 *
+	 * @param int    $product_id License product ID.
+	 * @param string $version    Cleaned version.
+	 */
+	private function save_version( int $product_id, string $version ): void {
+		$this->meta->set( $product_id, 'wplit_product_version', $version );
+
+		$current = $this->releases->current( $product_id );
+		if ( null !== $current && '' !== $version && $current->version !== $version ) {
+			$this->releases->set_version( $product_id, $current->id, $version );
 		}
-		if ( '' !== $info->tested_up_to ) {
-			$this->meta->set( $product_id, 'wplit_tested_wp_version', $info->tested_up_to );
+	}
+
+	/**
+	 * Notes typed with no new zip replace the notes of the current release.
+	 *
+	 * @param int        $product_id License product ID.
+	 * @param string     $notes      Typed notes.
+	 * @param SaveReport $report     Report, added to.
+	 */
+	private function save_notes( int $product_id, string $notes, SaveReport $report ): void {
+		if ( '' === trim( $notes ) ) {
+			return;
 		}
 
-		$this->meta->set( $product_id, 'file_dir_path', $stored->relative );
-		$this->meta->set( $product_id, 'file_dir_location', $stored->url );
-		$this->meta->set( $product_id, 'file_name', $stored->name );
+		$current = $this->releases->current( $product_id );
+		if ( null === $current ) {
+			$report->warnings[] = 'The release notes were not saved: there is no release yet. Upload a zip first.';
+
+			return;
+		}
+
+		try {
+			$this->releases->set_notes( $product_id, $current->id, $notes );
+			$report->messages[] = 'The release notes were updated.';
+		} catch ( ReleaseException $e ) {
+			$report->errors[] = $e->getMessage();
+		}
 	}
 
 	/**

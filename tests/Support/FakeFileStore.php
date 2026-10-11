@@ -62,6 +62,24 @@ final class FakeFileStore implements FileStore {
 		return new StoredFile( $relative, 'https://shop.example.com/wp-content/uploads/' . $relative, $original_name );
 	}
 
+	/**
+	 * @var string[] Paths that were deleted.
+	 */
+	public $deleted = array();
+
+	/**
+	 * @var string|null Message to fail deleting with.
+	 */
+	public $delete_error;
+
+	public function delete_package( string $relative ): void {
+		if ( null !== $this->delete_error ) {
+			throw new FileStoreException( $this->delete_error );
+		}
+
+		$this->deleted[] = $relative;
+	}
+
 	public function store_image( int $product_id, string $kind, array $file ): StoredFile {
 		if ( null !== $this->image_error ) {
 			throw new FileStoreException( $this->image_error );

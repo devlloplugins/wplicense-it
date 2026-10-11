@@ -10,7 +10,7 @@ const { chromium } = require( 'playwright' );
 
 const page_html = execFileSync( 'php', [ path.join( __dirname, 'render-tabs.php' ) ], { encoding: 'utf8' } );
 const URL = 'http://wplit.test/wp-admin/post.php';
-const BOXES = { software: [ 'wplit_software', 'wplit_defaults' ], plans: [ 'wplit_plans' ], releases: [ 'wplit_release' ], connect: [ 'wplit_connect', 'wplit_legacy_key' ] };
+const BOXES = { software: [ 'wplit_software', 'wplit_defaults' ], plans: [ 'wplit_plans' ], releases: [ 'wplit_release', 'wplit_release_history' ], connect: [ 'wplit_connect', 'wplit_legacy_key' ] };
 const ALWAYS = [ 'postdivrich', 'submitdiv' ];
 
 let failures = 0;
@@ -101,7 +101,7 @@ async function expectTab( page, tab, label ) {
 	t = await open( {}, '', ( page ) => page.addInitScript( () => {
 		document.addEventListener( 'DOMContentLoaded', () => {} );
 	} ) );
-	await t.page.evaluate( () => document.getElementById( 'wplit_release' ).remove() );
+	await t.page.evaluate( () => [ 'wplit_release', 'wplit_release_history' ].forEach( ( id ) => document.getElementById( id ).remove() ) );
 	await t.page.click( '[data-tab="releases"]' );
 	check( ( await visibleIds( t.page ) ).join() === ALWAYS.slice().sort().join(), 'a missing box leaves an empty tab without errors' );
 	check( t.errors.length === 0, 'no script errors with a missing box: ' + t.errors );

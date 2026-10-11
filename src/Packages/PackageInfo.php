@@ -68,6 +68,11 @@ final class PackageInfo {
 	public $author = '';
 
 	/**
+	 * @var string What changed in this version, taken from the Changelog section of readme.txt, or ''.
+	 */
+	public $changelog = '';
+
+	/**
 	 * @var string[] Things the seller should look at. The package is still usable.
 	 */
 	public $warnings = array();

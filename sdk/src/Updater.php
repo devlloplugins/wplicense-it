@@ -186,6 +186,9 @@ final class Updater {
 		$details->tested        = $info->tested;
 		$details->homepage      = $this->config->server;
 		$details->sections      = array( 'description' => wpautop( esc_html( $info->description ) ) );
+		if ( '' !== trim( $info->changelog ) ) {
+			$details->sections['changelog'] = wpautop( esc_html( $info->changelog ) );
+		}
 		$details->banners       = array_filter(
 			array(
 				'low'  => $info->banner_low,

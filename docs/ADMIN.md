@@ -48,13 +48,34 @@ before. Under the title and description, a tab bar shows one section at a time:
 |---|---|
 | **Software** | Name, short description, minimum and tested WordPress versions, logo and banner. Defaults for licenses issued by hand (sites and period). |
 | **Plans** | The plans table, the WooCommerce sync, and **Test this plan** / **Publish**. |
-| **Releases** | Upload a new zip, the version, and the stored file with what was read from it. |
+| **Releases** | Upload a new zip with notes, the version, and the release history (make an older release current, delete old ones). |
 | **Connect** | The checklist and the code to paste into the seller's plugin or theme. The old 1.x API key is here too. |
 
 The last tab is remembered per product, and a link such as `post.php?post=7&action=edit#wplit-plans` opens a
 given tab (the Plans actions return there). Without JavaScript every box is shown and the tab bar stays hidden.
 The old 1.x boxes and the 1.x save code are gone. Saving is done by `ProductSaver`
 (`src/Products`), behind a thin WordPress hook (`ProductSaveHook`) that checks the nonce and the user's rights.
+
+## Releases
+
+Every uploaded zip is kept as a **release**: its version, file, size, upload time, what the zip said about itself,
+and notes for customers. The **Release history** box lists them newest first.
+
+- **Notes.** Type what is new in the upload box. If you leave it empty, the entry for this version in the zip's
+  `readme.txt` changelog (`= 1.4.2 =` under `== Changelog ==`) is used. Customers see the notes on the
+  **Changelog** tab of the "View details" popup on their site. With no new zip, text in the notes box replaces the
+  current release's notes.
+- **Current.** Customers always get the **Current** release. A new upload becomes current. The settings the license
+  API reads (version, file, requirements, notes) always describe the current release.
+- **Roll back.** **Make current** on an older release. New downloads and update checks then serve it. Sites that
+  already updated to the newer version stay on it: WordPress does not downgrade on its own, so a bad release also
+  needs a fixed newer version.
+- **Delete.** Removes an older release and its zip from the server. The current release cannot be deleted, and a zip
+  that another release still uses is kept.
+- **Warnings.** Uploading a version that already exists, or one older than the current release, still works but says
+  that sites on the newer version will not be offered it.
+- **Products from before this change** show their one existing release (size and date unknown). It joins the
+  history the first time anything is saved.
 
 ## Saving a product
 

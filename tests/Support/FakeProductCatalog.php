@@ -24,12 +24,19 @@ final class FakeProductCatalog implements ProductCatalog {
 	 */
 	public ?string $package = '/tmp/pkg.zip';
 
+	/**
+	 * What changed in this version.
+	 *
+	 * @var string
+	 */
+	public string $changelog = 'Fixed the sitemap.';
+
 	public function find( int $product_id ): ?ProductInfo {
 		if ( 7 !== $product_id ) {
 			return null;
 		}
 
-		return new ProductInfo( 7, 'Great Plugin', '2.0.0', '6.2', '6.6', 'Does great things.', 'https://x.test/logo.png', 'https://x.test/banner.png', null !== $this->package );
+		return new ProductInfo( 7, 'Great Plugin', '2.0.0', '6.2', '6.6', 'Does great things.', 'https://x.test/logo.png', 'https://x.test/banner.png', null !== $this->package, $this->changelog );
 	}
 
 	public function api_key( int $product_id ): string {

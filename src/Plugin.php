@@ -14,6 +14,7 @@ use Devllo\WPLicenseIt\Admin\ConnectBox;
 use Devllo\WPLicenseIt\Admin\Maintenance;
 use Devllo\WPLicenseIt\Admin\PlansBox;
 use Devllo\WPLicenseIt\Admin\ProductSaveHook;
+use Devllo\WPLicenseIt\Admin\ReleasesBox;
 use Devllo\WPLicenseIt\Admin\ProductScreen;
 use Devllo\WPLicenseIt\Admin\SettingsScreen;
 use Devllo\WPLicenseIt\Admin\UpgradeNotice;
@@ -35,6 +36,10 @@ use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Migration\Command;
 use Devllo\WPLicenseIt\Migration\MigrationRunner;
 use Devllo\WPLicenseIt\Plans\PostMetaPlanRepository;
+use Devllo\WPLicenseIt\Products\WpFileStore;
+use Devllo\WPLicenseIt\Products\WpProductMeta;
+use Devllo\WPLicenseIt\Releases\MetaReleaseRepository;
+use Devllo\WPLicenseIt\Releases\ReleaseService;
 use Devllo\WPLicenseIt\Plans\WcProductGateway;
 use Devllo\WPLicenseIt\TestPurchase\RestLoopbackProbe;
 use Devllo\WPLicenseIt\TestPurchase\TestPurchase;
@@ -124,6 +129,8 @@ final class Plugin {
 			( new UpgradeNotice() )->register();
 			( new ProductScreen() )->register();
 			( new ProductSaveHook() )->register();
+			$product_meta = new WpProductMeta();
+			( new ReleasesBox( new ReleaseService( new MetaReleaseRepository( $product_meta ), $product_meta ), new WpFileStore() ) )->register();
 			( new ConnectBox(
 				new PostMetaPlanRepository(),
 				static function () {
