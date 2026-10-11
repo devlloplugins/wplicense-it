@@ -67,8 +67,8 @@ thing of all.
 
 ## D. A plugin that uses the license
 
-21. **Install the sample.** Copy the `sdk` folder is already inside `wplit-sample-1.0.0.zip`. Install it and
-    activate it. It shows a warning that the license code has not been pasted.
+21. **Install the sample.** `wplit-sample-1.0.0.zip` already contains the client SDK. Install it and activate it.
+    It shows a warning that the license code has not been pasted.
 22. **Paste the code.** On the product's Connect tab copy the code and paste it into `wplit-sample.php` where it
     says STEP 1. Reload the admin: the notice should now say the license is **not active**. A new page, **Settings,
     WPLit Sample License**, should exist.
