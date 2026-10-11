@@ -20,8 +20,7 @@ use WP_Post;
  * one tab's boxes at a time. The plans and connect boxes come from PlansBox and ConnectBox. Without JavaScript
  * every box is shown and the tab bar stays hidden.
  *
- * The field names below are the ones the save code in admin/wplicense-it-product-admin.php reads. A test keeps
- * the two in step.
+ * The field names below are the ones ProductSaver reads. A test keeps the two in step.
  */
 final class ProductScreen {
 
@@ -261,7 +260,7 @@ final class ProductScreen {
 	 * @param WP_Post $post The product.
 	 */
 	public function render_legacy_key( WP_Post $post ): void {
-		echo '<p class="description">' . esc_html__( 'Plugins and themes still using the 1.x client send this key. The new client code does not need it. If you leave it empty, one is generated.', 'wplicense-it' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Plugins and themes still using the 1.x client send this key. The new client code does not need it. Leave it empty to keep the current key. A new product gets one automatically.', 'wplicense-it' ) . '</p>';
 		$this->text_field( 'wplit_product_api_key', __( 'API key', 'wplicense-it' ), (string) get_post_meta( $post->ID, 'wplit_product_api_key', true ), '' );
 	}
 

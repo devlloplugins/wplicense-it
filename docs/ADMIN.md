@@ -53,8 +53,25 @@ before. Under the title and description, a tab bar shows one section at a time:
 
 The last tab is remembered per product, and a link such as `post.php?post=7&action=edit#wplit-plans` opens a
 given tab (the Plans actions return there). Without JavaScript every box is shown and the tab bar stays hidden.
-The old 1.x boxes were removed; the save code in `admin/wplicense-it-product-admin.php` is unchanged, and a test
-checks that every field it reads has an input on these tabs.
+The old 1.x boxes and the 1.x save code are gone. Saving is done by `ProductSaver`
+(`src/Products`), behind a thin WordPress hook (`ProductSaveHook`) that checks the nonce and the user's rights.
+
+## Saving a product
+
+Everything typed is cleaned: text has no tags or control characters and is cut to a length, versions keep only
+letters, digits and `. _ + -`, and a WordPress version must look like `6.2` or `6.7.1`. A field that is not in the
+form is left alone. One thing going wrong never stops the rest of the form from saving; it becomes a message at the
+top of the next page (red for what failed, green for what was done, yellow for what is worth a look).
+
+| Upload | What happens |
+|---|---|
+| **Release zip** | Read first (see above). A zip that is not a plugin or theme is refused and nothing about the release changes. A good one is stored in `uploads/wplit-files/p<ID>/v<version>/<random token>/`, and the version, name, type, folder and requirements are filled in from it. The old release files are kept on disk. |
+| **Logo, banner** | PNG, JPEG or WebP, checked from the file's content, stored in `uploads/wplit-files/p<ID>/logo` or `banner`. |
+| **Too big** | A file over the server's `upload_max_filesize` or `post_max_size` is reported with the limit. The old code dropped it without a word. |
+
+Products are stored under their ID (`p7`), not their slug, because a draft has no slug yet. Releases uploaded before
+this change stay where they are and keep working. The old API key, needed only by 1.x clients, is kept when its
+field is left empty, and a product with none gets one. The old code replaced it with a new random key.
 
 The browser test for the tab bar is `tests/js/product-tabs.cjs` (needs Playwright with Chromium and PHP):
 `NODE_PATH=$(npm root -g) node tests/js/product-tabs.cjs`.

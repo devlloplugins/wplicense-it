@@ -13,6 +13,7 @@ use Devllo\WPLicenseIt\Admin\AdminMenu;
 use Devllo\WPLicenseIt\Admin\ConnectBox;
 use Devllo\WPLicenseIt\Admin\Maintenance;
 use Devllo\WPLicenseIt\Admin\PlansBox;
+use Devllo\WPLicenseIt\Admin\ProductSaveHook;
 use Devllo\WPLicenseIt\Admin\ProductScreen;
 use Devllo\WPLicenseIt\Admin\SettingsScreen;
 use Devllo\WPLicenseIt\Admin\UpgradeNotice;
@@ -122,6 +123,7 @@ final class Plugin {
 			( new AdminMenu( $this->licenses() ) )->register();
 			( new UpgradeNotice() )->register();
 			( new ProductScreen() )->register();
+			( new ProductSaveHook() )->register();
 			( new ConnectBox(
 				new PostMetaPlanRepository(),
 				static function () {
@@ -150,7 +152,6 @@ final class Plugin {
 	 */
 	private function load_product_screens(): void {
 		require_once WPLICENSE_IT_DIR . 'admin/wplicense-it-product-post.php';
-		require_once WPLICENSE_IT_DIR . 'admin/wplicense-it-product-admin.php';
 
 		if ( ! self::legacy_data_migrated() ) {
 			require_once WPLICENSE_IT_DIR . 'includes/wplicense-it-api.php';

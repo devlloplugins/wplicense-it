@@ -90,3 +90,27 @@ if ( ! function_exists( 'add_meta_box' ) ) {
 if ( ! function_exists( 'esc_attr__' ) ) {
 	function esc_attr__( $text, $domain = '' ) { return esc_attr( $text ); }
 }
+
+// What the product save hook calls.
+if ( ! function_exists( 'wp_unslash' ) ) {
+	function wp_unslash( $value ) { return is_array( $value ) ? array_map( 'wp_unslash', $value ) : ( is_string( $value ) ? stripslashes( $value ) : $value ); }
+}
+if ( ! function_exists( 'wp_slash' ) ) {
+	function wp_slash( $value ) { return is_array( $value ) ? array_map( 'wp_slash', $value ) : ( is_string( $value ) ? addslashes( $value ) : $value ); }
+}
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+	function sanitize_text_field( $value ) { return trim( strip_tags( (string) $value ) ); }
+}
+if ( ! function_exists( 'wp_verify_nonce' ) ) {
+	function wp_verify_nonce( $nonce, $action = -1 ) { return 'good-nonce' === $nonce ? 1 : false; }
+}
+if ( ! function_exists( 'current_user_can' ) ) {
+	function current_user_can( $capability, ...$args ) { return $GLOBALS['wplit_test_can'] ?? true; }
+}
+if ( ! function_exists( 'update_post_meta' ) ) {
+	// Like WordPress, this removes slashes from what it is given.
+	function update_post_meta( $id, $key, $value ) { $GLOBALS['wplit_test_post_meta'][ $id ][ $key ] = wp_unslash( $value ); return true; }
+}
+if ( ! function_exists( 'delete_post_meta' ) ) {
+	function delete_post_meta( $id, $key ) { unset( $GLOBALS['wplit_test_post_meta'][ $id ][ $key ] ); return true; }
+}

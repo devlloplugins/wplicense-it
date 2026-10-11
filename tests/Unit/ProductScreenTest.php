@@ -71,19 +71,13 @@ final class ProductScreenTest extends TestCase {
 		$this->assertStringContainsString( 'name="wplit_inner_custom_box_nonce"', $html );
 	}
 
-	public function test_the_field_lists_match_what_the_save_code_reads(): void {
-		$source = (string) file_get_contents( dirname( __DIR__, 2 ) . '/admin/wplicense-it-product-admin.php' );
-
-		preg_match_all( "/\\\$_POST\\['([a-z_]+)'\\]/", $source, $posted );
-		preg_match_all( "/\\\$_FILES\\['([a-z_]+)'\\]/", $source, $files );
-
-		$posted = array_diff( array_unique( $posted[1] ), array( 'wplit_inner_custom_box_nonce' ) );
-		$files  = array_unique( $files[1] );
-
-		$this->assertSame( array(), array_values( array_diff( $posted, ProductScreen::FIELDS ) ), 'The save code reads a field the screen does not list' );
-		$this->assertSame( array(), array_values( array_diff( ProductScreen::FIELDS, $posted ) ), 'The screen lists a field the save code no longer reads' );
-		$this->assertSame( array(), array_values( array_diff( $files, ProductScreen::FILE_FIELDS ) ) );
-		$this->assertSame( array(), array_values( array_diff( ProductScreen::FILE_FIELDS, $files ) ) );
+	public function test_the_saver_covers_the_same_fields_the_screen_lists(): void {
+		// ProductSaverTest posts every field and upload name listed here and checks each one is saved.
+		$this->assertSame(
+			array( 'wplit_product_name', 'wplit_product_description', 'wplit_tested_wp_version', 'wplit_required_wp_version', 'wplit_product_version', 'wplit_product_api_key', 'wplit_default_activation_limit', 'wplit_period' ),
+			ProductScreen::FIELDS
+		);
+		$this->assertSame( array( 'wplit_product_file_upload', 'wplit_product_logo', 'wplit_product_banner' ), ProductScreen::FILE_FIELDS );
 	}
 
 	public function test_every_box_named_in_a_tab_is_added_by_something(): void {

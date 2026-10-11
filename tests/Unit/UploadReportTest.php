@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for the upload report messages.
+ * Tests for the product save messages.
  *
  * @package Devllo\WPLicenseIt
  */
@@ -9,9 +9,11 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Tests\Unit;
 
-use Devllo\WPLicenseIt\Packages\PackageException;
-use Devllo\WPLicenseIt\Packages\PackageInfo;
+require_once dirname( __DIR__ ) . '/Support/woocommerce-stubs.php';
+require_once dirname( __DIR__ ) . '/Support/connect-stubs.php';
+
 use Devllo\WPLicenseIt\Packages\UploadReport;
+use Devllo\WPLicenseIt\Products\SaveReport;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,35 +21,61 @@ use PHPUnit\Framework\TestCase;
  */
 final class UploadReportTest extends TestCase {
 
-	public function test_success_names_the_package_and_requirements(): void {
-		$info               = new PackageInfo( 'plugin', 'SEO Pro', '1.4.2', 'seo-pro', 'seo-pro/seo-pro.php' );
-		$info->requires_wp  = '6.2';
-		$info->requires_php = '8.0';
-
-		$report = UploadReport::success( $info );
-
-		$this->assertTrue( $report['ok'] );
-		$this->assertStringContainsString( 'SEO Pro 1.4.2 (plugin)', $report['message'] );
-		$this->assertStringContainsString( 'WordPress 6.2 and PHP 8.0', $report['message'] );
+	protected function setUp(): void {
+		$store = &wplit_test_transients();
+		$store = array();
 	}
 
-	public function test_success_without_requirements_does_not_mention_them(): void {
-		$info = new PackageInfo( 'theme', 'Neat', '2.0', 'neat', 'neat/style.css' );
+	private function render(): string {
+		ob_start();
+		UploadReport::render();
 
-		$this->assertStringNotContainsString( 'Needs', UploadReport::success( $info )['message'] );
+		return (string) ob_get_clean();
 	}
 
-	public function test_success_carries_the_warnings(): void {
-		$info           = new PackageInfo( 'plugin', 'P', '1.0', 'p', 'p/p.php' );
-		$info->warnings = array( 'Look at this.' );
-
-		$this->assertSame( array( 'Look at this.' ), UploadReport::success( $info )['warnings'] );
+	public function test_nothing_queued_prints_nothing(): void {
+		$this->assertSame( '', $this->render() );
 	}
 
-	public function test_failure_says_the_file_was_not_saved(): void {
-		$report = UploadReport::failure( new PackageException( 'This zip is empty.' ) );
+	public function test_errors_messages_and_warnings_get_their_own_boxes(): void {
+		$report           = new SaveReport();
+		$report->errors   = array( 'The logo was not saved.' );
+		$report->messages = array( 'Release saved.' );
+		$report->warnings = array( 'No minimum PHP.' );
+		UploadReport::queue( $report );
 
-		$this->assertFalse( $report['ok'] );
-		$this->assertSame( 'The file was not saved. This zip is empty.', $report['message'] );
+		$html = $this->render();
+
+		$this->assertStringContainsString( 'notice-error', $html );
+		$this->assertStringContainsString( 'notice-success', $html );
+		$this->assertStringContainsString( 'notice-warning', $html );
+		$this->assertStringContainsString( 'The logo was not saved.', $html );
+		$this->assertStringContainsString( 'Worth a look:', $html );
+	}
+
+	public function test_a_report_is_shown_once(): void {
+		$report           = new SaveReport();
+		$report->messages = array( 'Release saved.' );
+		UploadReport::queue( $report );
+
+		$this->assertStringContainsString( 'Release saved.', $this->render() );
+		$this->assertSame( '', $this->render() );
+	}
+
+	public function test_text_from_a_zip_is_escaped(): void {
+		$report           = new SaveReport();
+		$report->warnings = array( '<script>alert(1)</script>' );
+		UploadReport::queue( $report );
+
+		$html = $this->render();
+
+		$this->assertStringNotContainsString( '<script>', $html );
+		$this->assertStringContainsString( '&lt;script&gt;alert(1)&lt;/script&gt;', $html );
+	}
+
+	public function test_a_damaged_kept_value_prints_nothing(): void {
+		set_transient( 'wplit_package_report_1', 'junk', 300 );
+
+		$this->assertSame( '', $this->render() );
 	}
 }
