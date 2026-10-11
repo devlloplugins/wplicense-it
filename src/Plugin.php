@@ -34,6 +34,9 @@ use Devllo\WPLicenseIt\Migration\Command;
 use Devllo\WPLicenseIt\Migration\MigrationRunner;
 use Devllo\WPLicenseIt\Plans\PostMetaPlanRepository;
 use Devllo\WPLicenseIt\Plans\WcProductGateway;
+use Devllo\WPLicenseIt\TestPurchase\RestLoopbackProbe;
+use Devllo\WPLicenseIt\TestPurchase\TestPurchase;
+use Devllo\WPLicenseIt\TestPurchase\WcOrderBuilder;
 use Devllo\WPLicenseIt\Privacy\PrivacyHooks;
 use Devllo\WPLicenseIt\WooCommerce\AccountPage;
 use Devllo\WPLicenseIt\WooCommerce\CartRenewal;
@@ -121,7 +124,8 @@ final class Plugin {
 				new PostMetaPlanRepository(),
 				static function () {
 					return class_exists( 'WooCommerce' ) ? new WcProductGateway() : null;
-				}
+				},
+				new WpProductCatalog()
 			) )->register();
 		}
 
@@ -173,7 +177,10 @@ final class Plugin {
 
 		( new WooAdapter( $processor, $reader ) )->register();
 		( new ProductFields() )->register();
-		( new PlansBox( new PostMetaPlanRepository(), new WcProductGateway() ) )->register();
+		$gateway = new WcProductGateway();
+		$catalog = new WpProductCatalog();
+		$tester  = new TestPurchase( $gateway, $catalog, new WcOrderBuilder( $reader ), new RestLoopbackProbe() );
+		( new PlansBox( new PostMetaPlanRepository(), $gateway, $tester, $catalog ) )->register();
 		( new CartRenewal( $this->licenses(), $reader ) )->register();
 		( new LicenseDisplay( $this->licenses() ) )->register();
 		( new AccountPage( $this->licenses(), new WpProductCatalog(), $this->signer() ) )->register();

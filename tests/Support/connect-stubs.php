@@ -40,3 +40,43 @@ if ( ! function_exists( 'esc_textarea' ) ) {
 if ( ! function_exists( 'wp_json_encode' ) ) {
 	function wp_json_encode( $value ) { return json_encode( $value ); }
 }
+
+// What the Plans box calls when it draws itself.
+require_once __DIR__ . '/wp-transient-stubs.php';
+
+if ( ! defined( 'MINUTE_IN_SECONDS' ) ) {
+	define( 'MINUTE_IN_SECONDS', 60 );
+}
+if ( ! function_exists( 'get_current_user_id' ) ) {
+	function get_current_user_id() { return 1; }
+}
+if ( ! function_exists( 'wp_nonce_field' ) ) {
+	function wp_nonce_field( $action = -1, $name = '_wpnonce' ) { echo '<input type="hidden" name="' . $name . '" value="NONCE">'; }
+}
+if ( ! function_exists( 'wp_nonce_url' ) ) {
+	function wp_nonce_url( $url, $action = -1 ) { return $url . '&_wpnonce=NONCE'; }
+}
+if ( ! function_exists( 'add_query_arg' ) ) {
+	function add_query_arg( $args, $url ) { return $url . '?' . http_build_query( $args ); }
+}
+if ( ! function_exists( 'admin_url' ) ) {
+	function admin_url( $path = '' ) { return 'https://shop.example.com/wp-admin/' . $path; }
+}
+if ( ! function_exists( 'get_edit_post_link' ) ) {
+	function get_edit_post_link( $id, $context = 'display' ) { return 'https://shop.example.com/wp-admin/post.php?post=' . $id . '&action=edit'; }
+}
+if ( ! function_exists( 'selected' ) ) {
+	function selected( $value, $current, $echo = true ) { return (string) $value === (string) $current ? ' selected="selected"' : ''; }
+}
+if ( ! function_exists( 'esc_attr' ) ) {
+	function esc_attr( $text ) { return htmlspecialchars( (string) $text, ENT_QUOTES ); }
+}
+if ( ! function_exists( 'esc_attr__' ) ) {
+	function esc_attr__( $text, $domain = '' ) { return esc_attr( $text ); }
+}
+if ( ! function_exists( 'esc_url' ) ) {
+	function esc_url( $url ) { return htmlspecialchars( (string) $url, ENT_QUOTES ); }
+}
+if ( ! function_exists( 'esc_html_e' ) ) {
+	function esc_html_e( $text, $domain = '' ) { echo esc_html( $text ); }
+}

@@ -55,6 +55,42 @@ final class TestReport {
 	}
 
 	/**
+	 * Plain form, for keeping the report between page loads.
+	 *
+	 * @return array<int, array{id:string,label:string,status:string,message:string}>
+	 */
+	public function to_array(): array {
+		return array_map(
+			static function ( CheckResult $result ): array {
+				return array(
+					'id'      => $result->id,
+					'label'   => $result->label,
+					'status'  => $result->status,
+					'message' => $result->message,
+				);
+			},
+			$this->results
+		);
+	}
+
+	/**
+	 * Rebuilds a report from its plain form. Rows that are not valid are dropped.
+	 *
+	 * @param mixed $rows Value from to_array().
+	 */
+	public static function from_array( $rows ): self {
+		$results = array();
+
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			if ( is_array( $row ) && isset( $row['id'], $row['label'], $row['status'], $row['message'] ) && in_array( $row['status'], array( CheckResult::PASS, CheckResult::FAIL, CheckResult::WARN, CheckResult::SKIP ), true ) ) {
+				$results[] = new CheckResult( (string) $row['id'], (string) $row['label'], (string) $row['status'], (string) $row['message'] );
+			}
+		}
+
+		return new self( $results );
+	}
+
+	/**
 	 * One result by check ID.
 	 *
 	 * @param string $id Check ID.

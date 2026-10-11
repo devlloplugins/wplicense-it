@@ -22,8 +22,12 @@ linked to the license product with the plan's terms. Later saves keep the price 
 | You clear a plan's row | Its WooCommerce product is set back to **draft**, so it can no longer be bought. It is not deleted. Existing licenses keep working. |
 | A save is refused (bad price, duplicate name) | Nothing is saved, and every mistake is listed. |
 
-A plan can be **published** in the shop only after a test purchase of it has passed. The test purchase button
-is not built yet, so for now publish the draft from WooCommerce itself.
+A plan can be **published** in the shop only after a test of it has passed. Click **Test this plan** in the
+plan's row. The test runs the real purchase and license code on an order that is never saved (see
+`TEST-PURCHASE.md`), and lists seven checks with what to fix. If it passes, **Publish in the shop** appears. A
+pass stops counting if the plan's product link, sites, period or the stored zip changes, and the plan then has to be
+tested again. A price change does not cancel it. A failed test also clears an earlier pass. Plans already on sale
+can be tested again at any time.
 
 Prices are compared in minor units (cents) using the store currency, so 49 and 49.00 are the same price.
 A sale price set in WooCommerce is ignored: only the regular price is managed.

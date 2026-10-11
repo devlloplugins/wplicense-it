@@ -9,10 +9,12 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Admin;
 
+use Devllo\WPLicenseIt\Api\ProductCatalog;
 use Devllo\WPLicenseIt\Connect\Checklist;
 use Devllo\WPLicenseIt\Connect\Snippet;
 use Devllo\WPLicenseIt\Plans\PlanRepository;
 use Devllo\WPLicenseIt\Plans\ProductGateway;
+use Devllo\WPLicenseIt\TestPurchase\Fingerprint;
 use WP_Post;
 
 /**
@@ -32,14 +34,21 @@ final class ConnectBox {
 	private $gateway;
 
 	/**
+	 * @var ProductCatalog
+	 */
+	private $catalog;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param PlanRepository $plans   Plan storage.
 	 * @param callable       $gateway Returns the WooCommerce gateway, or null when WooCommerce is not active.
+	 * @param ProductCatalog $catalog Software products and their zip files.
 	 */
-	public function __construct( PlanRepository $plans, callable $gateway ) {
+	public function __construct( PlanRepository $plans, callable $gateway, ProductCatalog $catalog ) {
 		$this->plans   = $plans;
 		$this->gateway = $gateway;
+		$this->catalog = $catalog;
 	}
 
 	/**
@@ -148,8 +157,10 @@ final class ConnectBox {
 		$tested    = 0;
 		$published = 0;
 
+		$package = $this->catalog->package_file( $software_id );
+
 		foreach ( $plans as $plan ) {
-			if ( null !== $plan->tested_at ) {
+			if ( Fingerprint::is_current( $plan, Fingerprint::of( $software_id, $plan, $package ) ) ) {
 				++$tested;
 			}
 			if ( $plan->woo_product_id > 0 ) {

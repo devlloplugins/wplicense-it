@@ -108,7 +108,7 @@ final class PlanInput {
 			if ( preg_match( self::ID_PATTERN, $id ) && isset( $known[ $id ] ) && ! isset( $used[ $id ] ) ) {
 				$old        = $known[ $id ];
 				$used[ $id ] = true;
-				$plan       = new Plan( $id, $name_raw, $price, (int) $sites_raw, $period, $old->woo_product_id, $old->synced_minor, $old->synced_currency, $old->conflict_minor, $old->tested_at );
+				$plan       = new Plan( $id, $name_raw, $price, (int) $sites_raw, $period, $old->woo_product_id, $old->synced_minor, $old->synced_currency, $old->conflict_minor, $old->tested_at, $old->tested_hash );
 			} else {
 				$plan = new Plan( (string) $new_id(), $name_raw, $price, (int) $sites_raw, $period );
 			}

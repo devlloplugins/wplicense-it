@@ -1,7 +1,7 @@
 # Test purchase (design)
 
-Status: the seven checks are built (`src/TestPurchase`). The Test link, results panel and Publish gate are not
-(board card 122). Decisions 16 to 18 in `DECISIONS.md`.
+Status: built (`src/TestPurchase`, the Plans box and the Connect box), and not yet run in WordPress. Decisions 16 to
+18 in `DECISIONS.md`.
 
 ## Purpose
 
@@ -54,6 +54,14 @@ those, or uploading a different zip file, cancels the pass. Changing the price d
   The site limit is tried only for plans of 1 to 10 sites. Unlimited plans, and plans of more than 10 sites, get
   one activation and the report says the limit was not tried.
 - A check whose earlier steps failed is shown as skipped, and a skipped check counts as not passed.
+
+## In the admin
+
+Each saved plan with a WooCommerce product has a **Test this plan** link (a nonce-protected link; it needs the
+`edit_products` capability, like saving plans). The result of the last test is listed above the plans table once,
+with a symbol and a word for each check. A pass is stored on the plan with its fingerprint. The Connect box
+checklist counts only passes that still match. Publishing is refused on the server too, not only hidden in the
+row.
 
 ## Not built
 

@@ -28,6 +28,7 @@ final class Plan {
 	 * @param string      $synced_currency Currency of that price.
 	 * @param int|null    $conflict_minor  Price found in WooCommerce when it differed from the plan, null if none.
 	 * @param string|null $tested_at       When a test purchase of this plan last passed (UTC, Y-m-d H:i:s), null if never.
+	 * @param string|null $tested_hash     Fingerprint of what was tested when it passed (see TestPurchase\Fingerprint), null if it has not passed.
 	 */
 	public function __construct(
 		public string $id,
@@ -39,7 +40,8 @@ final class Plan {
 		public ?int $synced_minor = null,
 		public string $synced_currency = '',
 		public ?int $conflict_minor = null,
-		public ?string $tested_at = null
+		public ?string $tested_at = null,
+		public ?string $tested_hash = null
 	) {
 	}
 
@@ -60,6 +62,7 @@ final class Plan {
 			'synced_currency' => $this->synced_currency,
 			'conflict_minor'  => $this->conflict_minor,
 			'tested_at'       => $this->tested_at,
+			'tested_hash'     => $this->tested_hash,
 		);
 	}
 
@@ -83,7 +86,8 @@ final class Plan {
 			isset( $data['synced_minor'] ) ? (int) $data['synced_minor'] : null,
 			(string) ( $data['synced_currency'] ?? '' ),
 			isset( $data['conflict_minor'] ) ? (int) $data['conflict_minor'] : null,
-			isset( $data['tested_at'] ) ? (string) $data['tested_at'] : null
+			isset( $data['tested_at'] ) ? (string) $data['tested_at'] : null,
+			isset( $data['tested_hash'] ) ? (string) $data['tested_hash'] : null
 		);
 	}
 }

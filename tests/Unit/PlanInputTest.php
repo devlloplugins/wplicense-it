@@ -195,7 +195,7 @@ final class PlanInputTest extends TestCase {
 	}
 
 	public function test_a_saved_plan_keeps_its_woocommerce_link(): void {
-		$saved   = new Plan( 'aaaaaaaa', 'Old name', '49', 1, 'P1Y', 12, 4900, 'USD', 3900, '2026-10-11 12:00:00' );
+		$saved   = new Plan( 'aaaaaaaa', 'Old name', '49', 1, 'P1Y', 12, 4900, 'USD', 3900, '2026-10-11 12:00:00', 'print-1' );
 		$result  = PlanInput::parse( array( $this->row( 'New name', '59', '2', 'P2Y', 'aaaaaaaa' ) ), array( $saved ), $this->ids() );
 		$plan    = $result['plans'][0];
 
@@ -206,6 +206,7 @@ final class PlanInputTest extends TestCase {
 		$this->assertSame( 4900, $plan->synced_minor );
 		$this->assertSame( 3900, $plan->conflict_minor );
 		$this->assertSame( '2026-10-11 12:00:00', $plan->tested_at );
+		$this->assertSame( 'print-1', $plan->tested_hash );
 	}
 
 	public function test_an_id_that_is_not_saved_is_not_trusted(): void {

@@ -141,18 +141,23 @@ final class PlanSync {
 	}
 
 	/**
-	 * Makes the product public in the shop. Only allowed once a test purchase of the plan has passed.
+	 * Makes the product public in the shop. Only allowed while a passed test purchase still matches the plan.
 	 *
 	 * @param int    $software_id License product ID.
 	 * @param string $plan_id     Plan ID.
-	 * @throws PlanException If the plan has not passed a test purchase, or has no product.
+	 * @param string $fingerprint Fingerprint of the plan as it is now (see TestPurchase\Fingerprint).
+	 * @throws PlanException If the plan has not passed a test purchase, has changed since, or has no product.
 	 */
-	public function publish( int $software_id, string $plan_id ): void {
+	public function publish( int $software_id, string $plan_id, string $fingerprint ): void {
 		$plans = $this->plans->all( $software_id );
 		$plan  = $this->find_plan( $plans, $plan_id );
 
-		if ( null === $plan->tested_at ) {
+		if ( null === $plan->tested_hash || null === $plan->tested_at ) {
 			throw new PlanException( 'Run a test purchase of this plan before publishing it.' );
+		}
+
+		if ( ! hash_equals( $plan->tested_hash, $fingerprint ) ) {
+			throw new PlanException( 'This plan, its product or its zip changed since the test purchase passed. Run the test again before publishing.' );
 		}
 
 		$remote = $this->woo->find( $plan->woo_product_id );
@@ -161,6 +166,26 @@ final class PlanSync {
 		}
 
 		$this->woo->set_status( $plan->woo_product_id, 'publish' );
+	}
+
+	/**
+	 * Remembers the outcome of a test purchase. A pass is stored with the fingerprint of what was tested, and a
+	 * failure clears any earlier pass, so a plan that stopped working cannot be published on an old result.
+	 *
+	 * @param int    $software_id License product ID.
+	 * @param string $plan_id     Plan ID.
+	 * @param bool   $passed      Whether the test purchase passed.
+	 * @param string $fingerprint Fingerprint of what was tested.
+	 * @param string $when        Time of the test (UTC, Y-m-d H:i:s).
+	 */
+	public function record_test( int $software_id, string $plan_id, bool $passed, string $fingerprint, string $when ): void {
+		$plans = $this->plans->all( $software_id );
+		$plan  = $this->find_plan( $plans, $plan_id );
+
+		$plan->tested_at   = $passed ? $when : null;
+		$plan->tested_hash = $passed ? $fingerprint : null;
+
+		$this->plans->save( $software_id, $plans );
 	}
 
 	/**
@@ -178,6 +203,7 @@ final class PlanSync {
 		$plan->synced_currency = '';
 		$plan->conflict_minor  = null;
 		$plan->tested_at       = null;
+		$plan->tested_hash     = null;
 
 		$this->plans->save( $software_id, $plans );
 	}

@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Admin;
 
+use Devllo\WPLicenseIt\Api\ProductCatalog;
 use Devllo\WPLicenseIt\Plans\Plan;
 use Devllo\WPLicenseIt\Plans\PlanException;
 use Devllo\WPLicenseIt\Plans\PlanInput;
@@ -16,6 +17,10 @@ use Devllo\WPLicenseIt\Plans\PlanResult;
 use Devllo\WPLicenseIt\Plans\PlanRepository;
 use Devllo\WPLicenseIt\Plans\PlanSync;
 use Devllo\WPLicenseIt\Plans\ProductGateway;
+use Devllo\WPLicenseIt\TestPurchase\CheckResult;
+use Devllo\WPLicenseIt\TestPurchase\Fingerprint;
+use Devllo\WPLicenseIt\TestPurchase\TestPurchase;
+use Devllo\WPLicenseIt\TestPurchase\TestReport;
 use Devllo\WPLicenseIt\WooCommerce\Money;
 use WP_Post;
 
@@ -30,6 +35,7 @@ final class PlansBox {
 	private const POST_FIELD    = 'wplit_plans';
 	private const ACTION        = 'wplit_plan_action';
 	private const REPORT_PREFIX = 'wplit_plans_report_';
+	private const TEST_PREFIX   = 'wplit_plans_test_';
 	private const SPARE_ROWS    = 3;
 
 	/**
@@ -48,15 +54,29 @@ final class PlansBox {
 	private $sync;
 
 	/**
+	 * @var TestPurchase
+	 */
+	private $tester;
+
+	/**
+	 * @var ProductCatalog
+	 */
+	private $catalog;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param PlanRepository $plans Plan storage.
-	 * @param ProductGateway $woo   WooCommerce.
+	 * @param PlanRepository $plans   Plan storage.
+	 * @param ProductGateway $woo     WooCommerce.
+	 * @param TestPurchase   $tester  Runs the test purchase.
+	 * @param ProductCatalog $catalog Software products and their zip files.
 	 */
-	public function __construct( PlanRepository $plans, ProductGateway $woo ) {
-		$this->plans = $plans;
-		$this->woo   = $woo;
-		$this->sync  = new PlanSync( $plans, $woo );
+	public function __construct( PlanRepository $plans, ProductGateway $woo, TestPurchase $tester, ProductCatalog $catalog ) {
+		$this->plans   = $plans;
+		$this->woo     = $woo;
+		$this->sync    = new PlanSync( $plans, $woo );
+		$this->tester  = $tester;
+		$this->catalog = $catalog;
 	}
 
 	/**
@@ -83,6 +103,7 @@ final class PlansBox {
 	public function render( WP_Post $post ): void {
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
 		$this->render_report( $post->ID );
+		$this->render_test_report( $post->ID );
 
 		$currency = $this->woo->currency();
 		$plans    = $this->plans->all( $post->ID );
@@ -166,6 +187,7 @@ final class PlansBox {
 		if ( $edit ) {
 			echo ' &middot; <a href="' . esc_url( $edit ) . '">' . esc_html__( 'Edit in WooCommerce', 'wplicense-it' ) . '</a>';
 		}
+		echo ' &middot; <a href="' . esc_url( $this->action_url( 'test', $software_id, $plan->id ) ) . '">' . esc_html__( 'Test this plan', 'wplicense-it' ) . '</a>';
 
 		if ( null !== $plan->conflict_minor ) {
 			echo '<div style="margin-top:6px;padding:6px 8px;border-left:4px solid #dba617;background:#fcf9e8">';
@@ -181,10 +203,13 @@ final class PlansBox {
 
 		if ( 'draft' === $remote->status ) {
 			echo '<div class="description" style="margin-top:4px">';
-			if ( null === $plan->tested_at ) {
-				esc_html_e( 'Not for sale yet. It can be published once a test purchase of this plan has passed.', 'wplicense-it' );
+			if ( $this->has_current_pass( $software_id, $plan ) ) {
+				esc_html_e( 'The test passed. ', 'wplicense-it' );
+				echo '<a href="' . esc_url( $this->action_url( 'publish', $software_id, $plan->id ) ) . '"><strong>' . esc_html__( 'Publish in the shop', 'wplicense-it' ) . '</strong></a>';
+			} elseif ( null !== $plan->tested_at ) {
+				esc_html_e( 'The plan, its product or its zip changed since the test passed. Test it again to publish.', 'wplicense-it' );
 			} else {
-				echo '<a href="' . esc_url( $this->action_url( 'publish', $software_id, $plan->id ) ) . '">' . esc_html__( 'Publish in the shop', 'wplicense-it' ) . '</a>';
+				esc_html_e( 'Not for sale yet. It can be published once a test of this plan passes.', 'wplicense-it' );
 			}
 			echo '</div>';
 		}
@@ -246,17 +271,28 @@ final class PlansBox {
 
 		$errors  = array();
 		$results = array();
+		$done    = '';
 
 		try {
 			switch ( $do ) {
 				case 'accept':
 					$this->sync->accept_woo_price( $post_id, $plan_id );
+					$done = __( 'The plan now uses the WooCommerce price.', 'wplicense-it' );
 					break;
 				case 'restore':
 					$this->sync->restore_plan_price( $post_id, $plan_id );
+					$done = __( 'The plan price was put back on the WooCommerce product.', 'wplicense-it' );
+					break;
+				case 'test':
+					$this->run_test( $post_id, $plan_id );
 					break;
 				case 'publish':
-					$this->sync->publish( $post_id, $plan_id );
+					$plan = $this->plan_by_id( $post_id, $plan_id );
+					if ( null === $plan ) {
+						throw new PlanException( 'That plan no longer exists.' );
+					}
+					$this->sync->publish( $post_id, $plan_id, Fingerprint::of( $post_id, $plan, $this->catalog->package_file( $post_id ) ) );
+					$done = __( 'Published in the shop. Customers can now buy this plan.', 'wplicense-it' );
 					break;
 				case 'forget':
 					$this->sync->forget_product( $post_id, $plan_id );
@@ -269,9 +305,113 @@ final class PlansBox {
 			$errors[] = $e->getMessage();
 		}
 
-		$this->queue_report( $post_id, $errors, $results );
+		$this->queue_report( $post_id, $errors, $results, $done );
 		wp_safe_redirect( (string) get_edit_post_link( $post_id, 'raw' ) );
 		exit;
+	}
+
+	/**
+	 * Runs the test purchase for a plan, remembers the outcome and keeps the report for the next page load.
+	 *
+	 * @param int    $post_id License product ID.
+	 * @param string $plan_id Plan ID.
+	 * @throws PlanException If the plan does not exist.
+	 */
+	private function run_test( int $post_id, string $plan_id ): void {
+		$plan = $this->plan_by_id( $post_id, $plan_id );
+		if ( null === $plan ) {
+			throw new PlanException( 'That plan no longer exists.' );
+		}
+
+		$report = $this->tester->run( $post_id, $plan );
+		$print  = Fingerprint::of( $post_id, $plan, $this->catalog->package_file( $post_id ) );
+
+		$this->sync->record_test( $post_id, $plan_id, $report->passed(), $print, gmdate( 'Y-m-d H:i:s' ) );
+
+		set_transient(
+			self::TEST_PREFIX . get_current_user_id() . '_' . $post_id,
+			array(
+				'plan'   => $plan->name,
+				'passed' => $report->passed(),
+				'rows'   => $report->to_array(),
+			),
+			5 * MINUTE_IN_SECONDS
+		);
+	}
+
+	/**
+	 * Whether a plan has a passed test that still matches the plan, its product and its zip.
+	 *
+	 * @param int  $software_id License product ID.
+	 * @param Plan $plan        Saved plan.
+	 */
+	private function has_current_pass( int $software_id, Plan $plan ): bool {
+		return Fingerprint::is_current( $plan, Fingerprint::of( $software_id, $plan, $this->catalog->package_file( $software_id ) ) );
+	}
+
+	/**
+	 * A saved plan by ID.
+	 *
+	 * @param int    $post_id License product ID.
+	 * @param string $plan_id Plan ID.
+	 */
+	private function plan_by_id( int $post_id, string $plan_id ): ?Plan {
+		foreach ( $this->plans->all( $post_id ) as $plan ) {
+			if ( $plan->id === $plan_id ) {
+				return $plan;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Prints and clears the result of the last test purchase.
+	 *
+	 * @param int $post_id License product ID.
+	 */
+	private function render_test_report( int $post_id ): void {
+		$key  = self::TEST_PREFIX . get_current_user_id() . '_' . $post_id;
+		$data = get_transient( $key );
+		if ( ! is_array( $data ) || ! isset( $data['rows'] ) ) {
+			return;
+		}
+		delete_transient( $key );
+
+		$report = TestReport::from_array( $data['rows'] );
+		$passed = ! empty( $data['passed'] );
+		$icons  = array(
+			CheckResult::PASS => array( '&#10003;', '#00a32a', __( 'Passed:', 'wplicense-it' ) ),
+			CheckResult::FAIL => array( '&#10007;', '#d63638', __( 'Failed:', 'wplicense-it' ) ),
+			CheckResult::WARN => array( '!', '#996800', __( 'Warning:', 'wplicense-it' ) ),
+			CheckResult::SKIP => array( '&ndash;', '#646970', __( 'Not tried:', 'wplicense-it' ) ),
+		);
+
+		printf(
+			'<div class="notice notice-%1$s inline"><p><strong>%2$s</strong></p><ul style="margin:0 0 8px">',
+			$passed ? 'success' : 'error',
+			esc_html(
+				$passed
+					/* translators: %s: plan name. */
+					? sprintf( __( 'Test of "%s": passed. Nothing was saved or sent.', 'wplicense-it' ), (string) ( $data['plan'] ?? '' ) )
+					/* translators: %s: plan name. */
+					: sprintf( __( 'Test of "%s": did not pass. Fix the items below and test again.', 'wplicense-it' ), (string) ( $data['plan'] ?? '' ) )
+			)
+		);
+
+		foreach ( $report->results as $result ) {
+			list( $symbol, $color, $word ) = $icons[ $result->status ];
+			printf(
+				'<li style="margin:4px 0"><span aria-hidden="true" style="display:inline-block;width:1.4em;font-weight:bold;color:%1$s">%2$s</span><span class="screen-reader-text">%3$s </span><strong>%4$s</strong> &mdash; %5$s</li>',
+				esc_attr( $color ),
+				$symbol, // Fixed entity from the list above.
+				esc_html( $word ),
+				esc_html( $result->label ),
+				esc_html( $result->message )
+			);
+		}
+
+		echo '</ul></div>';
 	}
 
 	/**
@@ -313,8 +453,9 @@ final class PlansBox {
 	 * @param int            $post_id License product ID.
 	 * @param string[]       $errors  Error lines.
 	 * @param PlanResult[]   $results Results of the sync.
+	 * @param string|null    $done    Line to show when nothing else needs saying. Null for the usual "Plans saved".
 	 */
-	private function queue_report( int $post_id, array $errors, array $results ): void {
+	private function queue_report( int $post_id, array $errors, array $results, ?string $done = null ): void {
 		$lines = array();
 		foreach ( $results as $result ) {
 			if ( PlanResult::IN_SYNC === $result->status ) {
@@ -326,10 +467,11 @@ final class PlansBox {
 			);
 		}
 
-		if ( ! $errors && ! $lines ) {
+		$done = $done ?? __( 'Plans saved. WooCommerce is up to date.', 'wplicense-it' );
+		if ( ! $errors && ! $lines && '' !== $done ) {
 			$lines[] = array(
 				'attention' => false,
-				'text'      => __( 'Plans saved. WooCommerce is up to date.', 'wplicense-it' ),
+				'text'      => $done,
 			);
 		}
 

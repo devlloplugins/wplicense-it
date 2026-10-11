@@ -292,10 +292,10 @@ final class PlanSyncTest extends TestCase {
 		$this->save( $this->plan( 'aaaaaaaa' ) );
 
 		try {
-			$this->sync->publish( self::SOFTWARE, 'aaaaaaaa' );
+			$this->sync->publish( self::SOFTWARE, 'aaaaaaaa', 'print-1' );
 			$this->fail( 'Expected an exception' );
 		} catch ( PlanException $e ) {
-			$this->assertStringContainsString( 'test purchase', $e->getMessage() );
+			$this->assertStringContainsString( 'Run a test purchase', $e->getMessage() );
 		}
 
 		$this->assertSame( 'draft', $this->woo->products[500]['status'] );
@@ -303,13 +303,61 @@ final class PlanSyncTest extends TestCase {
 
 	public function test_publishing_after_a_passed_test_purchase(): void {
 		$this->save( $this->plan( 'aaaaaaaa' ) );
-		$plan            = $this->stored( 'aaaaaaaa' );
-		$plan->tested_at = '2026-10-11 12:00:00';
-		$this->repo->save( self::SOFTWARE, array( $plan ) );
+		$this->sync->record_test( self::SOFTWARE, 'aaaaaaaa', true, 'print-1', '2026-10-11 12:00:00' );
 
-		$this->sync->publish( self::SOFTWARE, 'aaaaaaaa' );
+		$this->sync->publish( self::SOFTWARE, 'aaaaaaaa', 'print-1' );
 
 		$this->assertSame( 'publish', $this->woo->products[500]['status'] );
+		$plan = $this->stored( 'aaaaaaaa' );
+		$this->assertSame( '2026-10-11 12:00:00', $plan->tested_at );
+		$this->assertSame( 'print-1', $plan->tested_hash );
+	}
+
+	public function test_a_pass_stops_counting_when_the_fingerprint_changes(): void {
+		$this->save( $this->plan( 'aaaaaaaa' ) );
+		$this->sync->record_test( self::SOFTWARE, 'aaaaaaaa', true, 'print-1', '2026-10-11 12:00:00' );
+
+		try {
+			$this->sync->publish( self::SOFTWARE, 'aaaaaaaa', 'print-2' );
+			$this->fail( 'Expected an exception' );
+		} catch ( PlanException $e ) {
+			$this->assertStringContainsString( 'changed since the test purchase passed', $e->getMessage() );
+		}
+
+		$this->assertSame( 'draft', $this->woo->products[500]['status'] );
+	}
+
+	public function test_a_failed_test_clears_an_earlier_pass(): void {
+		$this->save( $this->plan( 'aaaaaaaa' ) );
+		$this->sync->record_test( self::SOFTWARE, 'aaaaaaaa', true, 'print-1', '2026-10-11 12:00:00' );
+
+		$this->sync->record_test( self::SOFTWARE, 'aaaaaaaa', false, 'print-1', '2026-10-11 13:00:00' );
+
+		$plan = $this->stored( 'aaaaaaaa' );
+		$this->assertNull( $plan->tested_at );
+		$this->assertNull( $plan->tested_hash );
+		$this->expectException( PlanException::class );
+		$this->sync->publish( self::SOFTWARE, 'aaaaaaaa', 'print-1' );
+	}
+
+	public function test_a_price_change_does_not_cancel_the_stored_pass(): void {
+		$this->save( $this->plan( 'aaaaaaaa' ) );
+		$this->sync->record_test( self::SOFTWARE, 'aaaaaaaa', true, 'print-1', '2026-10-11 12:00:00' );
+
+		$plan        = $this->stored( 'aaaaaaaa' );
+		$plan->price = '59';
+		$this->save( $plan );
+
+		$this->assertSame( 'print-1', $this->stored( 'aaaaaaaa' )->tested_hash );
+	}
+
+	public function test_forgetting_the_product_clears_the_pass(): void {
+		$this->save( $this->plan( 'aaaaaaaa' ) );
+		$this->sync->record_test( self::SOFTWARE, 'aaaaaaaa', true, 'print-1', '2026-10-11 12:00:00' );
+
+		$this->sync->forget_product( self::SOFTWARE, 'aaaaaaaa' );
+
+		$this->assertNull( $this->stored( 'aaaaaaaa' )->tested_hash );
 	}
 
 	public function test_the_plan_price_is_pushed_when_the_store_currency_changes(): void {
@@ -333,6 +381,7 @@ final class PlanSyncTest extends TestCase {
 		$plan->woo_product_id  = 9;
 		$plan->conflict_minor  = 100;
 		$plan->tested_at       = '2026-10-11 12:00:00';
+		$plan->tested_hash     = 'print-1';
 		$this->repo->save( self::SOFTWARE, array( $plan ) );
 
 		$this->assertSame( $plan->to_array(), $this->repo->all( self::SOFTWARE )[0]->to_array() );

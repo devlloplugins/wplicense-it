@@ -14,7 +14,9 @@ require_once dirname( __DIR__ ) . '/Support/connect-stubs.php';
 
 use Devllo\WPLicenseIt\Admin\ConnectBox;
 use Devllo\WPLicenseIt\Plans\Plan;
+use Devllo\WPLicenseIt\Tests\Support\ConfigurableProductCatalog;
 use Devllo\WPLicenseIt\Tests\Support\FakeProductGateway;
+use Devllo\WPLicenseIt\TestPurchase\Fingerprint;
 use Devllo\WPLicenseIt\Tests\Support\InMemoryPlanRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -50,7 +52,8 @@ final class ConnectBoxTest extends TestCase {
 			$this->plans,
 			static function () use ( $gateway ) {
 				return $gateway;
-			}
+			},
+			new ConfigurableProductCatalog()
 		);
 
 		ob_start();
@@ -106,12 +109,29 @@ final class ConnectBoxTest extends TestCase {
 			'wplit_product_version' => '1.4.2',
 		);
 		$this->woo->products[500]           = array( 'status' => 'publish', 'price' => 4900, 'software' => 7, 'sites' => 1, 'period' => 'P1Y' );
-		$this->plans->save( 7, array( new Plan( 'aaaaaaaa', 'One site', '49', 1, 'P1Y', 500, 4900, 'USD', null, '2026-10-11 12:00:00' ) ) );
+		$plan              = new Plan( 'aaaaaaaa', 'One site', '49', 1, 'P1Y', 500, 4900, 'USD', null, '2026-10-11 12:00:00' );
+		$plan->tested_hash = Fingerprint::of( 7, $plan, null );
+		$this->plans->save( 7, array( $plan ) );
 
 		$html = $this->draw( 'SEO Pro', 'publish', $this->woo );
 
 		$this->assertSame( 6, substr_count( $html, 'Done:' ) );
 		$this->assertStringNotContainsString( 'To do:', $html );
+	}
+
+	public function test_a_test_that_no_longer_matches_does_not_count(): void {
+		$GLOBALS['wplit_test_post_meta'][7] = array(
+			'file_name'             => 'seo-pro.zip',
+			'wplit_product_version' => '1.4.2',
+		);
+		$this->woo->products[500]           = array( 'status' => 'publish', 'price' => 4900, 'software' => 7, 'sites' => 1, 'period' => 'P1Y' );
+		$plan                               = new Plan( 'aaaaaaaa', 'One site', '49', 1, 'P1Y', 500, 4900, 'USD', null, '2026-10-11 12:00:00' );
+		$plan->tested_hash                  = Fingerprint::of( 7, $plan, '/an/older/upload.zip' );
+		$this->plans->save( 7, array( $plan ) );
+
+		$html = $this->draw( 'SEO Pro', 'publish', $this->woo );
+
+		$this->assertStringContainsString( 'To do: </span>Test purchase passed for every plan', $html );
 	}
 
 	public function test_a_new_product_shows_what_is_left(): void {
