@@ -48,7 +48,7 @@ final class Checklist {
 			array(
 				'done'  => $plans > 0 && $facts['tested_count'] >= $plans,
 				'label' => 'Test purchase passed for every plan',
-				'hint'  => 'A plan can be published in the shop only after this. The test purchase button is not available yet.',
+				'hint'  => 'Click "Test this plan" in each plan\'s row on the Plans tab. A plan can be published in the shop only after it passes.',
 			),
 			array(
 				'done'  => $plans > 0 && $facts['published_count'] >= $plans,

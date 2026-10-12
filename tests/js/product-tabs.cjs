@@ -10,7 +10,7 @@ const { chromium } = require( 'playwright' );
 
 const page_html = execFileSync( 'php', [ path.join( __dirname, 'render-tabs.php' ) ], { encoding: 'utf8' } );
 const URL = 'http://wplit.test/wp-admin/post.php';
-const BOXES = { software: [ 'wplit_software', 'wplit_defaults' ], plans: [ 'wplit_plans' ], releases: [ 'wplit_release', 'wplit_release_history' ], connect: [ 'wplit_connect', 'wplit_legacy_key' ] };
+const BOXES = { software: [ 'wplit_software', 'wplit_defaults', 'authordiv' ], plans: [ 'wplit_plans' ], releases: [ 'wplit_release', 'wplit_release_history' ], connect: [ 'wplit_connect', 'wplit_legacy_key' ] };
 const ALWAYS = [ 'postdivrich', 'submitdiv' ];
 
 let failures = 0;

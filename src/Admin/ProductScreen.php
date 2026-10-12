@@ -52,7 +52,7 @@ final class ProductScreen {
 	 * Which boxes belong to which tab, in tab order.
 	 */
 	public const TABS = array(
-		'software' => array( 'wplit_software', 'wplit_defaults' ),
+		'software' => array( 'wplit_software', 'wplit_defaults', 'authordiv' ),
 		'plans'    => array( 'wplit_plans' ),
 		'releases' => array( 'wplit_release', 'wplit_release_history' ),
 		'connect'  => array( 'wplit_connect', 'wplit_legacy_key' ),
@@ -89,6 +89,19 @@ final class ProductScreen {
 		add_meta_box( 'wplit_defaults', __( 'Defaults for licenses issued by hand', 'wplicense-it' ), array( $this, 'render_defaults' ), 'wplit_product', 'normal', 'default' );
 		add_meta_box( 'wplit_release', __( 'Upload a release', 'wplicense-it' ), array( $this, 'render_release' ), 'wplit_product', 'normal', 'high' );
 		add_meta_box( 'wplit_legacy_key', __( 'Old API key (1.x clients)', 'wplicense-it' ), array( $this, 'render_legacy_key' ), 'wplit_product', 'normal', 'low' );
+
+		// The plans box comes with WooCommerce. Without it the tab would be empty, so say why.
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			add_meta_box( 'wplit_plans', __( 'Plans (what customers can buy)', 'wplicense-it' ), array( $this, 'render_plans_unavailable' ), 'wplit_product', 'normal', 'high' );
+		}
+	}
+
+	/**
+	 * Shown on the Plans tab when WooCommerce is not active.
+	 */
+	public function render_plans_unavailable(): void {
+		echo '<p><strong>' . esc_html__( 'WooCommerce is not active.', 'wplicense-it' ) . '</strong></p>';
+		echo '<p>' . esc_html__( 'Plans are sold through WooCommerce: each plan becomes a WooCommerce product, and a paid order issues the license. Install and activate WooCommerce, then come back to add plans here. Licenses can still be issued by hand under Licenses, Add license.', 'wplicense-it' ) . '</p>';
 	}
 
 	/**

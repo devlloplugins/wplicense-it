@@ -107,7 +107,8 @@ final class ProductScreenTest extends TestCase {
 		}, $catalog ) )->add_box();
 
 		$added = array_keys( $GLOBALS['wplit_test_meta_boxes'] );
-		$named = array_merge( ...array_values( ProductScreen::TABS ) );
+		// WordPress adds the author box itself. The tab list only decides on which tab it is shown.
+		$named = array_values( array_diff( array_merge( ...array_values( ProductScreen::TABS ) ), array( 'authordiv' ) ) );
 
 		sort( $added );
 		sort( $named );
@@ -215,5 +216,21 @@ final class ProductScreenTest extends TestCase {
 		$this->assertStringContainsString( "'title'", $match[1] );
 		$this->assertStringNotContainsString( "'editor'", $match[1] );
 		$this->assertStringNotContainsString( "'thumbnail'", $match[1] );
+	}
+
+	public function test_the_plans_tab_explains_itself_when_woocommerce_is_not_active(): void {
+		$screen = new ProductScreen();
+		$screen->add_boxes();
+
+		$this->assertTrue( isset( $GLOBALS['wplit_test_meta_boxes']['wplit_plans'] ), 'The Plans tab has a box even without WooCommerce' );
+
+		$html = $this->capture(
+			static function () use ( $screen ): void {
+				$screen->render_plans_unavailable();
+			}
+		);
+
+		$this->assertStringContainsString( 'WooCommerce is not active.', $html );
+		$this->assertStringContainsString( 'Add license', $html );
 	}
 }

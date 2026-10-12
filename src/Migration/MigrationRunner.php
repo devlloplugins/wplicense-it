@@ -64,6 +64,13 @@ final class MigrationRunner {
 			return;
 		}
 
+		// A fresh install has no 1.x tables. Say so now, so a new site never shows a migration notice while it waits for cron.
+		if ( ! ( new WpdbLegacySource( $GLOBALS['wpdb'] ) )->has_tables() ) {
+			self::finish_fresh_install();
+
+			return;
+		}
+
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			wp_schedule_single_event( time() + 30, self::CRON_HOOK );
 		}
@@ -99,20 +106,28 @@ final class MigrationRunner {
 
 			// Nothing to migrate, for example on a fresh install: switch straight to 2.0.
 			if ( ! $source->has_tables() ) {
-				update_option( 'wplit_db_version', '2.0.0', true );
-				$store        = new OptionStateStore();
-				$state        = $store->load();
-				$state->status = MigrationState::DONE;
-				$state->finalized = true;
-				$store->save( $state );
-
-				return $state;
+				return self::finish_fresh_install();
 			}
 
 			return self::migrator()->run( $budget, 200, $accept_errors );
 		} finally {
 			delete_transient( self::LOCK );
 		}
+	}
+
+	/**
+	 * Marks the migration as done when there is no 1.x data to move.
+	 */
+	private static function finish_fresh_install(): MigrationState {
+		update_option( 'wplit_db_version', '2.0.0', true );
+
+		$store            = new OptionStateStore();
+		$state            = $store->load();
+		$state->status    = MigrationState::DONE;
+		$state->finalized = true;
+		$store->save( $state );
+
+		return $state;
 	}
 
 	/**
