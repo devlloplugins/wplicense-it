@@ -11,6 +11,7 @@ namespace Devllo\WPLicenseIt\Admin;
 
 use Devllo\WPLicenseIt\Api\ProductCatalog;
 use Devllo\WPLicenseIt\Connect\Checklist;
+use Devllo\WPLicenseIt\Connect\SdkZip;
 use Devllo\WPLicenseIt\Connect\Snippet;
 use Devllo\WPLicenseIt\Plans\PlanRepository;
 use Devllo\WPLicenseIt\Plans\ProductGateway;
@@ -38,6 +39,8 @@ final class ConnectBox {
 	 */
 	private $catalog;
 
+	public const ACTION = 'wplit_download_sdk';
+
 	/**
 	 * Constructor.
 	 *
@@ -56,6 +59,39 @@ final class ConnectBox {
 	 */
 	public function register(): void {
 		add_action( 'add_meta_boxes_wplit_product', array( $this, 'add_box' ) );
+		add_action( 'admin_post_' . self::ACTION, array( $this, 'download_sdk' ) );
+	}
+
+	/**
+	 * The link that downloads the SDK zip.
+	 */
+	public static function sdk_url(): string {
+		return wp_nonce_url( add_query_arg( array( 'action' => self::ACTION ), admin_url( 'admin-post.php' ) ), self::ACTION );
+	}
+
+	/**
+	 * Sends the SDK as a zip.
+	 */
+	public function download_sdk(): void {
+		if ( ! current_user_can( 'edit_products' ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'wplicense-it' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( self::ACTION );
+
+		try {
+			$path = SdkZip::build( WPLICENSE_IT_DIR . 'sdk' );
+		} catch ( \RuntimeException $e ) {
+			wp_die( esc_html__( 'The SDK zip could not be made on this server. Copy the sdk folder from the plugin instead.', 'wplicense-it' ), '', array( 'response' => 500 ) );
+		}
+
+		nocache_headers();
+		header( 'Content-Type: application/zip' );
+		header( 'Content-Disposition: attachment; filename="' . SdkZip::FOLDER . '.zip"' );
+		header( 'Content-Length: ' . (string) filesize( $path ) );
+		readfile( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Streaming a temp file we made.
+		unlink( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Temp file we made.
+		exit;
 	}
 
 	/**
@@ -99,7 +135,11 @@ final class ConnectBox {
 
 		echo '<h4 style="margin-bottom:4px">' . esc_html__( 'Put this in your plugin or theme', 'wplicense-it' ) . '</h4>';
 		echo '<ol style="margin-top:0">';
-		echo '<li>' . esc_html__( 'Copy the sdk folder from the WPLicense It plugin into your plugin or theme, as vendor/wplicense-it-client.', 'wplicense-it' ) . '</li>';
+		echo '<li>' . sprintf(
+			/* translators: %s: link text "Download the SDK". */
+			esc_html__( '%s and unzip it into your plugin or theme, so you have vendor/wplicense-it-client.', 'wplicense-it' ),
+			'<a href="' . esc_url( self::sdk_url() ) . '" id="wplit-sdk-download">' . esc_html__( 'Download the SDK', 'wplicense-it' ) . '</a>'
+		) . '</li>';
 		echo '<li>' . esc_html__( 'Paste this code into the main file of your plugin, or the functions.php of your theme:', 'wplicense-it' ) . '</li>';
 		echo '</ol>';
 

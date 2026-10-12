@@ -80,6 +80,15 @@ final class ConnectBoxTest extends TestCase {
 		$this->assertStringContainsString( 'Product ID: 7', $html );
 	}
 
+	public function test_offers_the_sdk_as_a_download_with_a_nonce(): void {
+		$html = $this->draw();
+
+		$this->assertStringContainsString( 'id="wplit-sdk-download"', $html );
+		$this->assertStringContainsString( 'action=wplit_download_sdk', $html );
+		$this->assertStringContainsString( '_wpnonce=', $html );
+		$this->assertStringNotContainsString( 'Copy the sdk folder', $html );
+	}
+
 	public function test_uses_the_package_name_type_and_folder_when_known(): void {
 		$GLOBALS['wplit_test_post_meta'][7] = array(
 			'wplit_package_type'   => 'theme',
