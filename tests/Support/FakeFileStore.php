@@ -80,6 +80,19 @@ final class FakeFileStore implements FileStore {
 		$this->deleted[] = $relative;
 	}
 
+	/**
+	 * @var int[] Products whose folder was deleted.
+	 */
+	public $deleted_products = array();
+
+	public function delete_product_files( int $product_id ): void {
+		if ( null !== $this->delete_error ) {
+			throw new FileStoreException( $this->delete_error );
+		}
+
+		$this->deleted_products[] = $product_id;
+	}
+
 	public function store_image( int $product_id, string $kind, array $file ): StoredFile {
 		if ( null !== $this->image_error ) {
 			throw new FileStoreException( $this->image_error );

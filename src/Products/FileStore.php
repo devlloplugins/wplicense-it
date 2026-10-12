@@ -42,6 +42,15 @@ interface FileStore {
 	public function delete_package( string $relative ): void;
 
 	/**
+	 * Deletes everything stored for a product in its own folder (wplit-files/p<ID>): leftover zips, the logo and the banner.
+	 * A folder that is already gone is not an error. Nothing outside that folder is touched.
+	 *
+	 * @param int $product_id License product ID.
+	 * @throws FileStoreException If something in the folder cannot be deleted.
+	 */
+	public function delete_product_files( int $product_id ): void;
+
+	/**
 	 * Keeps a logo or banner image, which is shown publicly in the update details.
 	 *
 	 * @param int                  $product_id License product ID.

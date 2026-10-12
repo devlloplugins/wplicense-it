@@ -72,6 +72,9 @@ and notes for customers. The **Release history** box lists them newest first.
   needs a fixed newer version.
 - **Delete.** Removes an older release and its zip from the server. The current release cannot be deleted, and a zip
   that another release still uses is kept.
+- **Deleting a product.** Moving a product to the trash keeps its files, so it can be restored. Deleting it permanently
+  (from the trash, or when WordPress empties the trash) removes all its release zips, its logo and its banner from the
+  server. Licenses already sold stay in the license list.
 - **Warnings.** Uploading a version that already exists, or one older than the current release, still works but says
   that sites on the newer version will not be offered it.
 - **Products from before this change** show their one existing release (size and date unknown). It joins the

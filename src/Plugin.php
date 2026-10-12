@@ -36,6 +36,7 @@ use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Migration\Command;
 use Devllo\WPLicenseIt\Migration\MigrationRunner;
 use Devllo\WPLicenseIt\Plans\PostMetaPlanRepository;
+use Devllo\WPLicenseIt\Products\ProductCleanup;
 use Devllo\WPLicenseIt\Products\WpFileStore;
 use Devllo\WPLicenseIt\Products\WpProductMeta;
 use Devllo\WPLicenseIt\Releases\MetaReleaseRepository;
@@ -123,6 +124,10 @@ final class Plugin {
 
 		// WordPress runs the privacy tools in admin requests and from WP-Cron (the export and erase emails).
 		( new PrivacyHooks() )->register();
+
+		// Permanent deletion also happens from WP-Cron (emptying the trash) and WP-CLI, so this is not limited to admin requests.
+		$cleanup_meta = new WpProductMeta();
+		( new ProductCleanup( new ReleaseService( new MetaReleaseRepository( $cleanup_meta ), $cleanup_meta ), new WpFileStore() ) )->register();
 
 		if ( is_admin() ) {
 			( new AdminMenu( $this->licenses() ) )->register();

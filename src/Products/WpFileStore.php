@@ -90,6 +90,59 @@ final class WpFileStore implements FileStore {
 		}
 	}
 
+	public function delete_product_files( int $product_id ): void {
+		if ( $product_id <= 0 ) {
+			return;
+		}
+
+		$uploads = wp_upload_dir();
+		$root    = realpath( $uploads['basedir'] . '/wplit-files' );
+		$folder  = $uploads['basedir'] . '/wplit-files/p' . $product_id;
+
+		if ( false === $root || ! is_dir( $folder ) ) {
+			return; // Nothing was ever stored.
+		}
+
+		// A link in place of the folder is removed as a link; what it points to is not ours to delete.
+		if ( is_link( $folder ) ) {
+			if ( ! @unlink( $folder ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink -- The result is checked.
+				throw new FileStoreException( 'The product folder could not be removed.' );
+			}
+
+			return;
+		}
+
+		$real = realpath( $folder );
+
+		if ( false === $real || dirname( $real ) !== $root || 'p' . $product_id !== basename( $real ) ) {
+			throw new FileStoreException( 'The product folder is not inside the releases folder, so it was not deleted.' );
+		}
+
+		self::remove_tree( $real );
+	}
+
+	/**
+	 * Deletes a folder and everything in it. Links are removed, never followed.
+	 *
+	 * @param string $dir Folder.
+	 * @throws FileStoreException If something cannot be deleted.
+	 */
+	private static function remove_tree( string $dir ): void {
+		foreach ( array_diff( (array) scandir( $dir ), array( '.', '..' ) ) as $entry ) {
+			$path = $dir . '/' . $entry;
+
+			if ( is_dir( $path ) && ! is_link( $path ) ) {
+				self::remove_tree( $path );
+			} elseif ( ! @unlink( $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink -- The result is checked.
+				throw new FileStoreException( 'A file could not be deleted: ' . $entry );
+			}
+		}
+
+		if ( ! @rmdir( $dir ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- The result is checked.
+			throw new FileStoreException( 'A folder could not be removed.' );
+		}
+	}
+
 	public function store_image( int $product_id, string $kind, array $file ): StoredFile {
 		if ( ! function_exists( 'wp_handle_upload' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
