@@ -120,3 +120,5 @@ thing of all.
 ## WooCommerce in the scripted environment
 
 Run `tests/env/setup-woocommerce.sh` after `tests/env/setup.sh`. It installs WooCommerce 9.4.2 and a mail-capture plugin. Then run `tests/e2e/05-woocommerce.cjs` (plans, test purchase, Publish) and `tests/e2e/06-purchase.cjs` (completed order, email, My Account, refunds, cancellation, renewal).
+
+Run every browser test in order with `tests/e2e/run-all.sh` (or only some: `tests/e2e/run-all.sh 05 06`). It keeps going after a failure and prints which tests failed. The same script runs in the `browser` job of `.github/workflows/ci.yml`.

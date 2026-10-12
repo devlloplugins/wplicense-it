@@ -41,6 +41,7 @@ fi
 say "MariaDB"
 if ! command -v mariadbd >/dev/null 2>&1; then
 	export DEBIAN_FRONTEND=noninteractive
+	apt-get update -qq >/dev/null
 	apt-get install -y -qq mariadb-server mariadb-client >/dev/null
 fi
 if ! mariadb -e 'select 1' >/dev/null 2>&1; then

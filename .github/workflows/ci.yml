@@ -55,3 +55,52 @@ jobs:
         with:
           php-version: '7.4'
       - run: find sdk -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  browser:
+    name: Browser tests (real WordPress and WooCommerce)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Not run on GitHub yet: written against a sandbox that behaves like this runner. Until the first run is green, a failure
+    # here is shown but does not block the other checks. Remove this line once it has passed.
+    continue-on-error: true
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /home/runner/pw-browsers
+      WPLIT_ENV_ROOT: /opt/wp-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, zip, gd, mbstring
+          tools: composer
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/pw" playwright@1.49.1
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Tab bar test (no WordPress needed)
+        run: node tests/js/product-tabs.cjs
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+      # The scripts run as root, like in the sandbox they were written in: they install MariaDB and the database
+      # client then uses the root socket login. sudo -E keeps the environment, and PATH has to be passed on explicitly.
+      - name: Build the test site
+        run: |
+          sudo systemctl stop mysql || true
+          sudo -E env "PATH=$PATH" bash tests/env/setup.sh
+          sudo -E env "PATH=$PATH" bash tests/env/setup-woocommerce.sh
+      - name: Run the browser tests
+        run: sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh
+      - name: Keep what is needed to see a failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-output
+          path: |
+            /tmp/wplit-shots
+            /opt/wp-test/wordpress/wp-content/debug.log
+            /opt/wp-test/client/wp-content/debug.log
+            /opt/wp-test/server-*.log
+          if-no-files-found: ignore
