@@ -116,6 +116,11 @@ serve() {
 if ( '/' !== \$path && file_exists( '${dir}' . \$path ) ) {
 	return false;
 }
+// A missing static file is a 404, as on a real web server, and not a WordPress page that pretends to be the file.
+if ( preg_match( '/\.(js|css|map|png|jpe?g|gif|svg|ico|webp|woff2?|ttf|eot)\$/i', \$path ) ) {
+	http_response_code( 404 );
+	return true;
+}
 \$_SERVER['SCRIPT_NAME']     = '/index.php';
 \$_SERVER['SCRIPT_FILENAME'] = '${dir}/index.php';
 chdir( '${dir}' );

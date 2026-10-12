@@ -115,3 +115,8 @@ thing of all.
 33. **From 1.x.** If you have a site with 1.x data, update it with this zip and check that licenses and orders
     appear and old customers' update checks still work.
 34. **Uninstall.** Deleting the plugin removes its tables and settings. (Do this last, on a throwaway site.)
+
+
+## WooCommerce in the scripted environment
+
+Run `tests/env/setup-woocommerce.sh` after `tests/env/setup.sh`. It installs WooCommerce 9.4.2 and a mail-capture plugin. Then run `tests/e2e/05-woocommerce.cjs` (plans, test purchase, Publish) and `tests/e2e/06-purchase.cjs` (completed order, email, My Account, refunds, cancellation, renewal).

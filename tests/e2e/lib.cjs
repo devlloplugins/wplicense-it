@@ -48,9 +48,15 @@ async function start() {
 	fs.mkdirSync( SHOTS, { recursive: true } );
 	const browser = await chromium.launch();
 	const context = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
+	// WooCommerce's JavaScript is not built here, so its script files answer 404 with an HTML page. Serve them empty, so
+	// they do not raise "Unexpected token '<'" errors that would hide real problems.
+	await context.route( /\/wp-content\/plugins\/woocommerce\/.*\.js(\?.*)?$/, async ( route ) => {
+		const response = await route.fetch();
+		if ( response.status() === 404 ) { await route.fulfill( { status: 200, contentType: 'application/javascript', body: '' } ); } else { await route.fulfill( { response } ); }
+	} );
 	const page = await context.newPage();
 	const problems = [];
-	page.on( 'pageerror', ( e ) => problems.push( 'page error: ' + e.message ) );
+	page.on( 'pageerror', ( e ) => problems.push( 'page error: ' + e.message + ' ' + ( ( e.stack || '' ).split( '\n' ).find( ( line ) => /http/.test( line ) ) || '' ).trim() ) );
 	page.on( 'console', ( m ) => { if ( 'error' === m.type() && ! /Failed to load resource/.test( m.text() ) ) { problems.push( 'console: ' + m.text() ); } } );
 	page.on( 'response', ( r ) => { if ( r.status() >= 500 ) { problems.push( 'HTTP ' + r.status() + ' ' + r.url() ); } } );
 	return { browser, context, page, problems };
@@ -71,7 +77,8 @@ async function shot( page, name ) {
 function finish( env, logStart ) {
 	// Not the plugin's doing: PHP deprecations inside WordPress core, and core's update checks that cannot reach
 	// wordpress.org from a sandbox without internet access.
-	const noise = [ /PHP Deprecated:.*(wp-includes|wp-admin)\//, /(wp_version_check|wp_update_plugins|wp_update_themes)\(\): An unexpected error/ ];
+	// WooCommerce's JavaScript is not built in this environment (it comes from a git checkout, not the release zip).
+	const noise = [ /PHP Deprecated:.*(wp-includes|wp-admin)\//, /(wp_version_check|wp_update_plugins|wp_update_themes)\(\): An unexpected error/, /WCAdminAssets::register_scripts\. Could not find asset registry/ ];
 	const lines = logSince( logStart ).filter( ( line ) => ! noise.some( ( pattern ) => pattern.test( line ) ) );
 	check( 0 === lines.length, 'debug.log has new lines:\n  ' + lines.slice( 0, 12 ).join( '\n  ' ) );
 	check( 0 === env.problems.length, 'browser problems:\n  ' + env.problems.slice( 0, 12 ).join( '\n  ' ) );
@@ -99,4 +106,11 @@ async function createProduct( page, title ) {
 	return new URL( page.url() ).searchParams.get( 'post' );
 }
 
-module.exports = { BASE, CLIENT, check, createProduct, finish, login, logSize, logSince, meta, secret, shot, sql, start, ROOT };
+/** Runs one operation of tests/e2e/php/woo.php (what a shop owner or payment gateway would do) and returns its JSON. */
+function woo( input ) {
+	const out = execFileSync( 'php', [ path.join( __dirname, 'php/woo.php' ), JSON.stringify( input ) ], { encoding: 'utf8', env: { ...process.env, WPLIT_ENV_ROOT: ROOT } } );
+	const json = out.slice( out.indexOf( '{' ) );
+	try { return JSON.parse( json ); } catch ( e ) { throw new Error( 'woo.php gave: ' + out.slice( 0, 400 ) ); }
+}
+
+module.exports = { BASE, CLIENT, woo, check, createProduct, finish, login, logSize, logSince, meta, secret, shot, sql, start, ROOT };

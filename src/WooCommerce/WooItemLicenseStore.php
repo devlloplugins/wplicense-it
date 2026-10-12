@@ -47,7 +47,20 @@ final class WooItemLicenseStore implements ItemLicenseStore {
 	 * @return int[]
 	 */
 	public static function ids( WC_Order_Item $item ): array {
-		$stored = $item->get_meta( self::META_KEY, true );
+		// WooCommerce keeps its own copy of an order item inside the order object. A license issued during this request is
+		// saved on a fresh copy (see append), so the copy in hand can be out of date: an email built from it showed no
+		// keys. Read the saved item instead.
+		$source = $item;
+
+		if ( $item->get_id() > 0 ) {
+			$fresh = WC_Order_Factory::get_order_item( $item->get_id() );
+
+			if ( $fresh instanceof WC_Order_Item ) {
+				$source = $fresh;
+			}
+		}
+
+		$stored = $source->get_meta( self::META_KEY, true );
 
 		return is_array( $stored ) ? array_map( 'intval', $stored ) : array();
 	}

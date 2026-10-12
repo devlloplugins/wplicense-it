@@ -224,4 +224,26 @@ final class WooAdapterTest extends TestCase {
 		$this->assertSame( '', ProductFields::clean_period( 'P99Y' ) );
 		$this->assertSame( '', ProductFields::clean_period( '' ) );
 	}
+
+	public function test_license_ids_come_from_the_saved_item_not_a_stale_copy(): void {
+		// Found on real WooCommerce: the order object an email is built from holds its own copy of each item, which does
+		// not see a license saved during the same request, so the email had no keys.
+		$saved                                = new \WC_Order_Item_Product();
+		$saved->id                            = 77;
+		$saved->meta[ WooItemLicenseStore::META_KEY ] = array( 5, 6 );
+		\WC_Order_Factory::$items[77]         = $saved;
+
+		$stale     = new \WC_Order_Item_Product();
+		$stale->id = 77;
+
+		$this->assertSame( array( 5, 6 ), WooItemLicenseStore::ids( $stale ) );
+	}
+
+	public function test_an_item_that_is_not_saved_yet_uses_its_own_meta(): void {
+		$item                                = new \WC_Order_Item_Product();
+		$item->id                            = 0;
+		$item->meta[ WooItemLicenseStore::META_KEY ] = array( 9 );
+
+		$this->assertSame( array( 9 ), WooItemLicenseStore::ids( $item ) );
+	}
 }

@@ -14,6 +14,7 @@ require_once dirname( __DIR__ ) . '/Support/connect-stubs.php';
 
 use Devllo\WPLicenseIt\Admin\PlansBox;
 use Devllo\WPLicenseIt\Plans\Plan;
+use Devllo\WPLicenseIt\Plans\PlanInput;
 use Devllo\WPLicenseIt\TestPurchase\CheckResult;
 use Devllo\WPLicenseIt\TestPurchase\Fingerprint;
 use Devllo\WPLicenseIt\TestPurchase\ReachabilityProbe;
@@ -219,5 +220,54 @@ final class PlansBoxTest extends TestCase {
 		set_transient( 'wplit_plans_test_1_7', 'junk', 300 );
 
 		$this->assertStringNotContainsString( 'Nothing was saved', $this->draw() );
+	}
+
+	/**
+	 * What a browser would submit for the Plans table as drawn, with nothing typed in.
+	 *
+	 * @return array<int, array<string, string>>
+	 */
+	private function submitted_rows( string $html ): array {
+		$rows = array();
+
+		preg_match_all( '/<input[^>]*name="wplit_plans\[(\d+)\]\[(id|name|price|sites)\]"[^>]*value="([^"]*)"/', $html, $inputs, PREG_SET_ORDER );
+		foreach ( $inputs as $input ) {
+			$rows[ (int) $input[1] ][ $input[2] ] = html_entity_decode( $input[3] );
+		}
+		preg_match_all( '/<select name="wplit_plans\[(\d+)\]\[period\]">(.*?)<\/select>/s', $html, $selects, PREG_SET_ORDER );
+		foreach ( $selects as $select ) {
+			preg_match( '/<option value="([^"]*)" selected="selected"/', $select[2], $chosen );
+			$rows[ (int) $select[1] ]['period'] = $chosen[1] ?? '';
+		}
+
+		return $rows;
+	}
+
+	public function test_a_form_submitted_with_nothing_typed_is_not_an_error(): void {
+		// Found on real WordPress: publishing a new product showed "Plan 1: enter a name..." for the spare rows.
+		$this->product();
+
+		$rows = $this->submitted_rows( $this->draw() );
+
+		$this->assertCount( 3, $rows, 'Three spare rows are drawn' );
+		$result = PlanInput::parse( $rows, array() );
+
+		$this->assertSame( array(), $result['errors'] );
+		$this->assertSame( array(), $result['plans'] );
+	}
+
+	public function test_a_saved_plan_and_the_spare_rows_submit_without_errors(): void {
+		$this->product();
+		$this->plans->save( 7, array( $this->plan() ) );
+
+		$rows = $this->submitted_rows( $this->draw() );
+
+		$this->assertCount( 4, $rows );
+		$result = PlanInput::parse( $rows, $this->plans->all( 7 ) );
+
+		$this->assertSame( array(), $result['errors'] );
+		$this->assertCount( 1, $result['plans'] );
+		$this->assertSame( 'aaaaaaaa', $result['plans'][0]->id );
+		$this->assertSame( 500, $result['plans'][0]->woo_product_id );
 	}
 }

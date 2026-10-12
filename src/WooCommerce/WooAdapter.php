@@ -49,6 +49,10 @@ final class WooAdapter {
 	 */
 	public function register(): void {
 		add_action( 'woocommerce_order_status_changed', array( $this, 'on_status_changed' ), 10, 4 );
+		// WooCommerce sends the order emails on woocommerce_order_status_{status} (priority 10), before status_changed fires.
+		// Issue first, at priority 5, so the keys exist when the email is built.
+		add_action( 'woocommerce_order_status_completed', array( $this, 'on_status_reached' ), 5, 2 );
+		add_action( 'woocommerce_order_status_processing', array( $this, 'on_status_reached' ), 5, 2 );
 		add_action( 'woocommerce_order_refunded', array( $this, 'on_refunded' ), 10, 2 );
 	}
 
@@ -86,6 +90,20 @@ final class WooAdapter {
 			$this->process( $order, fn( OrderData $data ): ProcessReport => $this->processor->revoke( $data, Status::REFUNDED ) );
 		} elseif ( 'cancelled' === $to ) {
 			$this->process( $order, fn( OrderData $data ): ProcessReport => $this->processor->revoke( $data, Status::REVOKED ) );
+		}
+	}
+
+	/**
+	 * An order reached completed or processing, before WooCommerce sends its emails.
+	 *
+	 * @param int           $order_id Order ID.
+	 * @param WC_Order|null $order    Order.
+	 */
+	public function on_status_reached( int $order_id, $order = null ): void {
+		$order = $order instanceof WC_Order ? $order : wc_get_order( $order_id );
+
+		if ( $order instanceof WC_Order ) {
+			$this->on_status_changed( $order_id, '', $order->get_status(), $order );
 		}
 	}
 

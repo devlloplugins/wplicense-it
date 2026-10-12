@@ -109,11 +109,12 @@ final class PlansBox {
 		$plans    = $this->plans->all( $post->ID );
 		$rows     = $plans;
 		for ( $i = 0; $i < self::SPARE_ROWS && count( $rows ) < PlanInput::MAX_PLANS; $i++ ) {
-			$rows[] = new Plan( '', '', '', 1, 'P1Y' );
+			// A spare row has no sites value either, so that an untouched row is submitted completely empty and skipped.
+			$rows[] = new Plan( '', '', '', -1, 'P1Y' );
 		}
 
 		echo '<p class="description">' . esc_html__( 'Each plan becomes one WooCommerce product, created as a draft. The price here is the one that counts: if someone edits a price in WooCommerce, you will be asked which to keep.', 'wplicense-it' ) . '</p>';
-		echo '<table class="widefat striped" style="margin-top:8px"><thead><tr>';
+		echo '<table class="widefat striped" style="margin-top:8px;width:100%"><thead><tr>';
 		/* translators: %s: currency code. */
 		$price_heading = sprintf( __( 'Price (%s)', 'wplicense-it' ), $currency );
 		foreach ( array( __( 'Name', 'wplicense-it' ), $price_heading, __( 'Sites (0 = unlimited)', 'wplicense-it' ), __( 'Lasts', 'wplicense-it' ), __( 'In WooCommerce', 'wplicense-it' ) ) as $heading ) {
@@ -142,9 +143,9 @@ final class PlansBox {
 
 		echo '<tr>';
 		echo '<td><input type="hidden" name="' . esc_attr( $field ) . '[id]" value="' . esc_attr( $plan->id ) . '">';
-		echo '<input type="text" class="regular-text" maxlength="' . esc_attr( (string) PlanInput::MAX_NAME ) . '" name="' . esc_attr( $field ) . '[name]" value="' . esc_attr( $plan->name ) . '" placeholder="' . esc_attr__( 'For example: 5 sites', 'wplicense-it' ) . '"></td>';
+		echo '<input type="text" style="width:100%;min-width:9em" maxlength="' . esc_attr( (string) PlanInput::MAX_NAME ) . '" name="' . esc_attr( $field ) . '[name]" value="' . esc_attr( $plan->name ) . '" placeholder="' . esc_attr__( 'For example: 5 sites', 'wplicense-it' ) . '"></td>';
 		echo '<td><input type="text" inputmode="decimal" size="8" name="' . esc_attr( $field ) . '[price]" value="' . esc_attr( $plan->price ) . '"></td>';
-		echo '<td><input type="number" min="0" max="' . esc_attr( (string) PlanInput::MAX_SITES ) . '" style="width:6em" name="' . esc_attr( $field ) . '[sites]" value="' . esc_attr( (string) $plan->sites ) . '"></td>';
+		echo '<td><input type="number" min="0" max="' . esc_attr( (string) PlanInput::MAX_SITES ) . '" style="width:6em" name="' . esc_attr( $field ) . '[sites]" value="' . esc_attr( $plan->sites < 0 ? '' : (string) $plan->sites ) . '"></td>';
 		echo '<td><select name="' . esc_attr( $field ) . '[period]">';
 		foreach ( self::period_labels() as $value => $label ) {
 			echo '<option value="' . esc_attr( $value ) . '"' . selected( $plan->period, $value, false ) . '>' . esc_html( $label ) . '</option>';

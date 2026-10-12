@@ -13,6 +13,10 @@ if ( ! class_exists( 'WC_Order_Item' ) ) {
 		public array $meta = array();
 		public int $id = 0;
 
+		public function get_id() {
+			return $this->id;
+		}
+
 		public function get_meta( $key, $single = true ) {
 			return $this->meta[ $key ] ?? '';
 		}
