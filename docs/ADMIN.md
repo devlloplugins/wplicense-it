@@ -42,7 +42,7 @@ period, or through a date), and whether to email the key to the customer.
 ## The product screen (tabs)
 
 A product (**License Products**, add or edit) is still a WordPress post, so saving and the file upload work as
-before. Under the title and description, a tab bar shows one section at a time:
+before. Under the title, a tab bar shows one section at a time:
 
 | Tab | What is on it |
 |---|---|

@@ -198,4 +198,22 @@ final class ProductScreenTest extends TestCase {
 	public function test_the_upload_input_accepts_zips(): void {
 		$this->assertStringContainsString( 'name="wplit_product_file_upload" accept=".zip,application/zip"', $this->all_boxes() );
 	}
+
+	public function test_the_tab_bar_is_attached_to_the_hook_that_fires_after_the_title(): void {
+		$GLOBALS['wplit_test_actions'] = array();
+		( new ProductScreen() )->register();
+
+		$this->assertContains( 'edit_form_after_title', array_column( $GLOBALS['wplit_test_actions'], 0 ) );
+		$this->assertNotContains( 'edit_form_after_editor', array_column( $GLOBALS['wplit_test_actions'], 0 ) );
+	}
+
+	public function test_the_product_has_no_editor_or_featured_image(): void {
+		$source = (string) file_get_contents( dirname( __DIR__, 2 ) . '/admin/wplicense-it-product-post.php' );
+
+		preg_match( "/'supports'\\s*=>\\s*array\\(([^)]*)\\)/", $source, $match );
+
+		$this->assertStringContainsString( "'title'", $match[1] );
+		$this->assertStringNotContainsString( "'editor'", $match[1] );
+		$this->assertStringNotContainsString( "'thumbnail'", $match[1] );
+	}
 }

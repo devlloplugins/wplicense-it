@@ -114,3 +114,8 @@ if ( ! function_exists( 'update_post_meta' ) ) {
 if ( ! function_exists( 'delete_post_meta' ) ) {
 	function delete_post_meta( $id, $key ) { unset( $GLOBALS['wplit_test_post_meta'][ $id ][ $key ] ); return true; }
 }
+
+// Records the hooks a class registers, so a test can check which hook it uses.
+if ( ! function_exists( 'add_action' ) ) {
+	function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) { $GLOBALS['wplit_test_actions'][] = array( $hook, $callback ); return true; }
+}

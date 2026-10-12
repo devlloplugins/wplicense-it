@@ -63,7 +63,8 @@ final class ProductScreen {
 	 */
 	public function register(): void {
 		add_action( 'add_meta_boxes_wplit_product', array( $this, 'add_boxes' ) );
-		add_action( 'edit_form_after_editor', array( $this, 'render_tabs' ) );
+		// Right after the title: this fires on every product screen, and the product has no content editor.
+		add_action( 'edit_form_after_title', array( $this, 'render_tabs' ) );
 	}
 
 	/**

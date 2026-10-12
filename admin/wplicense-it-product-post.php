@@ -54,7 +54,7 @@ class WP_License_It_Product_Post {
 			'label'                 => __( 'License Products', 'wp_license_it' ),
 			'description'           => __( 'WP License It Products', 'wp_license_it' ),
 			'labels'                => $labels,
-			'supports'           	=> array( 'title', 'editor', 'author', 'thumbnail' ),
+			'supports'           	=> array( 'title', 'author' ),
 			'rewrite'				=> array('slug' => 'license'),
 			'hierarchical'          => true,
 			// Products are internal records that the license API and WooCommerce look up by ID. They are not web pages,
