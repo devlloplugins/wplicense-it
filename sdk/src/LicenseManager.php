@@ -209,6 +209,13 @@ final class LicenseManager {
 
 		$state->limit = isset( $license['activation_limit'] ) ? (int) $license['activation_limit'] : $state->limit;
 		$state->used  = isset( $license['activations_used'] ) ? (int) $license['activations_used'] : $state->used;
+
+		// Both answers say whether the server treats this site as local or staging.
+		if ( isset( $data['site_local'] ) ) {
+			$state->local = (bool) $data['site_local'];
+		} elseif ( isset( $data['activation']['local'] ) ) {
+			$state->local = (bool) $data['activation']['local'];
+		}
 	}
 
 	/**

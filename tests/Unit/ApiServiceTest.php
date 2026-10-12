@@ -135,6 +135,17 @@ final class ApiServiceTest extends TestCase {
 		$this->assertFalse( $this->api->validate( $params, self::CLIENT )->body['site_active'] );
 	}
 
+	public function test_the_answers_say_whether_a_site_is_local_or_staging(): void {
+		$license = $this->license( 1 );
+		$real    = array( 'license_key' => $license->license_key, 'product_id' => 7, 'site_url' => 'https://www.one.com/' );
+		$local   = array( 'site_url' => 'http://shop.local/' ) + $real;
+
+		$this->assertFalse( $this->api->activate( $real, self::CLIENT )->body['activation']['local'] );
+		$this->assertTrue( $this->api->activate( $local, self::CLIENT )->body['activation']['local'] );
+		$this->assertFalse( $this->api->validate( $real, self::CLIENT )->body['site_local'] );
+		$this->assertTrue( $this->api->validate( $local, self::CLIENT )->body['site_local'] );
+	}
+
 	public function test_validate_without_a_site_does_not_mention_site_state(): void {
 		$license = $this->license();
 

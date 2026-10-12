@@ -98,7 +98,7 @@ final class LicensePage {
 		if ( '' !== $state->key ) {
 			echo '<tr><th scope="row">' . esc_html( 'License key' ) . '</th><td><code>' . esc_html( self::mask( $state->key ) ) . '</code></td></tr>';
 			echo '<tr><th scope="row">' . esc_html( 'Expires' ) . '</th><td>' . esc_html( null === $state->expires_at ? 'Never' : wp_date( get_option( 'date_format' ), $state->expires_at ) ) . '</td></tr>';
-			echo '<tr><th scope="row">' . esc_html( 'Sites' ) . '</th><td>' . esc_html( $state->used . ' of ' . ( 0 === $state->limit ? 'unlimited' : $state->limit ) . ' in use' ) . '</td></tr>';
+			echo '<tr><th scope="row">' . esc_html( 'Sites' ) . '</th><td>' . esc_html( $state->used . ' of ' . ( 0 === $state->limit ? 'unlimited' : $state->limit ) . ' in use' ) . ( $state->local ? '<br><span class="description">' . esc_html( 'This site is a local or staging site, so it does not use one of them.' ) . '</span>' : '' ) . '</td></tr>';
 		}
 
 		echo '</tbody></table>';

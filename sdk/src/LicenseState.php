@@ -57,6 +57,13 @@ final class LicenseState {
 	public $used = 0;
 
 	/**
+	 * Whether this site is a local or staging site, which the server does not count as a used site.
+	 *
+	 * @var bool
+	 */
+	public $local = false;
+
+	/**
 	 * Unix time of the last successful check with the server.
 	 *
 	 * @var int
@@ -105,6 +112,7 @@ final class LicenseState {
 		$state->expires_at   = isset( $data['expires_at'] ) && null !== $data['expires_at'] ? (int) $data['expires_at'] : null;
 		$state->limit        = isset( $data['limit'] ) ? (int) $data['limit'] : 0;
 		$state->used         = isset( $data['used'] ) ? (int) $data['used'] : 0;
+		$state->local        = ! empty( $data['local'] );
 		$state->last_checked = isset( $data['last_checked'] ) ? (int) $data['last_checked'] : 0;
 		$state->message      = isset( $data['message'] ) ? (string) $data['message'] : '';
 

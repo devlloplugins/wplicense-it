@@ -91,6 +91,14 @@ async function save( page ) {
 	const state = await page.locator( 'body' ).innerText();
 	check( /active/i.test( state ) && ! /not active/i.test( state.replace( /Deactivate/gi, '' ) ), 'step 23: the license page says active: ' + state.slice( 0, 300 ).replace( /\n/g, ' | ' ) );
 	check( sql( 'SELECT COUNT(*) FROM wp_wplit_activations WHERE license_id=(SELECT id FROM wp_wplit_licenses WHERE license_key="' + key + '") AND status="active"' ) === '1', 'step 23: the server recorded one active site' );
+	// Card 132: the customer site is 127.0.0.1, a local site, so the server does not count it. The page must say why "0 of N".
+	check( /0 of \d+ in use/.test( state ), 'card 132: the page shows 0 sites in use for a local site: ' + state.slice( 0, 400 ).replace( /\n/g, ' | ' ) );
+	check( /local or staging site, so it does not use one/.test( state ), 'card 132: the page explains that a local site does not use one' );
+	await shot( page, '23-local-site-note' );
+	// After a check with the server the explanation is still there.
+	await page.getByRole( 'button', { name: /check now/i } ).click();
+	await page.waitForLoadState( 'load' );
+	check( /local or staging site, so it does not use one/.test( await page.locator( 'body' ).innerText() ), 'card 132: the explanation stays after Check now' );
 	await page.goto( CLIENT + '/wp-admin/' );
 	check( /license is\s+active/.test( await page.locator( 'body' ).innerText() ), 'step 23: the dashboard notice says the license is active' );
 

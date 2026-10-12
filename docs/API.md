@@ -29,12 +29,12 @@ The license object: `status`, `expires_at` (ISO 8601 UTC, or `null` for lifetime
 ## Endpoints
 
 ### `POST /licenses/validate`
-`license_key`, `product_id`, `email` (optional), `site_url` (optional). Returns `{ success, code: "ok", license }`. When `site_url` is sent the response also has `site_active`: whether that site is still activated on the license (and the check-in is recorded).
+`license_key`, `product_id`, `email` (optional), `site_url` (optional). Returns `{ success, code: "ok", license }`. When `site_url` is sent the response also has `site_active`: whether that site is still activated on the license (and the check-in is recorded), and `site_local`: whether the server treats the site as a local or staging site, which does not use a slot.
 
 ### `POST /licenses/activate`
 `license_key`, `product_id`, `site_url`, `product_version` (optional). Uses one slot, unless the site
 is already active (`already_active`) or is a local or staging site, which never uses a slot. At the
-limit it returns 403 `limit_reached`. Returns `{ success, code, license, activation: { site, status } }`.
+limit it returns 403 `limit_reached`. Returns `{ success, code, license, activation: { site, status, local } }`.
 
 ### `POST /licenses/deactivate`
 `license_key`, `site_url`. Frees the slot. Works on expired licenses too, so customers can always move a license.

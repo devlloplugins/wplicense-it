@@ -189,6 +189,25 @@ final class SdkClientTest extends TestCase {
 		$this->assertTrue( $this->manager->is_active() );
 	}
 
+	public function test_a_local_site_is_remembered_so_the_page_can_explain_the_count(): void {
+		$this->transport->reply( 200, $this->license_body( 'activated', array( 'activations_used' => 0 ) ) + array( 'activation' => array( 'site' => 'shop.local', 'status' => 'active', 'local' => true ) ) );
+		$this->manager->activate( 'KEY-123' );
+
+		$this->assertTrue( $this->store->load()->local );
+
+		$this->transport->reply( 200, $this->license_body( 'ok' ) + array( 'site_active' => true, 'site_local' => false ) );
+		$this->manager->refresh();
+
+		$this->assertFalse( $this->store->load()->local );
+	}
+
+	public function test_a_server_that_does_not_say_leaves_the_flag_off(): void {
+		$this->transport->reply( 200, $this->license_body() );
+		$this->manager->activate( 'KEY-123' );
+
+		$this->assertFalse( $this->store->load()->local );
+	}
+
 	public function test_a_lifetime_license_has_no_expiry(): void {
 		$this->transport->reply( 200, $this->license_body( 'activated', array( 'expires_at' => null, 'activation_limit' => 0 ) ) );
 
@@ -371,6 +390,7 @@ final class SdkClientTest extends TestCase {
 		$state->used         = 2;
 		$state->last_checked = 99;
 		$state->message      = 'hi';
+		$state->local        = true;
 
 		$this->assertSame( $state->to_array(), LicenseState::from_array( $state->to_array() )->to_array() );
 		$this->assertSame( LicenseState::INACTIVE, LicenseState::from_array( 'junk' )->status );

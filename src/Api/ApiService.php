@@ -13,6 +13,7 @@ use DateTimeInterface;
 use Devllo\WPLicenseIt\Licenses\ActivationResult;
 use Devllo\WPLicenseIt\Licenses\License;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
+use Devllo\WPLicenseIt\Licenses\SiteNormalizer;
 use Devllo\WPLicenseIt\Licenses\ValidationResult;
 
 /**
@@ -90,6 +91,7 @@ final class ApiService {
 
 			if ( null !== $active ) {
 				$body['site_active'] = $active;
+				$body['site_local']  = SiteNormalizer::is_local( (string) SiteNormalizer::normalize( $site_url ) );
 			}
 		}
 
@@ -150,6 +152,7 @@ final class ApiService {
 				'activation' => array(
 					'site'   => $result->activation->site,
 					'status' => $result->activation->status,
+					'local'  => $result->activation->is_local,
 				),
 			)
 		);
