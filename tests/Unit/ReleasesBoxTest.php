@@ -104,8 +104,8 @@ final class ReleasesBoxTest extends TestCase {
 
 		$this->assertSame( 1, substr_count( $html, 'do=current' ) );
 		$this->assertSame( 1, substr_count( $html, 'do=delete' ) );
-		$this->assertStringContainsString( 'release=' . $this->id_of( '1.0.0' ), $html );
-		$this->assertStringNotContainsString( 'release=' . $this->id_of( '1.1.0' ), $html );
+		$this->assertSame( 1, preg_match_all( '/do=(current|delete)[^"]*release=' . $this->id_of( '1.0.0' ) . '/', str_replace( '&amp;', '&', $html ) ) / 2 );
+		$this->assertSame( 0, preg_match( '/do=(current|delete)[^"]*release=' . $this->id_of( '1.1.0' ) . '/', str_replace( '&amp;', '&', $html ) ) );
 		$this->assertStringContainsString( 'confirm(', $html );
 	}
 
@@ -162,6 +162,69 @@ final class ReleasesBoxTest extends TestCase {
 	}
 
 	// Actions.
+
+	public function test_every_release_can_have_its_notes_edited(): void {
+		$this->add( '1.0.0', 'First.' );
+		$this->add( '1.1.0', 'Second.' );
+
+		$html = $this->draw();
+
+		$this->assertSame( 2, substr_count( $html, 'class="button-link wplit-notes-edit"' ) );
+		$this->assertStringContainsString( '>First.</textarea>', $html );
+		$this->assertStringContainsString( 'do=notes', $html );
+	}
+
+	public function test_the_editor_text_is_escaped(): void {
+		$this->add( '1.0.0', '' );
+		$this->service->set_notes( self::ID, $this->id_of( '1.0.0' ), 'a </textarea><b>x</b>' );
+
+		$this->assertStringNotContainsString( '</textarea><b>', $this->draw() );
+	}
+
+	public function test_editing_the_notes_of_an_older_release_keeps_the_current_notes(): void {
+		$this->add( '1.0.0', 'First.' );
+		$this->add( '1.1.0', 'Second.' );
+
+		$report = $this->box->run( 'notes', self::ID, $this->id_of( '1.0.0' ), "Fixed a bug.\n\n<b>Added</b> a thing." );
+
+		$this->assertSame( array( 'The release notes were saved.' ), $report->messages );
+		$notes = array();
+		foreach ( $this->service->all( self::ID ) as $release ) {
+			$notes[ $release->version ] = $release->notes;
+		}
+		$this->assertSame( "Fixed a bug.\nAdded a thing.", $notes['1.0.0'] );
+		$this->assertSame( 'Second.', $notes['1.1.0'] );
+		$this->assertSame( 'Second.', $this->meta->get( self::ID, 'wplit_changelog' ) );
+	}
+
+	public function test_editing_the_current_notes_updates_what_customers_see(): void {
+		$this->add( '1.0.0', 'First.' );
+
+		$this->box->run( 'notes', self::ID, $this->id_of( '1.0.0' ), 'Better words.' );
+
+		$this->assertSame( 'Better words.', $this->meta->get( self::ID, 'wplit_changelog' ) );
+	}
+
+	public function test_notes_can_be_cleared(): void {
+		$this->add( '1.0.0', 'First.' );
+
+		$this->box->run( 'notes', self::ID, $this->id_of( '1.0.0' ), '' );
+
+		$this->assertSame( '', $this->service->all( self::ID )[0]->notes );
+	}
+
+	public function test_notes_for_an_unknown_release_are_refused(): void {
+		$this->add( '1.0.0', 'First.' );
+
+		$this->assertSame( array( 'That release no longer exists.' ), $this->box->run( 'notes', self::ID, 'ffffffff', 'x' )->errors );
+	}
+
+	public function test_the_notes_action_without_text_does_nothing(): void {
+		$this->add( '1.0.0', 'First.' );
+
+		$this->assertSame( array( 'Unknown action.' ), $this->box->run( 'notes', self::ID, $this->id_of( '1.0.0' ) )->errors );
+		$this->assertSame( 'First.', $this->service->all( self::ID )[0]->notes );
+	}
 
 	public function test_making_an_older_release_current(): void {
 		$this->add( '1.0.0', 'First.' );

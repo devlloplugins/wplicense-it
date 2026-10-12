@@ -48,7 +48,7 @@ before. Under the title, a tab bar shows one section at a time:
 |---|---|
 | **Software** | Name, short description, minimum and tested WordPress versions, logo and banner. Defaults for licenses issued by hand (sites and period). |
 | **Plans** | The plans table, the WooCommerce sync, and **Test this plan** / **Publish**. |
-| **Releases** | Upload a new zip with notes, the version, and the release history (make an older release current, delete old ones). |
+| **Releases** | Upload a new zip with notes, the version, and the release history (make an older release current, edit the notes of any release, delete old ones). |
 | **Connect** | The checklist and the code to paste into the seller's plugin or theme. The old 1.x API key is here too. |
 
 The last tab is remembered per product, and a link such as `post.php?post=7&action=edit#wplit-plans` opens a
@@ -63,7 +63,7 @@ and notes for customers. The **Release history** box lists them newest first.
 
 - **Notes.** Type what is new in the upload box. If you leave it empty, the entry for this version in the zip's
   `readme.txt` changelog (`= 1.4.2 =` under `== Changelog ==`) is used. Customers see the notes on the
-  **Changelog** tab of the "View details" popup on their site. With no new zip, text in the notes box replaces the
+  current release's notes. To fix the notes of any release later, use **Edit notes** on its row in the Release history. Editing the current release changes what customers see at once.
   current release's notes.
 - **Current.** Customers always get the **Current** release. A new upload becomes current. The settings the license
   API reads (version, file, requirements, notes) always describe the current release.

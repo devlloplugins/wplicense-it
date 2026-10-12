@@ -13,6 +13,7 @@ use Devllo\WPLicenseIt\Packages\UploadReport;
 use Devllo\WPLicenseIt\Products\FileStore;
 use Devllo\WPLicenseIt\Products\FileStoreException;
 use Devllo\WPLicenseIt\Products\SaveReport;
+use Devllo\WPLicenseIt\Releases\Release;
 use Devllo\WPLicenseIt\Releases\ReleaseException;
 use Devllo\WPLicenseIt\Releases\ReleaseService;
 use WP_Post;
@@ -52,6 +53,7 @@ final class ReleasesBox {
 	public function register(): void {
 		add_action( 'add_meta_boxes_wplit_product', array( $this, 'add_box' ) );
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_action' ) );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_script' ) );
 	}
 
 	/**
@@ -106,7 +108,9 @@ final class ReleasesBox {
 			echo '</td>';
 			echo '<td>' . esc_html( self::date_text( $release->uploaded_at ) ) . '</td>';
 			echo '<td>' . esc_html( $release->name ) . ( $release->size > 0 ? '<br><span class="description">' . esc_html( self::size_text( $release->size ) ) . '</span>' : '' ) . '</td>';
-			echo '<td>' . $this->notes_html( $release->notes ) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped inside notes_html().
+			echo '<td>' . $this->notes_html( $release->notes ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped inside notes_html().
+			$this->notes_editor( $post->ID, $release );
+			echo '</td>';
 			echo '<td>';
 			if ( ! $is_current ) {
 				echo '<a href="' . esc_url( $this->action_url( 'current', $post->ID, $release->id ) ) . '">' . esc_html__( 'Make current', 'wplicense-it' ) . '</a> &middot; ';
@@ -116,6 +120,81 @@ final class ReleasesBox {
 		}
 
 		echo '</tbody></table>';
+	}
+
+	/**
+	 * The edit link and the hidden editor of one release's notes. The box sits inside the product form, so the editor has no
+	 * field names and cannot be submitted with it; the script sends the text on its own.
+	 *
+	 * @param int     $post_id Product ID.
+	 * @param Release $release The release.
+	 */
+	private function notes_editor( int $post_id, Release $release ): void {
+		printf(
+			'<p style="margin:6px 0 0"><button type="button" class="button-link wplit-notes-edit" aria-expanded="false" aria-controls="wplit-notes-%1$s">%2$s</button></p>',
+			esc_attr( $release->id ),
+			esc_html__( 'Edit notes', 'wplicense-it' )
+		);
+		printf(
+			'<div id="wplit-notes-%1$s" class="wplit-notes-editor" hidden data-url="%2$s" style="margin-top:6px"><label class="screen-reader-text" for="wplit-notes-text-%1$s">%3$s</label><textarea id="wplit-notes-text-%1$s" class="large-text" rows="5" maxlength="%4$d">%5$s</textarea><p class="description">%6$s</p><p><button type="button" class="button button-primary wplit-notes-save">%7$s</button> <button type="button" class="button wplit-notes-cancel">%8$s</button></p></div>',
+			esc_attr( $release->id ),
+			esc_url( $this->action_url( 'notes', $post_id, $release->id ) ),
+			esc_html__( 'Release notes', 'wplicense-it' ),
+			ReleaseService::MAX_NOTES,
+			esc_textarea( $release->notes ),
+			esc_html__( 'Plain text, one change per line. Customers see this on the Changelog tab of the update popup.', 'wplicense-it' ),
+			esc_html__( 'Save notes', 'wplicense-it' ),
+			esc_html__( 'Cancel', 'wplicense-it' )
+		);
+	}
+
+	/**
+	 * Prints the few lines that open an editor and send its text, on the product edit screen only.
+	 */
+	public function print_script(): void {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		if ( ! $screen || 'wplit_product' !== $screen->post_type || 'post' !== $screen->base ) {
+			return;
+		}
+
+		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript -- A few lines that only serve this box.
+		?>
+		<script>
+		( function () {
+			var table = document.querySelector( '#wplit_release_history table' );
+			if ( ! table ) { return; }
+			table.addEventListener( 'click', function ( e ) {
+				var button = e.target.closest( 'button' );
+				if ( ! button ) { return; }
+				var cell = button.closest( 'td' );
+				var editor = cell.querySelector( '.wplit-notes-editor' );
+				var edit = cell.querySelector( '.wplit-notes-edit' );
+				if ( button.classList.contains( 'wplit-notes-edit' ) ) {
+					editor.hidden = false;
+					edit.setAttribute( 'aria-expanded', 'true' );
+					editor.querySelector( 'textarea' ).focus();
+				} else if ( button.classList.contains( 'wplit-notes-cancel' ) ) {
+					editor.hidden = true;
+					edit.setAttribute( 'aria-expanded', 'false' );
+					edit.focus();
+				} else if ( button.classList.contains( 'wplit-notes-save' ) ) {
+					var form = document.createElement( 'form' );
+					var field = document.createElement( 'input' );
+					form.method = 'post';
+					form.action = editor.getAttribute( 'data-url' );
+					field.type = 'hidden';
+					field.name = 'notes';
+					field.value = editor.querySelector( 'textarea' ).value;
+					form.appendChild( field );
+					document.body.appendChild( form );
+					form.submit();
+				}
+			} );
+		}() );
+		</script>
+		<?php
+		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
 	}
 
 	/**
@@ -136,7 +215,17 @@ final class ReleasesBox {
 			wp_die( esc_html__( 'You are not allowed to do that.', 'wplicense-it' ), '', array( 'response' => 403 ) );
 		}
 
-		UploadReport::queue( $this->run( $do, $post_id, $release_id ) );
+		$notes = null;
+		if ( 'notes' === $do ) {
+			// Saving notes changes data, so it only works as a POST that carries the text. A plain link does nothing.
+			if ( 'POST' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) : '' ) || ! isset( $_POST['notes'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- The nonce is in the URL and verified above.
+				wp_die( esc_html__( 'This link cannot be opened directly. Use Edit notes in the release history.', 'wplicense-it' ), '', array( 'response' => 405 ) );
+			}
+
+			$notes = sanitize_textarea_field( wp_unslash( $_POST['notes'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- The nonce is in the URL and verified above.
+		}
+
+		UploadReport::queue( $this->run( $do, $post_id, $release_id, $notes ) );
 		wp_safe_redirect( (string) get_edit_post_link( $post_id, 'raw' ) . '#wplit-releases' );
 		exit;
 	}
@@ -144,11 +233,12 @@ final class ReleasesBox {
 	/**
 	 * Does one row action.
 	 *
-	 * @param string $do         'current' or 'delete'.
-	 * @param int    $post_id    Product ID.
-	 * @param string $release_id Release ID.
+	 * @param string      $do         'current', 'delete' or 'notes'.
+	 * @param int         $post_id    Product ID.
+	 * @param string      $release_id Release ID.
+	 * @param string|null $notes      The new notes, for 'notes'.
 	 */
-	public function run( string $do, int $post_id, string $release_id ): SaveReport {
+	public function run( string $do, int $post_id, string $release_id, ?string $notes = null ): SaveReport {
 		$report = new SaveReport();
 
 		try {
@@ -162,6 +252,9 @@ final class ReleasesBox {
 				if ( ! $this->releases->shares_file( $post_id, $release_id, $release->path ) ) {
 					$this->files->delete_package( $release->path );
 				}
+			} elseif ( 'notes' === $do && null !== $notes ) {
+				$this->releases->set_notes( $post_id, $release_id, $notes );
+				$report->messages[] = 'The release notes were saved.';
 			} else {
 				$report->errors[] = 'Unknown action.';
 			}
