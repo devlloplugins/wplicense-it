@@ -93,6 +93,13 @@ jobs:
           sudo -E env "PATH=$PATH" bash tests/env/setup-woocommerce.sh
       - name: Run the browser tests
         run: sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh
+      - name: Print the site logs
+        if: failure()
+        run: |
+          for f in /opt/wp-test/wordpress/wp-content/debug.log /opt/wp-test/client/wp-content/debug.log /opt/wp-test/server-*.log; do
+            echo "=== $f"; sudo tail -n 60 "$f" 2>/dev/null || true
+          done
+          php -v | head -1; php -m | tr '\n' ' '
       - name: Keep what is needed to see a failure
         if: failure()
         uses: actions/upload-artifact@v4
