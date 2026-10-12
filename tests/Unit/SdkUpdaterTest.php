@@ -305,7 +305,7 @@ final class SdkUpdaterTest extends TestCase {
 	}
 
 	/**
-	 * @dataProvider tested_versions
+	 * @dataProvider series_cases
 	 */
 	public function test_tested_up_to_counts_the_whole_series( string $tested, string $site, string $expected ): void {
 		global $wp_version;
@@ -322,7 +322,7 @@ final class SdkUpdaterTest extends TestCase {
 	/**
 	 * @return array<string, array{string,string,string}>
 	 */
-	public function tested_versions(): array {
+	public function series_cases(): array {
 		return array(
 			'same series, site is a point release' => array( '6.7', '6.7.1', '6.7.1' ),
 			'same series, site is the first'       => array( '6.7', '6.7', '6.7' ),
