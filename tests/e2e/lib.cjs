@@ -6,6 +6,7 @@
  */
 const fs = require( 'fs' );
 const path = require( 'path' );
+const { execFileSync } = require( 'child_process' );
 const { chromium } = require( 'playwright' );
 
 const ROOT = process.env.WPLIT_ENV_ROOT || '/opt/wp-test';
@@ -78,4 +79,22 @@ function finish( env, logStart ) {
 	} );
 }
 
-module.exports = { BASE, check, finish, login, logSize, logSince, secret, shot, start, ROOT };
+/** Runs a query on the test database and returns the rows as text. */
+function sql( query ) {
+	return execFileSync( 'mariadb', [ '-N', '-r', 'wp_test', '-e', query ], { encoding: 'utf8' } ).trim();
+}
+
+/** A product setting (post meta) of a license product. */
+function meta( productId, key ) {
+	return sql( "SELECT meta_value FROM wp_postmeta WHERE post_id=" + Number( productId ) + " AND meta_key='" + key + "' LIMIT 1" );
+}
+
+/** Creates and publishes a license product through the admin screens, and returns its ID. */
+async function createProduct( page, title ) {
+	await page.goto( BASE + '/wp-admin/post-new.php?post_type=wplit_product' );
+	await page.fill( '#title', title );
+	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] );
+	return new URL( page.url() ).searchParams.get( 'post' );
+}
+
+module.exports = { BASE, check, createProduct, finish, login, logSize, logSince, meta, secret, shot, sql, start, ROOT };

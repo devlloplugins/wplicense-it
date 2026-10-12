@@ -167,10 +167,33 @@ final class ProductScreen {
 				} );
 			}
 
+			// Warn about a file the server would throw away, before the form is sent. Over post_max_size, PHP drops the
+			// whole form and WordPress shows the Posts list with no message.
+			function guard() {
+				var inputs = document.querySelectorAll( 'input[type="file"][data-max-bytes]' );
+				Array.prototype.forEach.call( inputs, function ( input ) {
+					input.addEventListener( 'change', function () {
+						var note = document.getElementById( input.id + '-warning' );
+						var max = parseInt( input.getAttribute( 'data-max-bytes' ), 10 );
+						var file = input.files && input.files[ 0 ];
+						if ( note ) { note.style.display = 'none'; note.textContent = ''; }
+						// Leave a little room for the other fields in the form.
+						if ( ! file || ! max || file.size <= max - 102400 ) { return; }
+						input.value = '';
+						if ( note ) {
+							note.textContent = <?php echo wp_json_encode( __( 'This file is too big for this server. It accepts up to', 'wplicense-it' ) ); ?> + ' ' + input.getAttribute( 'data-max-text' ) + ' ' + <?php echo wp_json_encode( __( 'per upload. Ask your host to raise upload_max_filesize and post_max_size, or choose a smaller file. Nothing was uploaded.', 'wplicense-it' ) ); ?>;
+							note.style.display = 'block';
+						}
+					} );
+				} );
+			}
+
+			function ready() { start(); guard(); }
+
 			if ( 'loading' === document.readyState ) {
-				document.addEventListener( 'DOMContentLoaded', start );
+				document.addEventListener( 'DOMContentLoaded', ready );
 			} else {
-				start();
+				ready();
 			}
 		}() );
 		</script>
@@ -195,14 +218,14 @@ final class ProductScreen {
 		$this->text_field( 'wplit_tested_wp_version', __( 'Tested up to WordPress', 'wplicense-it' ), (string) get_post_meta( $post->ID, 'wplit_tested_wp_version', true ), __( 'Filled in from the zip\'s readme.txt when you upload a release.', 'wplicense-it' ) );
 
 		echo '<p><label for="wplit_product_logo"><strong>' . esc_html__( 'Logo', 'wplicense-it' ) . '</strong></label><br>';
-		echo '<input type="file" id="wplit_product_logo" name="wplit_product_logo">';
+		$this->file_input( 'wplit_product_logo', '' );
 		if ( '' !== $logo ) {
 			echo '<br><img src="' . esc_url( $logo ) . '" alt="" style="width:50px;margin-top:6px">';
 		}
 		echo '</p>';
 
 		echo '<p><label for="wplit_product_banner"><strong>' . esc_html__( 'Banner', 'wplicense-it' ) . '</strong></label><br>';
-		echo '<input type="file" id="wplit_product_banner" name="wplit_product_banner">';
+		$this->file_input( 'wplit_product_banner', '' );
 		if ( '' !== $banner ) {
 			echo '<br><img src="' . esc_url( $banner ) . '" alt="" style="width:200px;margin-top:6px">';
 		}
@@ -247,7 +270,8 @@ final class ProductScreen {
 		$php     = (string) get_post_meta( $post->ID, 'wplit_required_php_version', true );
 
 		echo '<p><label for="wplit_product_file_upload"><strong>' . esc_html__( 'Upload a new release (zip)', 'wplicense-it' ) . '</strong></label><br>';
-		echo '<input type="file" id="wplit_product_file_upload" name="wplit_product_file_upload" accept=".zip,application/zip"><br>';
+		$this->file_input( 'wplit_product_file_upload', ' accept=".zip,application/zip"' );
+		echo '<br>';
 		echo '<span class="description">' . esc_html__( 'When you save, the name, version and requirements are read from the file, and a zip that is not a plugin or theme is refused. The folder inside the zip should match your plugin\'s folder name.', 'wplicense-it' ) . '</span></p>';
 
 		echo '<p><label for="wplit_release_notes"><strong>' . esc_html__( 'What is new in this release', 'wplicense-it' ) . '</strong></label><br>';
@@ -281,6 +305,22 @@ final class ProductScreen {
 	public function render_legacy_key( WP_Post $post ): void {
 		echo '<p class="description">' . esc_html__( 'Plugins and themes still using the 1.x client send this key. The new client code does not need it. Leave it empty to keep the current key. A new product gets one automatically.', 'wplicense-it' ) . '</p>';
 		$this->text_field( 'wplit_product_api_key', __( 'API key', 'wplicense-it' ), (string) get_post_meta( $post->ID, 'wplit_product_api_key', true ), '' );
+	}
+
+	/**
+	 * A file input that warns before submitting a file the server would silently throw away.
+	 *
+	 * When a request is bigger than PHP's post_max_size, PHP discards the whole form and WordPress sends the seller to
+	 * the Posts list with no message. The server never sees the form, so the browser has to check the size first.
+	 *
+	 * @param string $name       Field name, also its ID.
+	 * @param string $attributes Extra attributes, with a leading space.
+	 */
+	private function file_input( string $name, string $attributes ): void {
+		$max = (int) wp_max_upload_size();
+
+		echo '<input type="file" id="' . esc_attr( $name ) . '" name="' . esc_attr( $name ) . '"' . $attributes . ' data-max-bytes="' . esc_attr( (string) $max ) . '" data-max-text="' . esc_attr( (string) size_format( $max ) ) . '">'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $attributes is fixed text from this class.
+		echo '<p id="' . esc_attr( $name ) . '-warning" class="notice notice-error inline" role="alert" style="display:none;padding:6px 10px"></p>';
 	}
 
 	/**

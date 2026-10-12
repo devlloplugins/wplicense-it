@@ -233,4 +233,25 @@ final class ProductScreenTest extends TestCase {
 		$this->assertStringContainsString( 'WooCommerce is not active.', $html );
 		$this->assertStringContainsString( 'Add license', $html );
 	}
+
+	public function test_every_file_input_carries_the_server_limit_and_a_place_for_the_warning(): void {
+		$html = $this->all_boxes();
+
+		foreach ( ProductScreen::FILE_FIELDS as $name ) {
+			$this->assertMatchesRegularExpression( '/<input type="file" id="' . $name . '" name="' . $name . '"[^>]*data-max-bytes="2097152" data-max-text="2 MB"/', $html, $name );
+			$this->assertStringContainsString( 'id="' . $name . '-warning"', $html, $name . ' has no warning element' );
+		}
+	}
+
+	public function test_the_tab_script_guards_file_inputs(): void {
+		$screen = new ProductScreen();
+		$html   = $this->capture(
+			function () use ( $screen ): void {
+				$screen->render_tabs( $this->post() );
+			}
+		);
+
+		$this->assertStringContainsString( 'data-max-bytes', $html );
+		$this->assertStringContainsString( 'raise upload_max_filesize and post_max_size', $html );
+	}
 }

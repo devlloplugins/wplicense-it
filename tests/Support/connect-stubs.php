@@ -119,3 +119,11 @@ if ( ! function_exists( 'delete_post_meta' ) ) {
 if ( ! function_exists( 'add_action' ) ) {
 	function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) { $GLOBALS['wplit_test_actions'][] = array( $hook, $callback ); return true; }
 }
+
+// Upload limits, as WordPress reports them.
+if ( ! function_exists( 'wp_max_upload_size' ) ) {
+	function wp_max_upload_size() { return $GLOBALS['wplit_test_max_upload'] ?? 2097152; }
+}
+if ( ! function_exists( 'size_format' ) ) {
+	function size_format( $bytes, $decimals = 0 ) { return round( $bytes / 1048576, $decimals ) . ' MB'; }
+}
