@@ -128,7 +128,7 @@ final class Updater {
 		$entry->new_version = $info->version;
 		$entry->url         = $config->server;
 		$entry->package     = $config->package_marker();
-		$entry->tested      = $info->tested;
+		$entry->tested      = self::tested( $info->tested );
 		$entry->requires    = $info->requires;
 		$entry->icons       = array();
 		$entry->banners     = array_filter(
@@ -183,7 +183,7 @@ final class Updater {
 		$details->slug          = $this->config->slug;
 		$details->version       = $info->version;
 		$details->requires      = $info->requires;
-		$details->tested        = $info->tested;
+		$details->tested        = self::tested( $info->tested );
 		$details->homepage      = $this->config->server;
 		$details->sections      = array( 'description' => wpautop( esc_html( $info->description ) ) );
 		if ( '' !== trim( $info->changelog ) ) {
@@ -198,6 +198,25 @@ final class Updater {
 		$details->download_link = $this->config->package_marker();
 
 		return $details;
+	}
+
+	/**
+	 * The "tested up to" version as WordPress should compare it.
+	 *
+	 * Sellers write "Tested up to: 6.7" and mean every 6.7.x, as on WordPress.org. WordPress compares the text
+	 * exactly, so a site on 6.7.1 would be warned that the plugin "has not been tested" with its version. When the
+	 * tested version is a bare major.minor and the site runs that series, the site's own version is used.
+	 *
+	 * @param string $tested Version from the license server.
+	 */
+	public static function tested( string $tested ): string {
+		global $wp_version;
+
+		if ( 1 === preg_match( '/^(\d+)\.(\d+)$/', $tested, $tested_parts ) && is_string( $wp_version ) && 1 === preg_match( '/^(\d+)\.(\d+)(?:\.|$|-)/', $wp_version, $site_parts ) && $tested_parts[1] === $site_parts[1] && $tested_parts[2] === $site_parts[2] ) {
+			return $wp_version;
+		}
+
+		return $tested;
 	}
 
 	/**

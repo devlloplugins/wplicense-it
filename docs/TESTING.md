@@ -4,6 +4,22 @@ Nothing in 2.0 has run in WordPress yet. The code is tested against stand-ins on
 This script goes in the order things depend on each other. Stop at the first step that fails badly and send the
 result: a fix usually unblocks several later steps.
 
+## An environment that is already scripted
+
+`tests/env/setup.sh` builds two local WordPress 6.7 sites on a Debian or Ubuntu machine: the license server (port
+8080, with this plugin symlinked in) and a customer site (port 8081). It installs MariaDB, clones WordPress from
+GitHub, installs both sites and starts them. Run it again at any time: it skips what is done. It needs `apt`, PHP 8
+with `mysqli`, `git` and network access to the package archive and to GitHub.
+
+`tests/e2e/` has browser tests that drive those sites with Playwright (`NODE_PATH=$(npm root -g) node
+tests/e2e/01-admin.cjs`, then `02`, `03`, `04`). They cover steps 2 to 9, 18, 23 to 28 and 30 to 31 below, and
+they were what found the problems fixed in the commits that added them. They need no WooCommerce, so steps 10 to 17,
+19, 20 and 32 to 34 still need a site with WooCommerce.
+
+The plugin that updates itself must run on a different site from the license server. WordPress puts a site into
+maintenance mode while it updates a plugin, and a license server in maintenance mode cannot hand out the download:
+the update then fails with "The license server had a problem".
+
 ## What you need
 
 - A WordPress site (6.2 or newer, PHP 8.0 or newer) with **WooCommerce** active, `WP_DEBUG` and `WP_DEBUG_LOG` on,

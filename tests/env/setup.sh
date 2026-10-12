@@ -20,6 +20,8 @@ PLUGIN_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 SITE="$ROOT/wordpress"
 SECRETS="$ROOT/secrets.env"
 URL="http://127.0.0.1:${PORT}"
+CLIENT_PORT="${WPLIT_CLIENT_PORT:-8081}"
+CLIENT="$ROOT/client"
 
 say() { printf '\n== %s\n' "$*"; }
 
@@ -56,21 +58,24 @@ if [ ! -f "$SITE/wp-load.php" ]; then
 	GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 --branch "$WP_TAG" https://github.com/WordPress/wordpress "$SITE"
 fi
 
-if [ ! -f "$SITE/wp-config.php" ]; then
-	say "wp-config.php"
-	SALTS="$(php -r 'foreach (["AUTH_KEY","SECURE_AUTH_KEY","LOGGED_IN_KEY","NONCE_KEY","AUTH_SALT","SECURE_AUTH_SALT","LOGGED_IN_SALT","NONCE_SALT"] as $k) { echo "define( \"$k\", \"" . bin2hex(random_bytes(32)) . "\" );\n"; }')"
-	cat > "$SITE/wp-config.php" <<PHP
+# write_config DIR DATABASE URL
+write_config() {
+	local dir="$1" db="$2" url="$3"
+	[ -f "$dir/wp-config.php" ] && return 0
+	local salts
+	salts="$(php -r 'foreach (["AUTH_KEY","SECURE_AUTH_KEY","LOGGED_IN_KEY","NONCE_KEY","AUTH_SALT","SECURE_AUTH_SALT","LOGGED_IN_SALT","NONCE_SALT"] as $k) { echo "define( \"$k\", \"" . bin2hex(random_bytes(32)) . "\" );\n"; }')"
+	cat > "$dir/wp-config.php" <<PHP
 <?php
-define( 'DB_NAME', 'wp_test' );
+define( 'DB_NAME', '${db}' );
 define( 'DB_USER', 'wp' );
 define( 'DB_PASSWORD', '${DB_PASSWORD}' );
 define( 'DB_HOST', 'localhost' );
 define( 'DB_CHARSET', 'utf8mb4' );
 define( 'DB_COLLATE', '' );
-${SALTS}
+${salts}
 \$table_prefix = 'wp_';
-define( 'WP_HOME', '${URL}' );
-define( 'WP_SITEURL', '${URL}' );
+define( 'WP_HOME', '${url}' );
+define( 'WP_SITEURL', '${url}' );
 define( 'WP_DEBUG', true );
 define( 'WP_DEBUG_LOG', true );
 define( 'WP_DEBUG_DISPLAY', false );
@@ -80,52 +85,75 @@ define( 'WP_ENVIRONMENT_TYPE', 'local' );
 if ( ! defined( 'ABSPATH' ) ) { define( 'ABSPATH', __DIR__ . '/' ); }
 require_once ABSPATH . 'wp-settings.php';
 PHP
-fi
+}
 
-say "Install"
-# Ask the database: loading WordPress on an empty database exits cleanly, so its own check cannot be relied on here.
-if [ "$(mariadb -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='wp_test' AND table_name='wp_options'")" = "0" ]; then
-	ADMIN_PASSWORD="$ADMIN_PASSWORD" php -r '
+# install_site DIR DATABASE TITLE
+install_site() {
+	local dir="$1" db="$2" title="$3"
+	# Ask the database: loading WordPress on an empty database exits cleanly, so its own check cannot be relied on here.
+	[ "$(mariadb -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${db}' AND table_name='wp_options'")" != "0" ] && return 0
+	ADMIN_PASSWORD="$ADMIN_PASSWORD" SITE_TITLE="$title" php -r '
 		define( "WP_INSTALLING", true );
-		require "'"$SITE"'/wp-load.php";
+		require "'"$dir"'/wp-load.php";
 		require_once ABSPATH . "wp-admin/includes/upgrade.php";
-		$result = wp_install( "WPLit Test", "admin", "admin@example.test", true, "", getenv( "ADMIN_PASSWORD" ) );
-		echo "installed, admin id " . $result["user_id"] . "\n";
+		$result = wp_install( getenv( "SITE_TITLE" ), "admin", "admin@example.test", true, "", getenv( "ADMIN_PASSWORD" ) );
+		echo "installed " . getenv( "SITE_TITLE" ) . ", admin id " . $result["user_id"] . "\n";
 	' 2>&1 | tail -2
 	ADMIN_PASSWORD="$ADMIN_PASSWORD" php -r '
-		require "'"$SITE"'/wp-load.php";
+		require "'"$dir"'/wp-load.php";
 		update_option( "permalink_structure", "/%postname%/" );
-		update_option( "blogdescription", "Local test site" );
 	'
-fi
+}
+
+# serve DIR PORT NAME: pretty permalinks for PHP's built-in server, with several workers because the site calls
+# itself (the test purchase and the client code do), which one worker cannot serve.
+serve() {
+	local dir="$1" port="$2" name="$3"
+	cat > "$ROOT/router-${name}.php" <<PHP
+<?php
+// Real files and folders are served as they are, everything else goes to WordPress.
+\$path = parse_url( \$_SERVER['REQUEST_URI'], PHP_URL_PATH );
+if ( '/' !== \$path && file_exists( '${dir}' . \$path ) ) {
+	return false;
+}
+\$_SERVER['SCRIPT_NAME']     = '/index.php';
+\$_SERVER['SCRIPT_FILENAME'] = '${dir}/index.php';
+chdir( '${dir}' );
+require '${dir}/index.php';
+PHP
+	if ! curl -s -o /dev/null -m 3 "http://127.0.0.1:${port}/wp-login.php"; then
+		# The whole group is detached with its output in a file, so a caller that reads this script's output is not kept waiting.
+		(cd "$dir" && PHP_CLI_SERVER_WORKERS=6 setsid nohup php -S "127.0.0.1:${port}" -t "$dir" "$ROOT/router-${name}.php") > "$ROOT/server-${name}.log" 2>&1 < /dev/null &
+		for _ in $(seq 1 20); do curl -s -o /dev/null -m 2 "http://127.0.0.1:${port}/wp-login.php" && break; sleep 1; done
+	fi
+}
+
+say "wp-config.php and install (license server)"
+write_config "$SITE" wp_test "$URL"
+install_site "$SITE" wp_test "WPLit Test"
 
 say "Plugin"
 mkdir -p "$SITE/wp-content/plugins"
 ln -sfn "$PLUGIN_DIR" "$SITE/wp-content/plugins/wplicense-it"
 
-say "Router and web server"
-cat > "$ROOT/router.php" <<PHP
-<?php
-// Pretty permalinks for PHP's built-in server: real files and folders are served as they are, everything else goes to WordPress.
-\$path = parse_url( \$_SERVER['REQUEST_URI'], PHP_URL_PATH );
-\$file = '${SITE}' . \$path;
-if ( '/' !== \$path && file_exists( \$file ) ) {
-	return false;
-}
-\$_SERVER['SCRIPT_NAME']     = '/index.php';
-\$_SERVER['SCRIPT_FILENAME'] = '${SITE}/index.php';
-chdir( '${SITE}' );
-require '${SITE}/index.php';
-PHP
+say "Web server (license server)"
+serve "$SITE" "$PORT" server
 
-if ! curl -s -o /dev/null -m 3 "$URL/wp-login.php"; then
-	# Several workers: the site calls itself (the test purchase and the client code do), which one worker cannot serve.
-	# The whole group is detached with its output in a file, so a caller that reads this script's output is not kept waiting.
-	(cd "$SITE" && PHP_CLI_SERVER_WORKERS=6 setsid nohup php -S "127.0.0.1:${PORT}" -t "$SITE" "$ROOT/router.php") > "$ROOT/server.log" 2>&1 < /dev/null &
-	for _ in $(seq 1 20); do curl -s -o /dev/null -m 2 "$URL/wp-login.php" && break; sleep 1; done
+# A second site plays a customer's site, because a plugin that updates itself from the license server must not be on
+# the license server's own site: WordPress puts a site into maintenance mode during an update and it could not answer.
+say "Customer site (port ${CLIENT_PORT})"
+CLIENT_URL="http://127.0.0.1:${CLIENT_PORT}"
+mariadb -e "CREATE DATABASE IF NOT EXISTS wp_client CHARACTER SET utf8mb4; GRANT ALL ON wp_client.* TO 'wp'@'localhost'; FLUSH PRIVILEGES;"
+if [ ! -f "$CLIENT/wp-load.php" ]; then
+	cp -al "$SITE" "$CLIENT"
+	rm -f "$CLIENT/wp-config.php" "$CLIENT/wp-content/plugins/wplicense-it" "$CLIENT/wp-content/debug.log"
 fi
+write_config "$CLIENT" wp_client "$CLIENT_URL"
+install_site "$CLIENT" wp_client "WPLit Customer Site"
+serve "$CLIENT" "$CLIENT_PORT" client
 
 say "Ready"
 echo "Site:   ${URL}/"
 echo "Admin:  ${URL}/wp-admin/   user: admin   password: in ${SECRETS}"
 echo "Log:    ${SITE}/wp-content/debug.log"
+echo "Customer site: ${CLIENT_URL}/  (same admin user and password)   Log: ${CLIENT}/wp-content/debug.log"

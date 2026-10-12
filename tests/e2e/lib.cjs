@@ -11,6 +11,7 @@ const { chromium } = require( 'playwright' );
 
 const ROOT = process.env.WPLIT_ENV_ROOT || '/opt/wp-test';
 const BASE = process.env.WPLIT_URL || 'http://127.0.0.1:8080';
+const CLIENT = process.env.WPLIT_CLIENT_URL || 'http://127.0.0.1:8081';
 const SHOTS = process.env.WPLIT_SHOTS || '/tmp/wplit-shots';
 const DEBUG_LOG = path.join( ROOT, 'wordpress/wp-content/debug.log' );
 
@@ -55,8 +56,9 @@ async function start() {
 	return { browser, context, page, problems };
 }
 
-async function login( page ) {
-	await page.goto( BASE + '/wp-login.php' );
+/** Logs in to the license server, or to another site (such as the customer site) given its address. */
+async function login( page, base = BASE ) {
+	await page.goto( base + '/wp-login.php' );
 	await page.fill( '#user_login', 'admin' );
 	await page.fill( '#user_pass', secret( 'ADMIN_PASSWORD' ) );
 	await Promise.all( [ page.waitForURL( /wp-admin/ ), page.click( '#wp-submit' ) ] );
@@ -80,8 +82,8 @@ function finish( env, logStart ) {
 }
 
 /** Runs a query on the test database and returns the rows as text. */
-function sql( query ) {
-	return execFileSync( 'mariadb', [ '-N', '-r', 'wp_test', '-e', query ], { encoding: 'utf8' } ).trim();
+function sql( query, database = 'wp_test' ) {
+	return execFileSync( 'mariadb', [ '-N', '-r', database, '-e', query ], { encoding: 'utf8' } ).trim();
 }
 
 /** A product setting (post meta) of a license product. */
@@ -97,4 +99,4 @@ async function createProduct( page, title ) {
 	return new URL( page.url() ).searchParams.get( 'post' );
 }
 
-module.exports = { BASE, check, createProduct, finish, login, logSize, logSince, meta, secret, shot, sql, start, ROOT };
+module.exports = { BASE, CLIENT, check, createProduct, finish, login, logSize, logSince, meta, secret, shot, sql, start, ROOT };

@@ -303,4 +303,35 @@ final class SdkUpdaterTest extends TestCase {
 		$this->assertSame( $info->to_array(), UpdateInfo::from_array( $info->to_array() )->to_array() );
 		$this->assertNull( UpdateInfo::from_array( 'junk' ) );
 	}
+
+	/**
+	 * @dataProvider tested_versions
+	 */
+	public function test_tested_up_to_counts_the_whole_series( string $tested, string $site, string $expected ): void {
+		global $wp_version;
+		$saved      = $wp_version ?? null;
+		$wp_version = $site;
+
+		try {
+			$this->assertSame( $expected, Updater::tested( $tested ) );
+		} finally {
+			$wp_version = $saved;
+		}
+	}
+
+	/**
+	 * @return array<string, array{string,string,string}>
+	 */
+	public function tested_versions(): array {
+		return array(
+			'same series, site is a point release' => array( '6.7', '6.7.1', '6.7.1' ),
+			'same series, site is the first'       => array( '6.7', '6.7', '6.7' ),
+			'site on a beta of the series'         => array( '6.7', '6.7-beta2', '6.7-beta2' ),
+			'site is newer'                        => array( '6.7', '6.8.1', '6.7' ),
+			'site is older'                        => array( '6.7', '6.6.2', '6.7' ),
+			'a point release is kept as written'   => array( '6.7.1', '6.7.2', '6.7.1' ),
+			'6.7 is not 6.70'                      => array( '6.7', '6.70.1', '6.7' ),
+			'nothing stated'                       => array( '', '6.7.1', '' ),
+		);
+	}
 }
