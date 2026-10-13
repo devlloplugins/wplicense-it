@@ -86,7 +86,7 @@ final class OrderProcessor {
 
 			$renewal = $this->renewable_license( $order, $item, $report );
 
-			if ( null !== $renewal && $owed > 0 ) {
+			if ( null !== $renewal ) {
 				try {
 					$renewed = null === $interval ? $renewal : $this->licenses->renew_license( $renewal->id, $interval );
 					$this->store->append( $item->item_id, $renewed->id );

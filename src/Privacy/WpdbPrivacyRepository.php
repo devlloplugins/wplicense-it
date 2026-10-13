@@ -273,12 +273,12 @@ final class WpdbPrivacyRepository implements PrivacyRepository {
 
 		if ( array() !== $license_ids ) {
 			$found = $this->db->get_col( "SELECT DISTINCT order_id FROM {$this->licenses} WHERE order_id IS NOT NULL AND id IN (" . implode( ',', array_map( 'intval', $license_ids ) ) . ')' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name from the prefix, IDs cast to integers.
-			$ids   = array_map( 'intval', is_array( $found ) ? $found : array() );
+			$ids   = array_map( 'intval', (array) $found );
 		}
 
 		if ( null !== $user_id && $user_id > 0 ) {
 			$found = $this->db->get_col( $this->db->prepare( "SELECT id FROM {$this->orders} WHERE user_id = %d", $user_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
-			$ids   = array_merge( $ids, array_map( 'intval', is_array( $found ) ? $found : array() ) );
+			$ids   = array_merge( $ids, array_map( 'intval', (array) $found ) );
 		}
 
 		return array_values( array_unique( $ids ) );

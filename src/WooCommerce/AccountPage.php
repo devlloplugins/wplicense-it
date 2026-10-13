@@ -222,7 +222,7 @@ final class AccountPage {
 				'posts_per_page' => 5,
 				'fields'         => 'ids',
 				'meta_key'       => OrderReader::META_PRODUCT, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- A handful of products, shown on a customer page.
-				'meta_value'     => $license_product_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value'     => (string) $license_product_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			)
 		);
 
