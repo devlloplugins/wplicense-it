@@ -46,15 +46,28 @@ function logSince( size ) {
 
 async function start() {
 	fs.mkdirSync( SHOTS, { recursive: true } );
-	const browser = await chromium.launch();
-	const context = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
+	// On a cold CI runner the first browser start has hung until the 10 minute cap, so give each try a minute and try again.
+	let browser;
+	let context;
+	let page;
+	for ( let attempt = 1; ; attempt++ ) {
+		try {
+			browser = await chromium.launch( { args: [ '--disable-dev-shm-usage' ], timeout: 60000 } );
+			context = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
+			page = await Promise.race( [ context.newPage(), new Promise( ( resolve, reject ) => setTimeout( () => reject( new Error( 'the browser did not open a page in 60 seconds' ) ), 60000 ) ) ] );
+			break;
+		} catch ( e ) {
+			if ( browser ) { await browser.close().catch( () => {} ); }
+			if ( attempt >= 3 ) { throw e; }
+			console.log( 'Browser start failed (' + e.message.split( '\n' )[ 0 ] + '), trying again.' );
+		}
+	}
 	// WooCommerce's JavaScript is not built here, so its script files answer 404 with an HTML page. Serve them empty, so
 	// they do not raise "Unexpected token '<'" errors that would hide real problems.
 	await context.route( /\/wp-content\/plugins\/woocommerce\/.*\.js(\?.*)?$/, async ( route ) => {
 		const response = await route.fetch();
 		if ( response.status() === 404 ) { await route.fulfill( { status: 200, contentType: 'application/javascript', body: '' } ); } else { await route.fulfill( { response } ); }
 	} );
-	const page = await context.newPage();
 	const problems = [];
 	page.on( 'pageerror', ( e ) => problems.push( 'page error: ' + e.message + ' ' + ( ( e.stack || '' ).split( '\n' ).find( ( line ) => /http/.test( line ) ) || '' ).trim() ) );
 	page.on( 'console', ( m ) => { if ( 'error' === m.type() && ! /Failed to load resource/.test( m.text() ) ) { problems.push( 'console: ' + m.text() ); } } );
