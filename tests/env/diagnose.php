@@ -9,7 +9,7 @@
 $root = getenv( 'WPLIT_ENV_ROOT' ) ? getenv( 'WPLIT_ENV_ROOT' ) : '/opt/wp-test';
 
 ini_set( 'display_errors', '1' );
-error_reporting( E_ALL );
+error_reporting( E_ALL ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting, WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_error_reporting -- A diagnostic that has to show every error.
 
 $_SERVER['HTTP_HOST']      = '127.0.0.1:8080';
 $_SERVER['REQUEST_URI']    = '/wp-admin/post-new.php?post_type=wplit_product';
