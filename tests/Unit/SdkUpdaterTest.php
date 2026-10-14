@@ -211,6 +211,25 @@ final class SdkUpdaterTest extends TestCase {
 		$this->assertArrayNotHasKey( 'great-plugin/great-plugin.php', $result->no_update );
 	}
 
+	public function test_check_again_ignores_the_remembered_answer(): void {
+		$this->transport->reply( 200, $this->update_response( '1.2.0' ) );
+		$this->updater->add_plugin_update( (object) array( 'response' => array() ) );
+
+		// A newer release is published. Without "Check again" the remembered answer is used.
+		$this->transport->reply( 200, $this->update_response( '2.0.0' ) );
+		$result = $this->updater->add_plugin_update( (object) array( 'response' => array() ) );
+		$this->assertArrayNotHasKey( 'great-plugin/great-plugin.php', $result->response );
+
+		$_GET['force-check'] = '1';
+		try {
+			$result = $this->updater->add_plugin_update( (object) array( 'response' => array() ) );
+		} finally {
+			unset( $_GET['force-check'] );
+		}
+
+		$this->assertSame( '2.0.0', $result->response['great-plugin/great-plugin.php']->new_version );
+	}
+
 	public function test_no_update_is_offered_when_up_to_date(): void {
 		$this->transport->reply( 200, $this->update_response( '1.2.0' ) );
 

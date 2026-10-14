@@ -72,6 +72,14 @@ final class Updater {
 	}
 
 	/**
+	 * Whether the administrator pressed "Check again" on the Updates screen. Without this, a release published within the last
+	 * hours would not show up there, because the last answer from the license server is remembered.
+	 */
+	public static function is_forced_check(): bool {
+		return isset( $_GET['force-check'] ) && function_exists( 'current_user_can' ) && current_user_can( 'update_plugins' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only skips a cache; WordPress itself reads this flag the same way.
+	}
+
+	/**
 	 * Adds this plugin's update to WordPress's update data.
 	 *
 	 * @param mixed $transient The update_plugins transient.
@@ -82,7 +90,7 @@ final class Updater {
 			return $transient;
 		}
 
-		$info = $this->updates->latest( $this->manager->state(), time() );
+		$info = $this->updates->latest( $this->manager->state(), time(), self::is_forced_check() );
 
 		if ( null !== $info && $info->is_newer_than( $this->config->version ) ) {
 			$transient->response[ $this->config->basename ] = self::plugin_entry( $this->config, $info );
@@ -105,7 +113,7 @@ final class Updater {
 			return $transient;
 		}
 
-		$info = $this->updates->latest( $this->manager->state(), time() );
+		$info = $this->updates->latest( $this->manager->state(), time(), self::is_forced_check() );
 
 		if ( null !== $info && $info->is_newer_than( $this->config->version ) ) {
 			$transient->response[ $this->config->slug ] = self::theme_entry( $this->config, $info );
