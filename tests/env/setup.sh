@@ -141,6 +141,18 @@ install_site "$SITE" wp_test "WPLit Test"
 say "Plugin"
 mkdir -p "$SITE/wp-content/plugins"
 ln -sfn "$PLUGIN_DIR" "$SITE/wp-content/plugins/wplicense-it"
+# A fresh site does not have the plugin switched on. Activating it also creates its tables and settings.
+php -d memory_limit=512M -r '
+	define( "WP_ADMIN", true );
+	require "'"$SITE"'/wp-load.php";
+	require_once ABSPATH . "wp-admin/includes/plugin.php";
+	if ( ! is_plugin_active( "wplicense-it/wplicense-it.php" ) ) {
+		$result = activate_plugin( "wplicense-it/wplicense-it.php" );
+		echo is_wp_error( $result ) ? "ERROR: " . $result->get_error_message() . "\n" : "WPLicense It activated\n";
+	} else {
+		echo "WPLicense It already active\n";
+	}
+'
 
 say "Web server (license server)"
 serve "$SITE" "$PORT" server
