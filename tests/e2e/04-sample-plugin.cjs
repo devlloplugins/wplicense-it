@@ -112,7 +112,9 @@ async function save( page ) {
 	// Step 27: the update is offered, with a changelog.
 	// The check asks the license server, and on a slow machine it can finish after the first page load, so look again a few times.
 	let updates = '';
+	// WordPress only rechecks plugins on this screen once a minute, so clear its remembered answer first, as waiting a minute would.
 	for ( let attempt = 0; attempt < 4; attempt++ ) {
+		execFileSync( 'php', [ '-r', 'require "' + path.join( CLIENT_ROOT, 'wp-load.php' ) + '"; delete_site_transient( "update_plugins" );' ] );
 		await page.goto( CLIENT + '/wp-admin/update-core.php?force-check=1' );
 		updates = await page.locator( '#wpbody-content' ).innerText();
 		if ( /WPLit Sample/.test( updates ) && /1\.1\.0/.test( updates ) ) { break; }
