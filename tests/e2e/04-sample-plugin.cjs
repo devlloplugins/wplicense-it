@@ -119,6 +119,11 @@ async function save( page ) {
 		await page.waitForTimeout( 3000 );
 	}
 	await shot( page, '27-updates' );
+	if ( ! ( /WPLit Sample/.test( updates ) && /1\.1\.0/.test( updates ) ) ) {
+		// Say what the customer site knows, so a failure on another machine can be understood from its log.
+		const dump = execFileSync( 'php', [ '-r', 'require "' + path.join( CLIENT_ROOT, 'wp-load.php' ) + '"; $t = get_site_transient( "update_plugins" ); echo "update_plugins response keys: " . json_encode( $t && isset( $t->response ) ? array_keys( (array) $t->response ) : null ) . ", last_checked " . ( $t->last_checked ?? "?" ) . "\n"; global $wpdb; $rows = $wpdb->get_results( "SELECT option_name, LEFT(option_value, 300) v FROM {$wpdb->options} WHERE option_name LIKE \'%transient%wplit\\_c\\_%\'" ); echo "SDK cache: " . json_encode( $rows ) . "\n";' ], { encoding: 'utf8' } );
+		console.log( 'DIAGNOSIS (customer site):\n' + dump );
+	}
 	check( /WPLit Sample/.test( updates ) && /1\.1\.0/.test( updates ), 'step 27: the Updates screen offers WPLit Sample 1.1.0: ' + updates.slice( 0, 1200 ).replace( /\n/g, ' | ' ) );
 
 	await page.goto( CLIENT + '/wp-admin/plugin-install.php?tab=plugin-information&plugin=wplit-sample&section=changelog' );
