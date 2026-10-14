@@ -5,7 +5,7 @@ const fixtures = require( './fixtures.cjs' );
 const { BASE, check, createProduct, finish, login, logSize, meta, shot, start } = require( './lib.cjs' );
 
 async function openTab( page, tab ) { await page.click( '#wplit-tabs [data-tab="' + tab + '"]' ); }
-async function save( page ) { await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] ); }
+async function save( page ) { await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] ); }
 const row = ( page, version ) => page.locator( '#wplit_release_history tbody tr', { hasText: version } ).first();
 
 ( async () => {
@@ -41,7 +41,7 @@ const row = ( page, version ) => page.locator( '#wplit_release_history tbody tr'
 	// Save.
 	await older.locator( '.wplit-notes-edit' ).click();
 	await older.locator( 'textarea' ).fill( 'Fixed the login bug.\n\n<b>Added</b> a dark mode.' );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), older.locator( '.wplit-notes-save' ).click() ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), older.locator( '.wplit-notes-save' ).click() ] );
 	check( /The release notes were saved\./.test( ( await page.locator( '.notice' ).allInnerTexts() ).join( '\n' ) ), 'a notice says the notes were saved' );
 	check( page.url().includes( '#wplit-releases' ) || await page.locator( '#wplit_release_history' ).isVisible(), 'we land back on the Releases tab' );
 
@@ -57,14 +57,14 @@ const row = ( page, version ) => page.locator( '#wplit_release_history tbody tr'
 	const current = row( page, '1.1.0' );
 	await current.locator( '.wplit-notes-edit' ).click();
 	await current.locator( 'textarea' ).fill( 'Second release, reworded.' );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), current.locator( '.wplit-notes-save' ).click() ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), current.locator( '.wplit-notes-save' ).click() ] );
 	check( meta( id, 'wplit_changelog' ) === 'Second release, reworded.', 'editing the current notes updates the customer-facing changelog, got ' + meta( id, 'wplit_changelog' ) );
 
 	// Clearing works.
 	const first = row( page, '1.0.0' );
 	await first.locator( '.wplit-notes-edit' ).click();
 	await first.locator( 'textarea' ).fill( '' );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), first.locator( '.wplit-notes-save' ).click() ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), first.locator( '.wplit-notes-save' ).click() ] );
 	check( ( await row( page, '1.0.0' ).innerText() ).includes( '—' ), 'an emptied note shows a dash' );
 
 	// The link itself, opened directly, changes nothing and does not wipe notes.

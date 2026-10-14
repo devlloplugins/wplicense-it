@@ -9,7 +9,7 @@ const { BASE, ROOT, check, createProduct, finish, login, logSize, shot, sql, sta
 const FILES = path.join( ROOT, 'wordpress/wp-content/uploads/wplit-files' );
 
 async function openTab( page, tab ) { await page.click( '#wplit-tabs [data-tab="' + tab + '"]' ); }
-async function save( page ) { await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] ); }
+async function save( page ) { await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] ); }
 
 ( async () => {
 	const logStart = logSize();

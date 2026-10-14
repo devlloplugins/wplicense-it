@@ -6,7 +6,7 @@ const fixtures = require( './fixtures.cjs' );
 const { BASE, check, createProduct, finish, login, logSize, meta, shot, sql, start, woo } = require( './lib.cjs' );
 
 async function save( page ) {
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] );
 }
 
 function licenses( orderId ) {

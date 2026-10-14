@@ -13,7 +13,7 @@ async function openTab( page, tab ) {
 }
 
 async function save( page ) {
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] );
 }
 
 async function notices( page ) {
@@ -108,16 +108,14 @@ async function notices( page ) {
 	await shot( page, '26-two-releases' );
 	const newZip = meta( id, 'file_dir_path' );
 
-	await page.click( '#wplit_release_history tbody tr:nth-child(2) a:has-text("Make current")' );
-	await page.waitForURL( /post\.php\?post=\d+/ );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#wplit_release_history tbody tr:nth-child(2) a:has-text("Make current")' ) ] );
 	check( meta( id, 'wplit_product_version' ) === '1.0.0', 'step 29: rolling back sets the version to 1.0.0, got ' + meta( id, 'wplit_product_version' ) );
 	check( meta( id, 'file_dir_path' ) === stored, 'step 29: rolling back points at the first zip' );
 	check( /Version 1\.0\.0 is now the release customers get/.test( await notices( page ) ), 'step 29: a message confirms the rollback' );
 	await openTab( page, 'releases' );
 	await shot( page, '29-rolled-back' );
 
-	await page.click( '#wplit_release_history tbody tr:nth-child(1) a:has-text("Delete")' );
-	await page.waitForURL( /post\.php\?post=\d+/ );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#wplit_release_history tbody tr:nth-child(1) a:has-text("Delete")' ) ] );
 	check( ! fs.existsSync( path.join( UPLOADS, newZip ) ), 'step 30: the deleted release\'s zip is gone from disk' );
 	check( fs.existsSync( path.join( UPLOADS, stored ) ), 'step 30: the current release\'s zip is still there' );
 	await openTab( page, 'releases' );

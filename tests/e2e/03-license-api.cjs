@@ -34,7 +34,7 @@ async function call( route, body, method = 'POST' ) {
 	await page.click( '#wplit-tabs [data-tab="releases"]' );
 	const zipFile = fixtures.samplePlugin( '1.0.0' );
 	await page.setInputFiles( '#wplit_product_file_upload', zipFile );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] );
 	check( meta( productId, 'wplit_product_version' ) === '1.0.0', 'the product has release 1.0.0' );
 
 	// Issue a license by hand (step 18's screen).

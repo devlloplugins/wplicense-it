@@ -7,7 +7,7 @@ const fixtures = require( './fixtures.cjs' );
 const { BASE, check, createProduct, finish, login, logSize, meta, shot, sql, start, woo } = require( './lib.cjs' );
 
 async function save( page ) {
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] );
 }
 
 async function plansTab( page ) {
@@ -77,20 +77,20 @@ function wooProducts( software ) {
 	check( /WooCommerce price is 39\.00, plan price is 49/.test( conflict ), 'step 11: the row shows both prices: ' + conflict.slice( 0, 400 ).replace( /\n/g, ' | ' ) );
 	check( woo( { op: 'product_info', product_id: one.id } ).price === '39', 'step 11: the WooCommerce price was not overwritten' );
 	await shot( page, '11-price-conflict' );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( 'a:has-text("Keep the plan price")' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( 'a:has-text("Keep the plan price")' ) ] );
 	check( Number( woo( { op: 'product_info', product_id: one.id } ).price ) === 49, 'step 11: Keep the plan price puts 49 back on the product' );
 	woo( { op: 'edit_price', product_id: five.id, price: '120' } );
 	await page.reload();
 	await plansTab( page );
 	await save( page );
 	await plansTab( page );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( 'a:has-text("Use the WooCommerce price")' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( 'a:has-text("Use the WooCommerce price")' ) ] );
 	await plansTab( page );
 	check( await page.inputValue( 'input[name="wplit_plans[1][price]"]' ) === '120.00', 'step 11: Use the WooCommerce price makes the plan 120.00, got ' + await page.inputValue( 'input[name="wplit_plans[1][price]"]' ) );
 
 	// Step 13: Test this plan, then Publish.
 	await plansTab( page );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.locator( 'a:has-text("Test this plan")' ).first().click() ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.locator( 'a:has-text("Test this plan")' ).first().click() ] );
 	await plansTab( page );
 	const report = await page.locator( '#wplit_plans' ).innerText();
 	await shot( page, '13-test-this-plan' );
@@ -102,12 +102,12 @@ function wooProducts( software ) {
 	check( failed.length === 0, 'step 13: no check failed: ' + failed.join( ' | ' ).slice( 0, 500 ) );
 	const publish = page.locator( 'a:has-text("Publish in the shop")' ).first();
 	check( await publish.count() === 1, 'step 13: Publish in the shop is offered after the test passes' );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), publish.click() ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), publish.click() ] );
 	check( woo( { op: 'product_info', product_id: one.id } ).status === 'publish', 'step 13: Publish makes the WooCommerce product public' );
 
 	// Step 14: changing what was tested cancels the pass.
 	await plansTab( page );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.locator( 'a:has-text("Test this plan")' ).nth( 1 ).click() ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.locator( 'a:has-text("Test this plan")' ).nth( 1 ).click() ] );
 	await plansTab( page );
 	check( await page.locator( 'a:has-text("Publish in the shop")' ).count() >= 1, 'step 14: the second plan can be published after its own test' );
 	await page.fill( 'input[name="wplit_plans[1][sites]"]', '7' );
@@ -132,7 +132,7 @@ function wooProducts( software ) {
 	await page.reload();
 	await plansTab( page );
 	check( /Deleted in WooCommerce/.test( await page.locator( '#wplit_plans' ).innerText() ), 'a trashed product is reported as deleted' );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( 'a:has-text("Create it again")' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( 'a:has-text("Create it again")' ) ] );
 	check( wooProducts( id ).length >= 2, 'Create it again makes a new product' );
 
 	// Bad input is refused as a whole.

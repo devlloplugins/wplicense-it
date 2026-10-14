@@ -22,7 +22,7 @@ function installedVersion() {
 }
 
 async function save( page ) {
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] );
 }
 
 ( async () => {
@@ -110,10 +110,16 @@ async function save( page ) {
 	check( meta( productId, 'wplit_product_version' ) === '1.1.0', 'step 26: release 1.1.0 is current' );
 
 	// Step 27: the update is offered, with a changelog.
-	await page.goto( CLIENT + '/wp-admin/update-core.php?force-check=1' );
+	// The check asks the license server, and on a slow machine it can finish after the first page load, so look again a few times.
+	let updates = '';
+	for ( let attempt = 0; attempt < 4; attempt++ ) {
+		await page.goto( CLIENT + '/wp-admin/update-core.php?force-check=1' );
+		updates = await page.locator( '#wpbody-content' ).innerText();
+		if ( /WPLit Sample/.test( updates ) && /1\.1\.0/.test( updates ) ) { break; }
+		await page.waitForTimeout( 3000 );
+	}
 	await shot( page, '27-updates' );
-	const updates = await page.locator( 'body' ).innerText();
-	check( /WPLit Sample/.test( updates ) && /1\.1\.0/.test( updates ), 'step 27: the Updates screen offers WPLit Sample 1.1.0: ' + updates.slice( 0, 400 ).replace( /\n/g, ' | ' ) );
+	check( /WPLit Sample/.test( updates ) && /1\.1\.0/.test( updates ), 'step 27: the Updates screen offers WPLit Sample 1.1.0: ' + updates.slice( 0, 1200 ).replace( /\n/g, ' | ' ) );
 
 	await page.goto( CLIENT + '/wp-admin/plugin-install.php?tab=plugin-information&plugin=wplit-sample&section=changelog' );
 	const details = await page.locator( 'body' ).innerText();

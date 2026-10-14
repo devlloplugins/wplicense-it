@@ -102,7 +102,7 @@ function meta( productId, key ) {
 async function createProduct( page, title ) {
 	await page.goto( BASE + '/wp-admin/post-new.php?post_type=wplit_product' );
 	await page.fill( '#title', title );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] );
 	return new URL( page.url() ).searchParams.get( 'post' );
 }
 

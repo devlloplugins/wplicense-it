@@ -49,7 +49,7 @@ const { BASE, check, finish, login, logSize, shot, start } = require( './lib.cjs
 	check( await page.locator( '#postimagediv' ).count() === 0, 'there is no featured image box' );
 
 	await page.fill( '#title', 'SEO Pro' );
-	await Promise.all( [ page.waitForURL( /post\.php\?post=\d+/ ), page.click( '#publish' ) ] );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] );
 	const productId = new URL( page.url() ).searchParams.get( 'post' );
 	check( !! productId, 'publishing goes to the edit screen' );
 	console.log( 'product id ' + productId );
