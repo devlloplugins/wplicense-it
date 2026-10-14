@@ -23,6 +23,9 @@ final class MemoryEventLog implements EventLog {
 	 */
 	public array $events = array();
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function record( int $license_id, string $type, array $data = array() ): void {
 		$this->events[] = array(
 			'license_id' => $license_id,
@@ -32,6 +35,9 @@ final class MemoryEventLog implements EventLog {
 		);
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function for_license( int $license_id, int $limit = 50 ): array {
 		$found = array_filter( $this->events, static fn( array $event ): bool => $event['license_id'] === $license_id );
 

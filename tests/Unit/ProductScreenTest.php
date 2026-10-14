@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 final class ProductScreenTest extends TestCase {
 
 	protected function setUp(): void {
-		$GLOBALS['wplit_test_post_meta'] = array();
+		$GLOBALS['wplit_test_post_meta']  = array();
 		$GLOBALS['wplit_test_meta_boxes'] = array();
 	}
 
@@ -86,7 +86,7 @@ final class ProductScreenTest extends TestCase {
 	}
 
 	public function test_every_box_named_in_a_tab_is_added_by_something(): void {
-		$probe = new class() implements ReachabilityProbe {
+		$probe   = new class() implements ReachabilityProbe {
 			public function probe(): array {
 				return array(
 					'ok'      => true,
@@ -102,9 +102,13 @@ final class ProductScreenTest extends TestCase {
 		$meta = new InMemoryProductMeta();
 		( new ReleasesBox( new ReleaseService( new MetaReleaseRepository( $meta ), $meta ), new FakeFileStore() ) )->add_box();
 		( new PlansBox( $plans, $woo, new TestPurchase( $woo, $catalog, new FakeOrderBuilder( $woo ), $probe ), $catalog ) )->add_box();
-		( new ConnectBox( $plans, static function () {
-			return null;
-		}, $catalog ) )->add_box();
+		( new ConnectBox(
+			$plans,
+			static function () {
+				return null;
+			},
+			$catalog
+		) )->add_box();
 
 		$added = array_keys( $GLOBALS['wplit_test_meta_boxes'] );
 		// WordPress adds the author box itself. The tab list only decides on which tab it is shown.

@@ -17,8 +17,8 @@ namespace Devllo\WPLicenseIt\Licenses;
  */
 final class KeyGenerator {
 
-	private const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-	private const GROUPS   = 6;
+	private const ALPHABET     = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+	private const GROUPS       = 6;
 	private const GROUP_LENGTH = 5;
 
 	/**

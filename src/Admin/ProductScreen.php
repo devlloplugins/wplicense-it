@@ -250,7 +250,8 @@ final class ProductScreen {
 		echo '<select id="wplit_period" name="wplit_period">';
 		foreach ( ProductFields::periods() as $value => $label ) {
 			if ( 'lifetime' === $value ) {
-				continue; // Empty already means lifetime here.
+				continue;
+				// Empty already means lifetime here.
 			}
 			echo '<option value="' . esc_attr( $value ) . '"' . selected( $period, $value, false ) . '>' . esc_html( '' === $value ? __( 'Lifetime (never expires)', 'wplicense-it' ) : $label ) . '</option>';
 		}

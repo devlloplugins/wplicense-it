@@ -132,9 +132,9 @@ final class LicenseAdminTest extends TestCase {
 		$this->assertSame( Status::ACTIVE, $this->service->update_license( $expiring->id, $extend )->status );
 		$this->assertSame( Status::REVOKED, $this->service->update_license( $revoked->id, $extend )->status );
 
-		$shorten             = new LicenseChanges();
+		$shorten                = new LicenseChanges();
 		$shorten->change_expiry = true;
-		$shorten->expires_at = $this->utc( '2026-01-01 00:00:00' );
+		$shorten->expires_at    = $this->utc( '2026-01-01 00:00:00' );
 
 		$this->assertSame( Status::EXPIRED, $this->service->update_license( $expiring->id, $shorten )->status );
 	}
@@ -185,7 +185,14 @@ final class LicenseAdminTest extends TestCase {
 		}
 		$this->service->revoke_license( 2 );
 
-		$all      = $this->service->search( LicenseQuery::from_input( array( 'per_page' => 2, 'page' => 2 ) ) );
+		$all      = $this->service->search(
+			LicenseQuery::from_input(
+				array(
+					'per_page' => 2,
+					'page'     => 2,
+				)
+			)
+		);
 		$revoked  = $this->service->search( LicenseQuery::from_input( array( 'status' => 'revoked' ) ) );
 		$by_email = $this->service->search( LicenseQuery::from_input( array( 'search' => 'USER4' ) ) );
 		$product  = $this->service->search( LicenseQuery::from_input( array( 'product_id' => '8' ) ) );
@@ -196,7 +203,15 @@ final class LicenseAdminTest extends TestCase {
 		$this->assertSame( 1, $revoked->total );
 		$this->assertSame( 'user4@example.com', $by_email->items[0]->email );
 		$this->assertSame( 3, $product->total );
-		$this->assertSame( array( 'active' => 4, 'expired' => 0, 'revoked' => 1, 'refunded' => 0 ), $this->service->status_counts() );
+		$this->assertSame(
+			array(
+				'active'   => 4,
+				'expired'  => 0,
+				'revoked'  => 1,
+				'refunded' => 0,
+			),
+			$this->service->status_counts()
+		);
 	}
 
 	// Query input handling.
@@ -221,7 +236,14 @@ final class LicenseAdminTest extends TestCase {
 		$this->assertSame( 100, strlen( $query->search ) );
 		$this->assertSame( 0, $query->offset() );
 
-		$valid = LicenseQuery::from_input( array( 'orderby' => 'expires_at', 'order' => 'ASC', 'page' => '3', 'per_page' => '10' ) );
+		$valid = LicenseQuery::from_input(
+			array(
+				'orderby'  => 'expires_at',
+				'order'    => 'ASC',
+				'page'     => '3',
+				'per_page' => '10',
+			)
+		);
 		$this->assertSame( 'expires_at', $valid->orderby );
 		$this->assertSame( 'ASC', $valid->order );
 		$this->assertSame( 20, $valid->offset() );
@@ -233,11 +255,21 @@ final class LicenseAdminTest extends TestCase {
 		$db   = new FakeWpdb();
 		$repo = new WpdbLicenseRepository( $db );
 
-		$query          = LicenseQuery::from_input( array( 'status' => 'active', 'product_id' => '7', 'search' => "o'brien_100%", 'orderby' => 'expires_at', 'order' => 'asc', 'page' => '2', 'per_page' => '25' ) );
-		$db->var        = '42';
-		$page           = $repo->search( $query );
-		$count_sql      = $db->queries[0];
-		$rows_sql       = $db->queries[1];
+		$query     = LicenseQuery::from_input(
+			array(
+				'status'     => 'active',
+				'product_id' => '7',
+				'search'     => "o'brien_100%",
+				'orderby'    => 'expires_at',
+				'order'      => 'asc',
+				'page'       => '2',
+				'per_page'   => '25',
+			)
+		);
+		$db->var   = '42';
+		$page      = $repo->search( $query );
+		$count_sql = $db->queries[0];
+		$rows_sql  = $db->queries[1];
 
 		$this->assertSame( 42, $page->total );
 		$this->assertStringContainsString( "status = 'active'", $count_sql );
@@ -272,10 +304,31 @@ final class LicenseAdminTest extends TestCase {
 
 	public function test_status_counts_fill_in_missing_statuses(): void {
 		$db       = new FakeWpdb();
-		$db->rows = array( array( 'status' => 'active', 'total' => '12' ), array( 'status' => 'revoked', 'total' => '3' ), array( 'status' => 'mystery', 'total' => '9' ) );
+		$db->rows = array(
+			array(
+				'status' => 'active',
+				'total'  => '12',
+			),
+			array(
+				'status' => 'revoked',
+				'total'  => '3',
+			),
+			array(
+				'status' => 'mystery',
+				'total'  => '9',
+			),
+		);
 
 		$counts = ( new WpdbLicenseRepository( $db ) )->status_counts();
 
-		$this->assertSame( array( 'active' => 12, 'expired' => 0, 'revoked' => 3, 'refunded' => 0 ), $counts );
+		$this->assertSame(
+			array(
+				'active'   => 12,
+				'expired'  => 0,
+				'revoked'  => 3,
+				'refunded' => 0,
+			),
+			$counts
+		);
 	}
 }

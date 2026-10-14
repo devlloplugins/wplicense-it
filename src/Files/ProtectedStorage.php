@@ -50,7 +50,7 @@ final class ProtectedStorage {
 			function_exists( 'wp_mkdir_p' ) ? wp_mkdir_p( $directory ) : mkdir( $directory, 0755, true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir -- Fallback without WordPress.
 		}
 
-		// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Small static files in our own folder.
+		// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPress.PHP.NoSilencedErrors.Discouraged -- Small static files in our own folder; a failure is not fatal.
 		@file_put_contents( $directory . '/.htaccess', self::htaccess() );
 		@file_put_contents( $directory . '/index.php', "<?php\n// Silence is golden.\n" );
 		// phpcs:enable
@@ -65,7 +65,7 @@ final class ProtectedStorage {
 	 */
 	public static function seal( string $directory ): void {
 		if ( is_dir( $directory ) && ! is_file( $directory . '/index.php' ) ) {
-			@file_put_contents( $directory . '/index.php', "<?php\n// Silence is golden.\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			@file_put_contents( $directory . '/index.php', "<?php\n// Silence is golden.\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPress.PHP.NoSilencedErrors.Discouraged -- A failure only leaves the folder listable.
 		}
 	}
 
@@ -164,14 +164,14 @@ final class ProtectedStorage {
 			self::seal( dirname( $new_dir ) );
 			self::seal( $new_dir );
 
-			if ( ! @rename( $from, $to ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Same filesystem, one atomic move.
+			if ( ! @rename( $from, $to ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename, WordPress.PHP.NoSilencedErrors.Discouraged -- Same filesystem, one atomic move; a failure skips the file.
 				continue;
 			}
 
 			update_post_meta( (int) $id, 'file_dir_path', $new );
 			update_post_meta( (int) $id, 'file_dir_location', $uploads['baseurl'] . '/' . $new );
 			++$moved;
-		}
+		}//end foreach
 
 		return $moved;
 	}
@@ -179,7 +179,7 @@ final class ProtectedStorage {
 	/**
 	 * Apache rules that deny direct access to zip files (Apache 2.4 and 2.2).
 	 *
-	 * nginx ignores .htaccess, so there the folder must be denied in the server configuration.
+	 * Nginx ignores .htaccess, so there the folder must be denied in the server configuration.
 	 */
 	public static function htaccess(): string {
 		return "<FilesMatch \"\\.zip$\">\n"

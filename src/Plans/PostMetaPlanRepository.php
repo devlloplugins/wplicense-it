@@ -16,6 +16,9 @@ final class PostMetaPlanRepository implements PlanRepository {
 
 	public const META_KEY = 'wplit_plans';
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function all( int $software_id ): array {
 		$raw  = get_post_meta( $software_id, self::META_KEY, true );
 		$rows = is_string( $raw ) && '' !== $raw ? json_decode( $raw, true ) : null;
@@ -35,6 +38,9 @@ final class PostMetaPlanRepository implements PlanRepository {
 		return $plans;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function save( int $software_id, array $plans ): void {
 		$rows = array_map(
 			static function ( Plan $plan ): array {

@@ -89,8 +89,8 @@ final class PlanSyncTest extends TestCase {
 		$this->save( $this->plan( 'aaaaaaaa' ), $this->plan( 'bbbbbbbb', 'Five sites', '99.50', 5 ), $this->plan( 'cccccccc', 'Unlimited', '199', 0, 'lifetime' ) );
 
 		$this->assertCount( 3, $this->woo->products );
-		$this->assertSame( 9950, $this->woo->products[$this->stored( 'bbbbbbbb' )->woo_product_id]['price'] );
-		$this->assertSame( 0, $this->woo->products[$this->stored( 'cccccccc' )->woo_product_id]['sites'] );
+		$this->assertSame( 9950, $this->woo->products[ $this->stored( 'bbbbbbbb' )->woo_product_id ]['price'] );
+		$this->assertSame( 0, $this->woo->products[ $this->stored( 'cccccccc' )->woo_product_id ]['sites'] );
 	}
 
 	public function test_saving_again_changes_nothing(): void {
@@ -270,10 +270,10 @@ final class PlanSyncTest extends TestCase {
 		$this->save( $this->plan( 'aaaaaaaa' ) );
 		$this->woo->fail = true;
 
-		$first         = $this->stored( 'aaaaaaaa' );
-		$first->price  = '60';
-		$second        = $this->plan( 'bbbbbbbb', 'Five sites', '99', 5 );
-		$results       = $this->save( $first, $second );
+		$first        = $this->stored( 'aaaaaaaa' );
+		$first->price = '60';
+		$second       = $this->plan( 'bbbbbbbb', 'Five sites', '99', 5 );
+		$results      = $this->save( $first, $second );
 
 		$this->assertSame( PlanResult::ERROR, $results[0]->status );
 		$this->assertSame( PlanResult::ERROR, $results[1]->status );
@@ -377,11 +377,11 @@ final class PlanSyncTest extends TestCase {
 	}
 
 	public function test_plans_survive_storage(): void {
-		$plan                  = $this->plan( 'aaaaaaaa' );
-		$plan->woo_product_id  = 9;
-		$plan->conflict_minor  = 100;
-		$plan->tested_at       = '2026-10-11 12:00:00';
-		$plan->tested_hash     = 'print-1';
+		$plan                 = $this->plan( 'aaaaaaaa' );
+		$plan->woo_product_id = 9;
+		$plan->conflict_minor = 100;
+		$plan->tested_at      = '2026-10-11 12:00:00';
+		$plan->tested_hash    = 'print-1';
 		$this->repo->save( self::SOFTWARE, array( $plan ) );
 
 		$this->assertSame( $plan->to_array(), $this->repo->all( self::SOFTWARE )[0]->to_array() );

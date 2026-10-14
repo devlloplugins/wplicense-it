@@ -32,6 +32,9 @@ final class MetaReleaseRepository implements ReleaseRepository {
 		$this->meta = $meta;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function all( int $product_id ): array {
 		$raw  = $this->meta->get( $product_id, self::KEY );
 		$rows = '' !== $raw ? json_decode( $raw, true ) : null;
@@ -47,6 +50,9 @@ final class MetaReleaseRepository implements ReleaseRepository {
 		return $releases;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function save( int $product_id, array $releases ): void {
 		$rows = array_map(
 			static function ( Release $release ): array {

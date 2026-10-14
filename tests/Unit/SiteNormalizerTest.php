@@ -29,21 +29,21 @@ final class SiteNormalizerTest extends TestCase {
 	 */
 	public function normalize_cases(): array {
 		return array(
-			'scheme and www removed'         => array( 'https://www.Example.com/', 'example.com' ),
-			'no scheme'                      => array( 'example.com', 'example.com' ),
-			'subdirectory install kept'      => array( 'https://example.com/blog/', 'example.com/blog' ),
-			'query and fragment dropped'     => array( 'http://example.com/?a=1#top', 'example.com' ),
-			'default ports dropped'          => array( 'https://example.com:443', 'example.com' ),
-			'other ports kept'               => array( 'http://localhost:8080/', 'localhost:8080' ),
-			'surrounding whitespace'         => array( '  example.com  ', 'example.com' ),
-			'empty'                          => array( '', null ),
-			'blank'                          => array( '   ', null ),
-			'no host'                        => array( 'http:///', null ),
-			'invalid characters'             => array( 'ex ample.com', null ),
-			'markup in the path'             => array( 'example.com/<script>alert(1)</script>', null ),
-			'quotes in the path'             => array( 'example.com/a"b', null ),
-			'a newline in the path'          => array( "example.com/a\nb", 'example.com/a_b' ), // parse_url already neutralises control characters.
-			'normal folder names'            => array( 'https://example.com/my-blog_2/sub.dir/', 'example.com/my-blog_2/sub.dir' ),
+			'scheme and www removed'     => array( 'https://www.Example.com/', 'example.com' ),
+			'no scheme'                  => array( 'example.com', 'example.com' ),
+			'subdirectory install kept'  => array( 'https://example.com/blog/', 'example.com/blog' ),
+			'query and fragment dropped' => array( 'http://example.com/?a=1#top', 'example.com' ),
+			'default ports dropped'      => array( 'https://example.com:443', 'example.com' ),
+			'other ports kept'           => array( 'http://localhost:8080/', 'localhost:8080' ),
+			'surrounding whitespace'     => array( '  example.com  ', 'example.com' ),
+			'empty'                      => array( '', null ),
+			'blank'                      => array( '   ', null ),
+			'no host'                    => array( 'http:///', null ),
+			'invalid characters'         => array( 'ex ample.com', null ),
+			'markup in the path'         => array( 'example.com/<script>alert(1)</script>', null ),
+			'quotes in the path'         => array( 'example.com/a"b', null ),
+			'a newline in the path'      => array( "example.com/a\nb", 'example.com/a_b' ), // parse_url already neutralises control characters.
+			'normal folder names'        => array( 'https://example.com/my-blog_2/sub.dir/', 'example.com/my-blog_2/sub.dir' ),
 		);
 	}
 

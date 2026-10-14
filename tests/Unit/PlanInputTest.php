@@ -99,14 +99,14 @@ final class PlanInputTest extends TestCase {
 	 */
 	public function bad_prices(): array {
 		return array(
-			'empty'        => array( '' ),
-			'words'        => array( 'free' ),
-			'negative'     => array( '-5' ),
-			'currency'     => array( '$49' ),
-			'thousands'    => array( '1,000.00' ),
-			'too many'     => array( '49.9999' ),
-			'huge'         => array( '12345678901' ),
-			'exponent'     => array( '1e3' ),
+			'empty'     => array( '' ),
+			'words'     => array( 'free' ),
+			'negative'  => array( '-5' ),
+			'currency'  => array( '$49' ),
+			'thousands' => array( '1,000.00' ),
+			'too many'  => array( '49.9999' ),
+			'huge'      => array( '12345678901' ),
+			'exponent'  => array( '1e3' ),
 		);
 	}
 
@@ -195,9 +195,9 @@ final class PlanInputTest extends TestCase {
 	}
 
 	public function test_a_saved_plan_keeps_its_woocommerce_link(): void {
-		$saved   = new Plan( 'aaaaaaaa', 'Old name', '49', 1, 'P1Y', 12, 4900, 'USD', 3900, '2026-10-11 12:00:00', 'print-1' );
-		$result  = PlanInput::parse( array( $this->row( 'New name', '59', '2', 'P2Y', 'aaaaaaaa' ) ), array( $saved ), $this->ids() );
-		$plan    = $result['plans'][0];
+		$saved  = new Plan( 'aaaaaaaa', 'Old name', '49', 1, 'P1Y', 12, 4900, 'USD', 3900, '2026-10-11 12:00:00', 'print-1' );
+		$result = PlanInput::parse( array( $this->row( 'New name', '59', '2', 'P2Y', 'aaaaaaaa' ) ), array( $saved ), $this->ids() );
+		$plan   = $result['plans'][0];
 
 		$this->assertSame( 'aaaaaaaa', $plan->id );
 		$this->assertSame( 'New name', $plan->name );
@@ -233,7 +233,19 @@ final class PlanInputTest extends TestCase {
 	}
 
 	public function test_non_array_rows_and_values_are_ignored(): void {
-		$result = PlanInput::parse( array( 'junk', array( 'name' => array( 'x' ), 'price' => '1', 'sites' => '1', 'period' => 'P1Y' ) ), array(), $this->ids() );
+		$result = PlanInput::parse(
+			array(
+				'junk',
+				array(
+					'name'   => array( 'x' ),
+					'price'  => '1',
+					'sites'  => '1',
+					'period' => 'P1Y',
+				),
+			),
+			array(),
+			$this->ids()
+		);
 
 		$this->assertCount( 0, $result['plans'] );
 		$this->assertCount( 1, $result['errors'] );
@@ -262,12 +274,12 @@ final class PlanInputTest extends TestCase {
 	 */
 	public function money_cases(): array {
 		return array(
-			'dollars'         => array( 4900, 'USD', '49.00' ),
-			'cents'           => array( 5, 'USD', '0.05' ),
-			'odd cents'       => array( 4950, 'EUR', '49.50' ),
-			'yen'             => array( 49, 'JPY', '49' ),
-			'dinar'           => array( 49500, 'KWD', '49.500' ),
-			'dinar fraction'  => array( 7, 'KWD', '0.007' ),
+			'dollars'        => array( 4900, 'USD', '49.00' ),
+			'cents'          => array( 5, 'USD', '0.05' ),
+			'odd cents'      => array( 4950, 'EUR', '49.50' ),
+			'yen'            => array( 49, 'JPY', '49' ),
+			'dinar'          => array( 49500, 'KWD', '49.500' ),
+			'dinar fraction' => array( 7, 'KWD', '0.007' ),
 		);
 	}
 }

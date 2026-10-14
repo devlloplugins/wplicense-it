@@ -43,7 +43,16 @@ final class SdkUpdaterTest extends TestCase {
 
 		$this->transport = new SdkFakeTransport();
 		$this->store     = new SdkArrayStore();
-		$this->config    = Config::from_array( array( 'server' => 'https://shop.example.com', 'product_id' => 7, 'name' => 'Great Plugin', 'version' => '1.2.0', 'file' => '/x', 'basename' => 'great-plugin/great-plugin.php' ) );
+		$this->config    = Config::from_array(
+			array(
+				'server'     => 'https://shop.example.com',
+				'product_id' => 7,
+				'name'       => 'Great Plugin',
+				'version'    => '1.2.0',
+				'file'       => '/x',
+				'basename'   => 'great-plugin/great-plugin.php',
+			)
+		);
 		$api             = new ServerApi( $this->config, $this->transport );
 		$this->service   = new UpdateService( $api, $this->store, 'https://shop.example.com' );
 		$manager         = new LicenseManager( $api, $this->store, 'https://customer.example.com', fn(): int => time() );
@@ -60,7 +69,18 @@ final class SdkUpdaterTest extends TestCase {
 	private function update_response( string $version = '2.0.0' ): array {
 		return array(
 			'success'          => true,
-			'product'          => array( 'id' => 7, 'name' => 'Great Plugin', 'version' => $version, 'requires' => '6.2', 'tested' => '6.6', 'description' => 'Does great things.', 'banners' => array( 'low' => 'https://x/low.png', 'high' => 'https://x/high.png' ) ),
+			'product'          => array(
+				'id'          => 7,
+				'name'        => 'Great Plugin',
+				'version'     => $version,
+				'requires'    => '6.2',
+				'tested'      => '6.6',
+				'description' => 'Does great things.',
+				'banners'     => array(
+					'low'  => 'https://x/low.png',
+					'high' => 'https://x/high.png',
+				),
+			),
 			'update_available' => true,
 			'download_url'     => 'https://shop.example.com/wp-json/wplicense-it/v1/download?token=abc',
 			'expires_in'       => 900,
@@ -98,7 +118,13 @@ final class SdkUpdaterTest extends TestCase {
 	}
 
 	public function test_a_definite_no_is_remembered_for_an_hour_but_a_hiccup_is_not(): void {
-		$this->transport->reply( 403, array( 'success' => false, 'code' => 'expired' ) );
+		$this->transport->reply(
+			403,
+			array(
+				'success' => false,
+				'code'    => 'expired',
+			)
+		);
 		$this->assertNull( $this->service->latest( $this->store->load(), self::NOW ) );
 		$this->assertSame( 'none', $this->store->cache['update'] );
 		$this->assertSame( 3600, $this->store->ttl['update'] );
@@ -113,7 +139,13 @@ final class SdkUpdaterTest extends TestCase {
 	}
 
 	public function test_a_response_without_a_version_is_ignored(): void {
-		$this->transport->reply( 200, array( 'success' => true, 'product' => array() ) );
+		$this->transport->reply(
+			200,
+			array(
+				'success' => true,
+				'product' => array(),
+			)
+		);
 
 		$this->assertNull( $this->service->latest( $this->store->load(), self::NOW ) );
 	}
@@ -145,7 +177,13 @@ final class SdkUpdaterTest extends TestCase {
 	}
 
 	public function test_a_missing_package_is_reported(): void {
-		$this->transport->reply( 404, array( 'success' => false, 'code' => 'no_package' ) );
+		$this->transport->reply(
+			404,
+			array(
+				'success' => false,
+				'code'    => 'no_package',
+			)
+		);
 
 		$result = $this->service->download_url( $this->store->load() );
 
@@ -157,7 +195,10 @@ final class SdkUpdaterTest extends TestCase {
 
 	public function test_an_update_is_offered_when_the_version_is_newer(): void {
 		$this->transport->reply( 200, $this->update_response( '2.0.0' ) );
-		$transient = (object) array( 'response' => array(), 'no_update' => array( 'great-plugin/great-plugin.php' => (object) array() ) );
+		$transient = (object) array(
+			'response'  => array(),
+			'no_update' => array( 'great-plugin/great-plugin.php' => (object) array() ),
+		);
 
 		$result = $this->updater->add_plugin_update( $transient );
 		$entry  = $result->response['great-plugin/great-plugin.php'];
@@ -180,9 +221,17 @@ final class SdkUpdaterTest extends TestCase {
 
 	public function test_a_stale_entry_is_removed_when_the_license_can_no_longer_update(): void {
 		$this->store->clear(); // License gone.
-		$stale     = (object) array( 'package' => 'wplicense-it://great-plugin', 'new_version' => '2.0.0' );
+		$stale     = (object) array(
+			'package'     => 'wplicense-it://great-plugin',
+			'new_version' => '2.0.0',
+		);
 		$other     = (object) array( 'package' => 'https://elsewhere/x.zip' );
-		$transient = (object) array( 'response' => array( 'great-plugin/great-plugin.php' => $stale, 'other/other.php' => $other ) );
+		$transient = (object) array(
+			'response' => array(
+				'great-plugin/great-plugin.php' => $stale,
+				'other/other.php'               => $other,
+			),
+		);
 
 		$result = $this->updater->add_plugin_update( $transient );
 
@@ -195,7 +244,15 @@ final class SdkUpdaterTest extends TestCase {
 	}
 
 	public function test_a_theme_entry_has_the_shape_wordpress_expects(): void {
-		$theme = Config::from_array( array( 'server' => 'https://shop.example.com', 'product_id' => 7, 'version' => '1.0.0', 'type' => 'theme', 'slug' => 'pretty-theme' ) );
+		$theme = Config::from_array(
+			array(
+				'server'     => 'https://shop.example.com',
+				'product_id' => 7,
+				'version'    => '1.0.0',
+				'type'       => 'theme',
+				'slug'       => 'pretty-theme',
+			)
+		);
 		$info  = UpdateInfo::from_response( $this->update_response( '1.1.0' ) );
 
 		$entry = Updater::theme_entry( $theme, $info );
@@ -257,7 +314,13 @@ final class SdkUpdaterTest extends TestCase {
 	}
 
 	public function test_a_failed_download_becomes_a_clear_error(): void {
-		$this->transport->reply( 403, array( 'success' => false, 'code' => 'expired' ) );
+		$this->transport->reply(
+			403,
+			array(
+				'success' => false,
+				'code'    => 'expired',
+			)
+		);
 
 		$error = $this->updater->download_package( false, 'wplicense-it://great-plugin' );
 

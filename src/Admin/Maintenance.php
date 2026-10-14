@@ -70,7 +70,7 @@ final class Maintenance {
 		$total = 0;
 
 		for ( $i = 0; $i < $max_batches; $i++ ) {
-			$done = $licenses->expire_due_licenses( $batch );
+			$done   = $licenses->expire_due_licenses( $batch );
 			$total += $done;
 
 			if ( $done < $batch ) {

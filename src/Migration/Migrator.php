@@ -25,8 +25,8 @@ use Devllo\WPLicenseIt\Licenses\LicenseService;
  */
 final class Migrator {
 
-	private const SAMPLE_SIZE    = 25;
-	private const VERIFY_PREFIX  = 'Verify: ';
+	private const SAMPLE_SIZE   = 25;
+	private const VERIFY_PREFIX = 'Verify: ';
 
 	/**
 	 * Converts the product meta, returns the number of products updated.
@@ -148,7 +148,7 @@ final class Migrator {
 					break;
 
 				case MigrationState::PHASE_VERIFY:
-					$problems = $this->verify();
+					$problems        = $this->verify();
 					$state->problems = array_values(
 						array_filter(
 							$state->problems,
@@ -171,14 +171,14 @@ final class Migrator {
 					$state->finalized = true;
 					$state->phase     = MigrationState::PHASE_LICENSES;
 					break;
-			}
+			}//end switch
 
 			$this->store->save( $state );
 
 			if ( ( $this->time )() >= $deadline ) {
 				return $state;
 			}
-		}
+		}//end while
 	}
 
 	/**
@@ -252,7 +252,7 @@ final class Migrator {
 		$now = ( $this->clock )();
 
 		foreach ( $rows as $row ) {
-			$id                   = (int) $row['id'];
+			$id                    = (int) $row['id'];
 			$state->license_cursor = max( $state->license_cursor, $id );
 
 			try {
@@ -279,7 +279,7 @@ final class Migrator {
 			}
 
 			++$state->licenses_migrated;
-		}
+		}//end foreach
 
 		return true;
 	}
@@ -301,7 +301,7 @@ final class Migrator {
 		$now = ( $this->clock )();
 
 		foreach ( $rows as $row ) {
-			$id                = (int) $row['id'];
+			$id                  = (int) $row['id'];
 			$state->order_cursor = max( $state->order_cursor, $id );
 
 			try {
@@ -313,8 +313,8 @@ final class Migrator {
 			}
 
 			// 1.x order numbers end in 3 random characters, so two orders on one day can collide.
-			$base      = $order->order_number;
-			$suffix    = 2;
+			$base   = $order->order_number;
+			$suffix = 2;
 			while ( $this->target->order_number_taken( $order->order_number ) && $suffix < 1000 ) {
 				$order->order_number = $base . '-' . $suffix;
 				++$suffix;
@@ -322,7 +322,7 @@ final class Migrator {
 
 			$this->target->import_order( $order );
 			++$state->orders_migrated;
-		}
+		}//end foreach
 
 		return true;
 	}

@@ -17,7 +17,7 @@ final class LicenseQuery {
 
 	public const ORDERBY = array( 'id', 'created_at', 'expires_at', 'status', 'email', 'product_id' );
 
-	public ?string $status = null;
+	public ?string $status  = null;
 	public ?int $product_id = null;
 	public string $search   = '';
 	public string $orderby  = 'id';

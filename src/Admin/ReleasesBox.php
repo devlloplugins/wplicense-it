@@ -140,7 +140,7 @@ final class ReleasesBox {
 			esc_attr( $release->id ),
 			esc_url( $this->action_url( 'notes', $post_id, $release->id ) ),
 			esc_html__( 'Release notes', 'wplicense-it' ),
-			ReleaseService::MAX_NOTES,
+			(int) ReleaseService::MAX_NOTES,
 			esc_textarea( $release->notes ),
 			esc_html__( 'Plain text, one change per line. Customers see this on the Changelog tab of the update popup.', 'wplicense-it' ),
 			esc_html__( 'Save notes', 'wplicense-it' ),
@@ -262,7 +262,7 @@ final class ReleasesBox {
 			$report->errors[] = $e->getMessage();
 		} catch ( FileStoreException $e ) {
 			$report->errors[] = 'The release was removed from the list, but its file stays on the server: ' . $e->getMessage();
-		}
+		}//end try
 
 		return $report;
 	}

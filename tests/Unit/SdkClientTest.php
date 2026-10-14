@@ -39,7 +39,16 @@ final class SdkClientTest extends TestCase {
 	protected function setUp(): void {
 		$this->transport = new SdkFakeTransport();
 		$this->store     = new SdkArrayStore();
-		$config          = Config::from_array( array( 'server' => 'https://shop.example.com/', 'product_id' => 7, 'name' => 'Great Plugin', 'version' => '1.2.0', 'file' => '/x', 'basename' => 'great-plugin/great-plugin.php' ) );
+		$config          = Config::from_array(
+			array(
+				'server'     => 'https://shop.example.com/',
+				'product_id' => 7,
+				'name'       => 'Great Plugin',
+				'version'    => '1.2.0',
+				'file'       => '/x',
+				'basename'   => 'great-plugin/great-plugin.php',
+			)
+		);
 		$this->manager   = new LicenseManager( new ServerApi( $config, $this->transport ), $this->store, self::SITE, fn(): int => self::NOW );
 	}
 
@@ -47,7 +56,12 @@ final class SdkClientTest extends TestCase {
 		return array(
 			'success' => true,
 			'code'    => $code,
-			'license' => $license + array( 'status' => 'active', 'expires_at' => '2030-01-01T00:00:00+00:00', 'activation_limit' => 3, 'activations_used' => 1 ),
+			'license' => $license + array(
+				'status'           => 'active',
+				'expires_at'       => '2030-01-01T00:00:00+00:00',
+				'activation_limit' => 3,
+				'activations_used' => 1,
+			),
 		);
 	}
 
@@ -60,7 +74,15 @@ final class SdkClientTest extends TestCase {
 	// Configuration.
 
 	public function test_a_plugin_config_gets_its_slug_and_marker_from_the_basename(): void {
-		$config = Config::from_array( array( 'server' => 'https://shop.example.com/', 'product_id' => '7', 'version' => '1.0', 'file' => '/x', 'basename' => 'My Plugin/main.php' ) );
+		$config = Config::from_array(
+			array(
+				'server'     => 'https://shop.example.com/',
+				'product_id' => '7',
+				'version'    => '1.0',
+				'file'       => '/x',
+				'basename'   => 'My Plugin/main.php',
+			)
+		);
 
 		$this->assertSame( 'https://shop.example.com', $config->server );
 		$this->assertSame( 7, $config->product_id );
@@ -73,8 +95,25 @@ final class SdkClientTest extends TestCase {
 	}
 
 	public function test_a_single_file_plugin_and_a_theme(): void {
-		$single = Config::from_array( array( 'server' => 'https://s.example.com', 'product_id' => 1, 'version' => '1', 'file' => '/x', 'basename' => 'solo.php' ) );
-		$theme  = Config::from_array( array( 'server' => 'https://s.example.com', 'product_id' => 1, 'version' => '1', 'type' => 'theme', 'slug' => 'Pretty Theme', 'menu' => false ) );
+		$single = Config::from_array(
+			array(
+				'server'     => 'https://s.example.com',
+				'product_id' => 1,
+				'version'    => '1',
+				'file'       => '/x',
+				'basename'   => 'solo.php',
+			)
+		);
+		$theme  = Config::from_array(
+			array(
+				'server'     => 'https://s.example.com',
+				'product_id' => 1,
+				'version'    => '1',
+				'type'       => 'theme',
+				'slug'       => 'Pretty Theme',
+				'menu'       => false,
+			)
+		);
 
 		$this->assertSame( 'solo', $single->slug );
 		$this->assertSame( 'theme', $theme->type );
@@ -83,7 +122,13 @@ final class SdkClientTest extends TestCase {
 	}
 
 	public function test_bad_settings_are_rejected(): void {
-		$good = array( 'server' => 'https://s.example.com', 'product_id' => 1, 'version' => '1', 'file' => '/x', 'basename' => 'p/p.php' );
+		$good = array(
+			'server'     => 'https://s.example.com',
+			'product_id' => 1,
+			'version'    => '1',
+			'file'       => '/x',
+			'basename'   => 'p/p.php',
+		);
 
 		$bad = array(
 			'no server'          => array( 'server' => '' ) + $good,
@@ -92,7 +137,10 @@ final class SdkClientTest extends TestCase {
 			'no product'         => array( 'product_id' => 0 ) + $good,
 			'no version'         => array( 'version' => ' ' ) + $good,
 			'no file or type'    => array( 'file' => '' ) + $good,
-			'theme without slug' => array( 'file' => '', 'type' => 'theme' ) + $good,
+			'theme without slug' => array(
+				'file' => '',
+				'type' => 'theme',
+			) + $good,
 		);
 
 		foreach ( $bad as $label => $args ) {
@@ -107,7 +155,18 @@ final class SdkClientTest extends TestCase {
 
 	public function test_http_is_accepted_only_for_local_development(): void {
 		foreach ( array( 'http://localhost:8080', 'http://127.0.0.1', 'http://shop.test', 'http://shop.local' ) as $server ) {
-			$this->assertSame( $server, Config::from_array( array( 'server' => $server, 'product_id' => 1, 'version' => '1', 'file' => '/x', 'basename' => 'p/p.php' ) )->server );
+			$this->assertSame(
+				$server,
+				Config::from_array(
+					array(
+						'server'     => $server,
+						'product_id' => 1,
+						'version'    => '1',
+						'file'       => '/x',
+						'basename'   => 'p/p.php',
+					)
+				)->server
+			);
 		}
 	}
 
@@ -121,7 +180,12 @@ final class SdkClientTest extends TestCase {
 		$request = $this->transport->last();
 		$this->assertSame( 'https://shop.example.com/wp-json/wplicense-it/v1/licenses/activate', $request['url'] );
 		$this->assertSame(
-			array( 'license_key' => 'KEY-123', 'product_id' => 7, 'site_url' => self::SITE, 'product_version' => '1.2.0' ),
+			array(
+				'license_key'     => 'KEY-123',
+				'product_id'      => 7,
+				'site_url'        => self::SITE,
+				'product_version' => '1.2.0',
+			),
 			$request['body']
 		);
 	}
@@ -136,7 +200,14 @@ final class SdkClientTest extends TestCase {
 	}
 
 	public function test_a_json_404_is_a_real_answer_not_a_reason_to_retry(): void {
-		$this->transport->reply( 404, array( 'success' => false, 'code' => 'not_found', 'message' => 'License not found.' ) );
+		$this->transport->reply(
+			404,
+			array(
+				'success' => false,
+				'code'    => 'not_found',
+				'message' => 'License not found.',
+			)
+		);
 
 		$result = $this->manager->activate( 'NOPE' );
 
@@ -150,8 +221,20 @@ final class SdkClientTest extends TestCase {
 		$this->transport->fail();
 		$this->transport->reply( 503, array() );
 		$this->transport->reply_raw( 200, 'not json' );
-		$this->transport->reply( 429, array( 'success' => false, 'code' => 'rate_limited' ) );
-		$this->transport->reply( 403, array( 'success' => false, 'code' => 'expired' ) );
+		$this->transport->reply(
+			429,
+			array(
+				'success' => false,
+				'code'    => 'rate_limited',
+			)
+		);
+		$this->transport->reply(
+			403,
+			array(
+				'success' => false,
+				'code'    => 'expired',
+			)
+		);
 
 		$codes = array();
 		foreach ( range( 1, 5 ) as $i ) {
@@ -190,12 +273,27 @@ final class SdkClientTest extends TestCase {
 	}
 
 	public function test_a_local_site_is_remembered_so_the_page_can_explain_the_count(): void {
-		$this->transport->reply( 200, $this->license_body( 'activated', array( 'activations_used' => 0 ) ) + array( 'activation' => array( 'site' => 'shop.local', 'status' => 'active', 'local' => true ) ) );
+		$this->transport->reply(
+			200,
+			$this->license_body( 'activated', array( 'activations_used' => 0 ) ) + array(
+				'activation' => array(
+					'site'   => 'shop.local',
+					'status' => 'active',
+					'local'  => true,
+				),
+			)
+		);
 		$this->manager->activate( 'KEY-123' );
 
 		$this->assertTrue( $this->store->load()->local );
 
-		$this->transport->reply( 200, $this->license_body( 'ok' ) + array( 'site_active' => true, 'site_local' => false ) );
+		$this->transport->reply(
+			200,
+			$this->license_body( 'ok' ) + array(
+				'site_active' => true,
+				'site_local'  => false,
+			)
+		);
 		$this->manager->refresh();
 
 		$this->assertFalse( $this->store->load()->local );
@@ -209,7 +307,16 @@ final class SdkClientTest extends TestCase {
 	}
 
 	public function test_a_lifetime_license_has_no_expiry(): void {
-		$this->transport->reply( 200, $this->license_body( 'activated', array( 'expires_at' => null, 'activation_limit' => 0 ) ) );
+		$this->transport->reply(
+			200,
+			$this->license_body(
+				'activated',
+				array(
+					'expires_at'       => null,
+					'activation_limit' => 0,
+				)
+			)
+		);
 
 		$this->manager->activate( 'KEY-123' );
 
@@ -219,7 +326,13 @@ final class SdkClientTest extends TestCase {
 
 	public function test_a_rejected_key_stores_nothing_and_keeps_the_previous_license(): void {
 		$this->activated();
-		$this->transport->reply( 404, array( 'success' => false, 'code' => 'not_found' ) );
+		$this->transport->reply(
+			404,
+			array(
+				'success' => false,
+				'code'    => 'not_found',
+			)
+		);
 
 		$result = $this->manager->activate( 'OTHER-KEY' );
 
@@ -234,7 +347,13 @@ final class SdkClientTest extends TestCase {
 	}
 
 	public function test_the_limit_reached_message_tells_the_customer_what_to_do(): void {
-		$this->transport->reply( 403, array( 'success' => false, 'code' => 'limit_reached' ) );
+		$this->transport->reply(
+			403,
+			array(
+				'success' => false,
+				'code'    => 'limit_reached',
+			)
+		);
 
 		$this->assertStringContainsString( 'Deactivate it on another site', $this->manager->activate( 'KEY' )->message );
 	}
@@ -244,7 +363,23 @@ final class SdkClientTest extends TestCase {
 	public function test_a_license_past_its_expiry_is_inactive_without_asking_the_server(): void {
 		$this->transport->reply( 200, $this->license_body( 'activated', array( 'expires_at' => gmdate( 'c', self::NOW + 100 ) ) ) );
 		$this->manager->activate( 'KEY-123' );
-		$later = new LicenseManager( new ServerApi( Config::from_array( array( 'server' => 'https://s.example.com', 'product_id' => 7, 'version' => '1', 'file' => '/x', 'basename' => 'p/p.php' ) ), $this->transport ), $this->store, self::SITE, fn(): int => self::NOW + 200 );
+		$later = new LicenseManager(
+			new ServerApi(
+				Config::from_array(
+					array(
+						'server'     => 'https://s.example.com',
+						'product_id' => 7,
+						'version'    => '1',
+						'file'       => '/x',
+						'basename'   => 'p/p.php',
+					)
+				),
+				$this->transport
+			),
+			$this->store,
+			self::SITE,
+			fn(): int => self::NOW + 200
+		);
 
 		$this->assertTrue( $this->manager->is_active() );
 		$this->assertFalse( $later->is_active() );
@@ -252,7 +387,16 @@ final class SdkClientTest extends TestCase {
 
 	public function test_a_successful_refresh_updates_the_details(): void {
 		$this->activated();
-		$this->transport->reply( 200, $this->license_body( 'ok', array( 'expires_at' => '2031-01-01T00:00:00+00:00', 'activations_used' => 2 ) ) + array( 'site_active' => true ) );
+		$this->transport->reply(
+			200,
+			$this->license_body(
+				'ok',
+				array(
+					'expires_at'       => '2031-01-01T00:00:00+00:00',
+					'activations_used' => 2,
+				)
+			) + array( 'site_active' => true )
+		);
 
 		$result = $this->manager->refresh();
 
@@ -264,9 +408,20 @@ final class SdkClientTest extends TestCase {
 	}
 
 	public function test_the_server_ending_a_license_is_believed(): void {
-		foreach ( array( 'expired' => LicenseState::EXPIRED, 'revoked' => LicenseState::REVOKED, 'refunded' => LicenseState::REFUNDED, 'not_found' => LicenseState::INVALID ) as $code => $status ) {
+		foreach ( array(
+			'expired'   => LicenseState::EXPIRED,
+			'revoked'   => LicenseState::REVOKED,
+			'refunded'  => LicenseState::REFUNDED,
+			'not_found' => LicenseState::INVALID,
+		) as $code => $status ) {
 			$this->activated();
-			$this->transport->reply( 'not_found' === $code ? 404 : 403, array( 'success' => false, 'code' => $code ) );
+			$this->transport->reply(
+				'not_found' === $code ? 404 : 403,
+				array(
+					'success' => false,
+					'code'    => $code,
+				)
+			);
 
 			$this->manager->refresh();
 
@@ -278,7 +433,13 @@ final class SdkClientTest extends TestCase {
 
 	public function test_a_renewed_license_starts_working_again_at_the_next_check(): void {
 		$this->activated();
-		$this->transport->reply( 403, array( 'success' => false, 'code' => 'expired' ) );
+		$this->transport->reply(
+			403,
+			array(
+				'success' => false,
+				'code'    => 'expired',
+			)
+		);
 		$this->manager->refresh();
 		$this->assertFalse( $this->manager->is_active() );
 
@@ -309,7 +470,13 @@ final class SdkClientTest extends TestCase {
 			} elseif ( 'garbage' === $problem ) {
 				$this->transport->reply_raw( 200, '<html>' );
 			} else {
-				$this->transport->reply( $problem, array( 'success' => false, 'code' => 'rate_limited' ) );
+				$this->transport->reply(
+					$problem,
+					array(
+						'success' => false,
+						'code'    => 'rate_limited',
+					)
+				);
 			}
 
 			$result = $this->manager->refresh();
@@ -342,7 +509,14 @@ final class SdkClientTest extends TestCase {
 	public function test_deactivating_frees_the_slot_and_forgets_the_license(): void {
 		$this->activated();
 		$this->store->cache['update'] = array( 'version' => '9' );
-		$this->transport->reply( 200, array( 'success' => true, 'code' => 'deactivated', 'license' => array() ) );
+		$this->transport->reply(
+			200,
+			array(
+				'success' => true,
+				'code'    => 'deactivated',
+				'license' => array(),
+			)
+		);
 
 		$result = $this->manager->deactivate();
 
@@ -354,7 +528,13 @@ final class SdkClientTest extends TestCase {
 
 	public function test_deactivating_a_site_the_server_does_not_know_still_forgets_it(): void {
 		$this->activated();
-		$this->transport->reply( 404, array( 'success' => false, 'code' => 'not_active' ) );
+		$this->transport->reply(
+			404,
+			array(
+				'success' => false,
+				'code'    => 'not_active',
+			)
+		);
 
 		$this->assertTrue( $this->manager->deactivate()->ok );
 		$this->assertSame( array(), $this->store->data );

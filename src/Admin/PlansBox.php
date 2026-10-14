@@ -108,7 +108,7 @@ final class PlansBox {
 		$currency = $this->woo->currency();
 		$plans    = $this->plans->all( $post->ID );
 		$rows     = $plans;
-		for ( $i = 0; $i < self::SPARE_ROWS && count( $rows ) < PlanInput::MAX_PLANS; $i++ ) {
+		for ( $i = 0, $room = PlanInput::MAX_PLANS - count( $rows ); $i < self::SPARE_ROWS && $i < $room; $i++ ) {
 			// A spare row has no sites value either, so that an untouched row is submitted completely empty and skipped.
 			$rows[] = new Plan( '', '', '', -1, 'P1Y' );
 		}
@@ -193,8 +193,8 @@ final class PlansBox {
 		if ( null !== $plan->conflict_minor ) {
 			echo '<div style="margin-top:6px;padding:6px 8px;border-left:4px solid #dba617;background:#fcf9e8">';
 			printf(
-				/* translators: 1: price in WooCommerce, 2: price in the plan. */
 				'<strong>%s</strong><br>',
+				/* translators: 1: price in WooCommerce, 2: price in the plan. */
 				esc_html( sprintf( __( 'WooCommerce price is %1$s, plan price is %2$s.', 'wplicense-it' ), Money::from_minor( $plan->conflict_minor, $currency ), $plan->price ) )
 			);
 			echo '<a href="' . esc_url( $this->action_url( 'restore', $software_id, $plan->id ) ) . '">' . esc_html__( 'Keep the plan price', 'wplicense-it' ) . '</a> &middot; ';
@@ -252,15 +252,17 @@ final class PlansBox {
 		$this->queue_report( $post_id, array(), $this->sync->save( $post_id, $title, $parsed['plans'] ) );
 	}
 
+	// phpcs:disable Squiz.Commenting.FunctionCommentThrowTag.Missing -- PlanException is thrown and caught inside.
 	/**
 	 * Runs one of the row actions and goes back to the product.
 	 */
 	public function handle_action(): void {
+		// phpcs:enable Squiz.Commenting.FunctionCommentThrowTag.Missing
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Verified below, against the specific plan and action.
-		$do       = isset( $_GET['do'] ) ? sanitize_key( wp_unslash( $_GET['do'] ) ) : '';
-		$post_id  = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0;
-		$plan_id  = isset( $_GET['plan'] ) ? sanitize_key( wp_unslash( $_GET['plan'] ) ) : '';
-		$nonce    = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+		$do      = isset( $_GET['do'] ) ? sanitize_key( wp_unslash( $_GET['do'] ) ) : '';
+		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0;
+		$plan_id = isset( $_GET['plan'] ) ? sanitize_key( wp_unslash( $_GET['plan'] ) ) : '';
+		$nonce   = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		if ( ! $post_id || ! wp_verify_nonce( $nonce, self::nonce_action( $do, $post_id, $plan_id ) ) ) {
@@ -301,10 +303,10 @@ final class PlansBox {
 					break;
 				default:
 					$errors[] = __( 'Unknown action.', 'wplicense-it' );
-			}
+			}//end switch
 		} catch ( PlanException $e ) {
 			$errors[] = $e->getMessage();
-		}
+		}//end try
 
 		$this->queue_report( $post_id, $errors, $results, $done );
 		// Back to the Plans tab of the product.
@@ -406,7 +408,8 @@ final class PlansBox {
 			printf(
 				'<li style="margin:4px 0"><span aria-hidden="true" style="display:inline-block;width:1.4em;font-weight:bold;color:%1$s">%2$s</span><span class="screen-reader-text">%3$s </span><strong>%4$s</strong> &mdash; %5$s</li>',
 				esc_attr( $color ),
-				$symbol, // Fixed entity from the list above.
+				$symbol, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- A fixed entity from the list above.
+				// Fixed entity from the list above.
 				esc_html( $word ),
 				esc_html( $result->label ),
 				esc_html( $result->message )
@@ -452,10 +455,10 @@ final class PlansBox {
 	/**
 	 * Keeps messages for the next page load.
 	 *
-	 * @param int            $post_id License product ID.
-	 * @param string[]       $errors  Error lines.
-	 * @param PlanResult[]   $results Results of the sync.
-	 * @param string|null    $done    Line to show when nothing else needs saying. Null for the usual "Plans saved".
+	 * @param int          $post_id License product ID.
+	 * @param string[]     $errors  Error lines.
+	 * @param PlanResult[] $results Results of the sync.
+	 * @param string|null  $done    Line to show when nothing else needs saying. Null for the usual "Plans saved".
 	 */
 	private function queue_report( int $post_id, array $errors, array $results, ?string $done = null ): void {
 		$lines = array();

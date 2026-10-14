@@ -160,10 +160,10 @@ final class ProductSaverTest extends TestCase {
 
 		$this->save(
 			array(
-				'wplit_product_name'     => array( 'x' ),
-				'wplit_product_version'  => array( '9' ),
-				'wplit_product_api_key'  => array( 'k' ),
-				'wplit_period'           => array( 'P1Y' ),
+				'wplit_product_name'    => array( 'x' ),
+				'wplit_product_version' => array( '9' ),
+				'wplit_product_api_key' => array( 'k' ),
+				'wplit_period'          => array( 'P1Y' ),
 			)
 		);
 
@@ -282,14 +282,34 @@ final class ProductSaverTest extends TestCase {
 		file_put_contents( $path, 'not a zip' );
 		$this->temp[] = $path;
 
-		$report = $this->save( array(), array( 'wplit_product_file_upload' => array( 'name' => 'x.zip', 'tmp_name' => $path, 'error' => 0, 'size' => 9 ) ) );
+		$report = $this->save(
+			array(),
+			array(
+				'wplit_product_file_upload' => array(
+					'name'     => 'x.zip',
+					'tmp_name' => $path,
+					'error'    => 0,
+					'size'     => 9,
+				),
+			)
+		);
 
 		$this->assertStringContainsString( 'not a readable zip', $report->errors[0] );
 		$this->assertCount( 0, $this->files->packages );
 	}
 
 	public function test_a_file_over_the_server_limit_says_so(): void {
-		$report = $this->save( array(), array( 'wplit_product_file_upload' => array( 'name' => 'big.zip', 'tmp_name' => '', 'error' => UPLOAD_ERR_INI_SIZE, 'size' => 0 ) ) );
+		$report = $this->save(
+			array(),
+			array(
+				'wplit_product_file_upload' => array(
+					'name'     => 'big.zip',
+					'tmp_name' => '',
+					'error'    => UPLOAD_ERR_INI_SIZE,
+					'size'     => 0,
+				),
+			)
+		);
 
 		$this->assertCount( 1, $report->errors );
 		$this->assertStringContainsString( 'bigger than this server allows (2M)', $report->errors[0] );
@@ -297,7 +317,7 @@ final class ProductSaverTest extends TestCase {
 	}
 
 	public function test_a_file_that_is_not_a_real_upload_is_refused(): void {
-		$zip                   = $this->plugin_zip();
+		$zip                       = $this->plugin_zip();
 		$this->files->not_uploaded = array( $zip['tmp_name'] );
 
 		$report = $this->save( array(), array( 'wplit_product_file_upload' => $zip ) );
@@ -307,7 +327,17 @@ final class ProductSaverTest extends TestCase {
 	}
 
 	public function test_no_file_chosen_does_nothing(): void {
-		$report = $this->save( array(), array( 'wplit_product_file_upload' => array( 'name' => '', 'tmp_name' => '', 'error' => UPLOAD_ERR_NO_FILE, 'size' => 0 ) ) );
+		$report = $this->save(
+			array(),
+			array(
+				'wplit_product_file_upload' => array(
+					'name'     => '',
+					'tmp_name' => '',
+					'error'    => UPLOAD_ERR_NO_FILE,
+					'size'     => 0,
+				),
+			)
+		);
 
 		$this->assertTrue( $report->is_empty() );
 		$this->assertCount( 0, $this->files->packages );
@@ -337,7 +367,13 @@ final class ProductSaverTest extends TestCase {
 	// Images.
 
 	public function test_a_logo_and_a_banner_are_stored_and_linked(): void {
-		$report = $this->save( array(), array( 'wplit_product_logo' => $this->image( 'logo.png' ), 'wplit_product_banner' => $this->image( 'banner.png' ) ) );
+		$report = $this->save(
+			array(),
+			array(
+				'wplit_product_logo'   => $this->image( 'logo.png' ),
+				'wplit_product_banner' => $this->image( 'banner.png' ),
+			)
+		);
 
 		$this->assertSame( array(), $report->errors );
 		$this->assertStringEndsWith( 'wplit-files/p7/logo/logo.png', $this->meta( 'wplit_product_logo_url' ) );
@@ -564,7 +600,12 @@ final class ProductSaverTest extends TestCase {
 	public function test_a_damaged_kept_report_is_cleaned(): void {
 		$this->assertTrue( SaveReport::from_array( 'junk' )->is_empty() );
 
-		$report = SaveReport::from_array( array( 'errors' => array( 'ok', array( 'x' ), 5 ), 'messages' => 'no' ) );
+		$report = SaveReport::from_array(
+			array(
+				'errors'   => array( 'ok', array( 'x' ), 5 ),
+				'messages' => 'no',
+			)
+		);
 
 		$this->assertSame( array( 'ok' ), $report->errors );
 		$this->assertSame( array(), $report->messages );

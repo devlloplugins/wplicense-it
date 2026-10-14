@@ -16,9 +16,9 @@ use RuntimeException;
  */
 final class LicenseException extends RuntimeException {
 
-	public const NOT_FOUND      = 'not_found';
-	public const INVALID_INPUT  = 'invalid_input';
-	public const NOT_RENEWABLE  = 'not_renewable';
+	public const NOT_FOUND     = 'not_found';
+	public const INVALID_INPUT = 'invalid_input';
+	public const NOT_RENEWABLE = 'not_renewable';
 
 	/**
 	 * Machine-readable reason.

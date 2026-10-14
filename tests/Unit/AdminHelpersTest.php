@@ -54,8 +54,8 @@ final class AdminHelpersTest extends TestCase {
 	}
 
 	public function test_the_date_field_round_trips(): void {
-		$zone    = new DateTimeZone( 'Asia/Tokyo' );
-		$stored  = DateInput::end_of_day_utc( '2026-12-31', $zone );
+		$zone   = new DateTimeZone( 'Asia/Tokyo' );
+		$stored = DateInput::end_of_day_utc( '2026-12-31', $zone );
 
 		$this->assertSame( '2026-12-31', DateInput::to_field( $stored, $zone ) );
 		$this->assertSame( '', DateInput::to_field( null, $zone ) );
@@ -91,7 +91,15 @@ final class AdminHelpersTest extends TestCase {
 	}
 
 	public function test_history_details_are_readable(): void {
-		$this->assertSame( 'email: a@x.com → b@x.com, activation_limit: 1 → 5', LicenseView::event_details( array( 'email' => array( 'a@x.com', 'b@x.com' ), 'activation_limit' => array( 1, 5 ) ) ) );
+		$this->assertSame(
+			'email: a@x.com → b@x.com, activation_limit: 1 → 5',
+			LicenseView::event_details(
+				array(
+					'email'            => array( 'a@x.com', 'b@x.com' ),
+					'activation_limit' => array( 1, 5 ),
+				)
+			)
+		);
 		$this->assertSame( 'site: one.com', LicenseView::event_details( array( 'site' => 'one.com' ) ) );
 		$this->assertSame( 'expires_at: — → 2027-01-01 00:00:00', LicenseView::event_details( array( 'expires_at' => array( null, '2027-01-01 00:00:00' ) ) ) );
 		$this->assertSame( '', LicenseView::event_details( array() ) );

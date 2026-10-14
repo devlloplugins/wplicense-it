@@ -2,7 +2,7 @@
 <ruleset name="WPLicense It client SDK">
 	<description>Coding standards for the client SDK, which sellers embed in plugins that may still run on PHP 7.4.</description>
 
-	<file>sdk</file>
+	<file>.</file>
 
 	<arg name="extensions" value="php"/>
 	<arg name="colors"/>
@@ -18,4 +18,9 @@
 		<exclude name="WordPress.NamingConventions.PrefixAllGlobals"/>
 	</rule>
 	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- WordPress hooks pass arguments that a handler does not always need; the signature has to match. -->
+	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter">
+		<severity>0</severity>
+	</rule>
 </ruleset>

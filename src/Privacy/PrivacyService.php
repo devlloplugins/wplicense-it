@@ -150,13 +150,34 @@ final class PrivacyService {
 	 */
 	private function license_item( License $license ): array {
 		$data = array(
-			array( 'name' => __( 'License key', 'wplicense-it' ), 'value' => $license->license_key ),
-			array( 'name' => __( 'Email', 'wplicense-it' ), 'value' => $license->email ),
-			array( 'name' => __( 'Product ID', 'wplicense-it' ), 'value' => (string) $license->product_id ),
-			array( 'name' => __( 'Status', 'wplicense-it' ), 'value' => $license->status ),
-			array( 'name' => __( 'Sites allowed', 'wplicense-it' ), 'value' => 0 === $license->activation_limit ? __( 'Unlimited', 'wplicense-it' ) : (string) $license->activation_limit ),
-			array( 'name' => __( 'Expires', 'wplicense-it' ), 'value' => null === $license->expires_at ? __( 'Never', 'wplicense-it' ) : $license->expires_at->format( 'Y-m-d H:i:s' ) . ' UTC' ),
-			array( 'name' => __( 'Created', 'wplicense-it' ), 'value' => $license->created_at->format( 'Y-m-d H:i:s' ) . ' UTC' ),
+			array(
+				'name'  => __( 'License key', 'wplicense-it' ),
+				'value' => $license->license_key,
+			),
+			array(
+				'name'  => __( 'Email', 'wplicense-it' ),
+				'value' => $license->email,
+			),
+			array(
+				'name'  => __( 'Product ID', 'wplicense-it' ),
+				'value' => (string) $license->product_id,
+			),
+			array(
+				'name'  => __( 'Status', 'wplicense-it' ),
+				'value' => $license->status,
+			),
+			array(
+				'name'  => __( 'Sites allowed', 'wplicense-it' ),
+				'value' => 0 === $license->activation_limit ? __( 'Unlimited', 'wplicense-it' ) : (string) $license->activation_limit,
+			),
+			array(
+				'name'  => __( 'Expires', 'wplicense-it' ),
+				'value' => null === $license->expires_at ? __( 'Never', 'wplicense-it' ) : $license->expires_at->format( 'Y-m-d H:i:s' ) . ' UTC',
+			),
+			array(
+				'name'  => __( 'Created', 'wplicense-it' ),
+				'value' => $license->created_at->format( 'Y-m-d H:i:s' ) . ' UTC',
+			),
 		);
 
 		foreach ( $this->repository->activations( $license->id ) as $activation ) {
@@ -190,16 +211,34 @@ final class PrivacyService {
 	 */
 	private function order_item( array $order ): array {
 		$data = array(
-			array( 'name' => __( 'Order number', 'wplicense-it' ), 'value' => $order['order_number'] ),
-			array( 'name' => __( 'Source', 'wplicense-it' ), 'value' => $order['source'] ),
-			array( 'name' => __( 'Total', 'wplicense-it' ), 'value' => number_format( $order['total_minor'] / 100, 2, '.', '' ) . ' ' . $order['currency'] ),
-			array( 'name' => __( 'Status', 'wplicense-it' ), 'value' => $order['status'] ),
-			array( 'name' => __( 'Date', 'wplicense-it' ), 'value' => $order['created_at'] . ' UTC' ),
+			array(
+				'name'  => __( 'Order number', 'wplicense-it' ),
+				'value' => $order['order_number'],
+			),
+			array(
+				'name'  => __( 'Source', 'wplicense-it' ),
+				'value' => $order['source'],
+			),
+			array(
+				'name'  => __( 'Total', 'wplicense-it' ),
+				'value' => number_format( $order['total_minor'] / 100, 2, '.', '' ) . ' ' . $order['currency'],
+			),
+			array(
+				'name'  => __( 'Status', 'wplicense-it' ),
+				'value' => $order['status'],
+			),
+			array(
+				'name'  => __( 'Date', 'wplicense-it' ),
+				'value' => $order['created_at'] . ' UTC',
+			),
 		);
 
 		foreach ( self::BILLING_LABELS as $field => $label ) {
 			if ( isset( $order['billing'][ $field ] ) && '' !== $order['billing'][ $field ] ) {
-				$data[] = array( 'name' => $label, 'value' => $order['billing'][ $field ] );
+				$data[] = array(
+					'name'  => $label,
+					'value' => $order['billing'][ $field ],
+				);
 			}
 		}
 
@@ -225,11 +264,26 @@ final class PrivacyService {
 			'group_description' => __( 'Records kept from before WPLicense It 2.0.', 'wplicense-it' ),
 			'item_id'           => 'wplicense-it-legacy-license-' . (int) $row['id'],
 			'data'              => array(
-				array( 'name' => __( 'License key', 'wplicense-it' ), 'value' => (string) $row['license_key'] ),
-				array( 'name' => __( 'Email', 'wplicense-it' ), 'value' => (string) $row['email'] ),
-				array( 'name' => __( 'Product ID', 'wplicense-it' ), 'value' => (string) $row['product_id'] ),
-				array( 'name' => __( 'Valid until', 'wplicense-it' ), 'value' => (string) $row['valid_until'] ),
-				array( 'name' => __( 'Created', 'wplicense-it' ), 'value' => (string) $row['created_at'] ),
+				array(
+					'name'  => __( 'License key', 'wplicense-it' ),
+					'value' => (string) $row['license_key'],
+				),
+				array(
+					'name'  => __( 'Email', 'wplicense-it' ),
+					'value' => (string) $row['email'],
+				),
+				array(
+					'name'  => __( 'Product ID', 'wplicense-it' ),
+					'value' => (string) $row['product_id'],
+				),
+				array(
+					'name'  => __( 'Valid until', 'wplicense-it' ),
+					'value' => (string) $row['valid_until'],
+				),
+				array(
+					'name'  => __( 'Created', 'wplicense-it' ),
+					'value' => (string) $row['created_at'],
+				),
 			),
 		);
 	}
@@ -242,14 +296,26 @@ final class PrivacyService {
 	 */
 	private function legacy_order_item( array $row ): array {
 		$data = array(
-			array( 'name' => __( 'Order number', 'wplicense-it' ), 'value' => (string) $row['order_number'] ),
-			array( 'name' => __( 'Total', 'wplicense-it' ), 'value' => (string) $row['order_total'] ),
-			array( 'name' => __( 'Date', 'wplicense-it' ), 'value' => (string) $row['created_at'] ),
+			array(
+				'name'  => __( 'Order number', 'wplicense-it' ),
+				'value' => (string) $row['order_number'],
+			),
+			array(
+				'name'  => __( 'Total', 'wplicense-it' ),
+				'value' => (string) $row['order_total'],
+			),
+			array(
+				'name'  => __( 'Date', 'wplicense-it' ),
+				'value' => (string) $row['created_at'],
+			),
 		);
 
 		foreach ( self::BILLING_LABELS as $field => $label ) {
 			if ( isset( $row[ $field ] ) && '' !== (string) $row[ $field ] ) {
-				$data[] = array( 'name' => $label, 'value' => (string) $row[ $field ] );
+				$data[] = array(
+					'name'  => $label,
+					'value' => (string) $row[ $field ],
+				);
 			}
 		}
 

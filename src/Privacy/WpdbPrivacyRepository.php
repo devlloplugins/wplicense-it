@@ -229,7 +229,16 @@ final class WpdbPrivacyRepository implements PrivacyRepository {
 			$placeholder = PrivacyService::placeholder( (int) $row['id'] );
 
 			if ( $placeholder !== $row['email'] || (int) $row['user_id'] > 0 ) {
-				$this->db->update( $lt, array( 'email' => $placeholder, 'user_id' => 0 ), array( 'id' => (int) $row['id'] ), array( '%s', '%d' ), array( '%d' ) );
+				$this->db->update(
+					$lt,
+					array(
+						'email'   => $placeholder,
+						'user_id' => 0,
+					),
+					array( 'id' => (int) $row['id'] ),
+					array( '%s', '%d' ),
+					array( '%d' )
+				);
 				++$count;
 			}
 		}
@@ -256,7 +265,7 @@ final class WpdbPrivacyRepository implements PrivacyRepository {
 				array( '%d' )
 			);
 			++$count;
-		}
+		}//end foreach
 
 		return $count;
 	}

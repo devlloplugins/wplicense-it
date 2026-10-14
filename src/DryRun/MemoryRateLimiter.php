@@ -31,10 +31,16 @@ final class MemoryRateLimiter implements RateLimiter {
 	public function __construct( private int $max = 3 ) {
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function blocked_for( string $client ): int {
 		return ( $this->failures[ $client ] ?? 0 ) >= $this->max ? 60 : 0;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function record_failure( string $client ): void {
 		$this->failures[ $client ] = ( $this->failures[ $client ] ?? 0 ) + 1;
 	}

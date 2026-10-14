@@ -14,17 +14,26 @@ namespace Devllo\WPLicenseIt\Products;
  */
 final class WpProductMeta implements ProductMeta {
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function get( int $product_id, string $key ): string {
 		$value = get_post_meta( $product_id, $key, true );
 
 		return is_scalar( $value ) ? (string) $value : '';
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function set( int $product_id, string $key, string $value ): void {
 		// update_post_meta removes slashes, so the value is slashed first to keep backslashes intact.
 		update_post_meta( $product_id, $key, wp_slash( $value ) );
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function delete( int $product_id, string $key ): void {
 		delete_post_meta( $product_id, $key );
 	}

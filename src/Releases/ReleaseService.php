@@ -243,7 +243,7 @@ final class ReleaseService {
 	 */
 	public static function notes( string $notes ): string {
 		$lines = array();
-		foreach ( preg_split( '/\R/', strip_tags( $notes ) ) ?: array() as $line ) {
+		foreach ( (array) preg_split( '/\R/', strip_tags( $notes ) ) as $line ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags -- Plain text is wanted, and this also runs without WordPress.
 			$line = trim( (string) preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/', ' ', $line ) );
 			if ( '' !== $line ) {
 				$lines[] = $line;

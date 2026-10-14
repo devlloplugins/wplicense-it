@@ -36,10 +36,10 @@ final class ConnectBoxTest extends TestCase {
 	private $woo;
 
 	protected function setUp(): void {
-		$this->plans                        = new InMemoryPlanRepository();
-		$this->woo                          = new FakeProductGateway();
-		$GLOBALS['wplit_test_post_meta']    = array();
-		$GLOBALS['wplit_test_home']         = 'https://shop.example.com/';
+		$this->plans                     = new InMemoryPlanRepository();
+		$this->woo                       = new FakeProductGateway();
+		$GLOBALS['wplit_test_post_meta'] = array();
+		$GLOBALS['wplit_test_home']      = 'https://shop.example.com/';
 	}
 
 	private function draw( string $title = 'SEO Pro', string $status = 'publish', ?FakeProductGateway $gateway = null ): string {
@@ -117,9 +117,15 @@ final class ConnectBoxTest extends TestCase {
 			'file_name'             => 'seo-pro.zip',
 			'wplit_product_version' => '1.4.2',
 		);
-		$this->woo->products[500]           = array( 'status' => 'publish', 'price' => 4900, 'software' => 7, 'sites' => 1, 'period' => 'P1Y' );
-		$plan              = new Plan( 'aaaaaaaa', 'One site', '49', 1, 'P1Y', 500, 4900, 'USD', null, '2026-10-11 12:00:00' );
-		$plan->tested_hash = Fingerprint::of( 7, $plan, null );
+		$this->woo->products[500]           = array(
+			'status'   => 'publish',
+			'price'    => 4900,
+			'software' => 7,
+			'sites'    => 1,
+			'period'   => 'P1Y',
+		);
+		$plan                               = new Plan( 'aaaaaaaa', 'One site', '49', 1, 'P1Y', 500, 4900, 'USD', null, '2026-10-11 12:00:00' );
+		$plan->tested_hash                  = Fingerprint::of( 7, $plan, null );
 		$this->plans->save( 7, array( $plan ) );
 
 		$html = $this->draw( 'SEO Pro', 'publish', $this->woo );
@@ -133,7 +139,13 @@ final class ConnectBoxTest extends TestCase {
 			'file_name'             => 'seo-pro.zip',
 			'wplit_product_version' => '1.4.2',
 		);
-		$this->woo->products[500]           = array( 'status' => 'publish', 'price' => 4900, 'software' => 7, 'sites' => 1, 'period' => 'P1Y' );
+		$this->woo->products[500]           = array(
+			'status'   => 'publish',
+			'price'    => 4900,
+			'software' => 7,
+			'sites'    => 1,
+			'period'   => 'P1Y',
+		);
 		$plan                               = new Plan( 'aaaaaaaa', 'One site', '49', 1, 'P1Y', 500, 4900, 'USD', null, '2026-10-11 12:00:00' );
 		$plan->tested_hash                  = Fingerprint::of( 7, $plan, '/an/older/upload.zip' );
 		$this->plans->save( 7, array( $plan ) );

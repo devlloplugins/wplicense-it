@@ -180,9 +180,9 @@ final class PackageReaderTest extends TestCase {
 	public function test_mac_resource_files_do_not_count(): void {
 		$info = $this->read_zip(
 			array(
-				'seo-pro/seo-pro.php'          => self::PLUGIN,
+				'seo-pro/seo-pro.php'            => self::PLUGIN,
 				'__MACOSX/seo-pro/._seo-pro.php' => 'junk',
-				'seo-pro/._readme.txt'         => 'junk',
+				'seo-pro/._readme.txt'           => 'junk',
 			)
 		);
 

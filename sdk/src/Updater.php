@@ -178,14 +178,14 @@ final class Updater {
 			return $result;
 		}
 
-		$details                = new stdClass();
-		$details->name          = '' !== $info->name ? $info->name : $this->config->name;
-		$details->slug          = $this->config->slug;
-		$details->version       = $info->version;
-		$details->requires      = $info->requires;
-		$details->tested        = self::tested( $info->tested );
-		$details->homepage      = $this->config->server;
-		$details->sections      = array( 'description' => wpautop( esc_html( $info->description ) ) );
+		$details           = new stdClass();
+		$details->name     = '' !== $info->name ? $info->name : $this->config->name;
+		$details->slug     = $this->config->slug;
+		$details->version  = $info->version;
+		$details->requires = $info->requires;
+		$details->tested   = self::tested( $info->tested );
+		$details->homepage = $this->config->server;
+		$details->sections = array( 'description' => wpautop( esc_html( $info->description ) ) );
 		if ( '' !== trim( $info->changelog ) ) {
 			$details->sections['changelog'] = wpautop( esc_html( $info->changelog ) );
 		}

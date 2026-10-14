@@ -24,6 +24,9 @@ final class MemoryLicenseOrderRepository implements LicenseOrderRepository {
 	 */
 	public array $records = array();
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function record( OrderData $order ): int {
 		if ( ! isset( $this->records[ $order->id ] ) ) {
 			$this->records[ $order->id ] = array(
@@ -38,6 +41,9 @@ final class MemoryLicenseOrderRepository implements LicenseOrderRepository {
 		return $this->records[ $order->id ]['id'];
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function set_status( int $woo_order_id, string $status ): void {
 		if ( isset( $this->records[ $woo_order_id ] ) ) {
 			$this->records[ $woo_order_id ]['status'] = $status;

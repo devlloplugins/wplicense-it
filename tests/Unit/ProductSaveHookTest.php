@@ -28,7 +28,7 @@ final class ProductSaveHookTest extends TestCase {
 	private $saved_post;
 
 	protected function setUp(): void {
-		$this->saved_post                = $_POST;
+		$this->saved_post                = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- A test double reads what the hook saw.
 		$_POST                           = array();
 		$GLOBALS['wplit_test_post_meta'] = array();
 		$GLOBALS['wplit_test_can']       = true;
@@ -111,7 +111,14 @@ final class ProductSaveHookTest extends TestCase {
 
 	public function test_problems_are_kept_for_the_next_page(): void {
 		$this->submit( array( 'wplit_product_name' => 'SEO Pro' ) );
-		$_FILES = array( 'wplit_product_file_upload' => array( 'name' => 'big.zip', 'tmp_name' => '', 'error' => UPLOAD_ERR_INI_SIZE, 'size' => 0 ) );
+		$_FILES = array(
+			'wplit_product_file_upload' => array(
+				'name'     => 'big.zip',
+				'tmp_name' => '',
+				'error'    => UPLOAD_ERR_INI_SIZE,
+				'size'     => 0,
+			),
+		);
 
 		( new ProductSaveHook() )->save( 7, $this->post() );
 		$_FILES = array();

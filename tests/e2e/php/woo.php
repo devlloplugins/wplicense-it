@@ -8,11 +8,11 @@
 
 declare( strict_types=1 );
 
-$root = getenv( 'WPLIT_ENV_ROOT' ) ?: '/opt/wp-test';
+$root = getenv( 'WPLIT_ENV_ROOT' ) ? getenv( 'WPLIT_ENV_ROOT' ) : '/opt/wp-test';
 define( 'WP_ADMIN', true );
 require $root . '/wordpress/wp-load.php';
 
-$in  = json_decode( $argv[1] ?? '{}', true ) ?: array();
+$in  = (array) json_decode( $argv[1] ?? '{}', true );
 $op  = $in['op'] ?? '';
 $out = array();
 
@@ -55,13 +55,25 @@ switch ( $op ) {
 		$email = $in['email'];
 		$id    = email_exists( $email );
 		if ( ! $id ) {
-			$id = wp_insert_user( array( 'user_login' => $in['login'], 'user_email' => $email, 'user_pass' => $in['password'], 'role' => 'customer' ) );
+			$id = wp_insert_user(
+				array(
+					'user_login' => $in['login'],
+					'user_email' => $email,
+					'user_pass'  => $in['password'],
+					'role'       => 'customer',
+				)
+			);
 		}
 		$out = array( 'user_id' => (int) $id );
 		break;
 
 	case 'create_order':
-		$order = wc_create_order( array( 'customer_id' => (int) ( $in['user_id'] ?? 0 ), 'status' => 'pending' ) );
+		$order = wc_create_order(
+			array(
+				'customer_id' => (int) ( $in['user_id'] ?? 0 ),
+				'status'      => 'pending',
+			)
+		);
 		$item  = $order->add_product( wc_get_product( (int) $in['product_id'] ), (int) ( $in['qty'] ?? 1 ) );
 		if ( ! empty( $in['renew_license_id'] ) ) {
 			wc_add_order_item_meta( $item, '_wplit_renew_license_id', (int) $in['renew_license_id'] );
@@ -75,7 +87,11 @@ switch ( $op ) {
 		if ( ! empty( $in['status'] ) ) {
 			$order->update_status( $in['status'], 'Test setup' );
 		}
-		$out = array( 'order_id' => $order->get_id(), 'total' => $order->get_total(), 'item_id' => $item );
+		$out = array(
+			'order_id' => $order->get_id(),
+			'total'    => $order->get_total(),
+			'item_id'  => $item,
+		);
 		break;
 
 	case 'set_order_status':
@@ -85,12 +101,22 @@ switch ( $op ) {
 		break;
 
 	case 'refund':
-		$order  = wc_get_order( (int) $in['order_id'] );
-		$lines  = array();
+		$order = wc_get_order( (int) $in['order_id'] );
+		$lines = array();
 		foreach ( $order->get_items() as $item_id => $item ) {
-			$lines[ $item_id ] = array( 'qty' => (int) ( $in['qty'] ?? $item->get_quantity() ), 'refund_total' => (float) ( $in['amount'] ?? $item->get_total() ) );
+			$lines[ $item_id ] = array(
+				'qty'          => (int) ( $in['qty'] ?? $item->get_quantity() ),
+				'refund_total' => (float) ( $in['amount'] ?? $item->get_total() ),
+			);
 		}
-		$refund = wc_create_refund( array( 'order_id' => $order->get_id(), 'amount' => (float) ( $in['amount'] ?? $order->get_total() ), 'reason' => 'Test', 'line_items' => $lines ) );
+		$refund = wc_create_refund(
+			array(
+				'order_id'   => $order->get_id(),
+				'amount'     => (float) ( $in['amount'] ?? $order->get_total() ),
+				'reason'     => 'Test',
+				'line_items' => $lines,
+			)
+		);
 		if ( is_wp_error( $refund ) ) {
 			$out = array( 'error' => $refund->get_error_message() );
 			break;
@@ -98,7 +124,10 @@ switch ( $op ) {
 		if ( ! empty( $in['full'] ) ) {
 			$order->update_status( 'refunded', 'Test' );
 		}
-		$out = array( 'refund_id' => $refund->get_id(), 'status' => wc_get_order( $order->get_id() )->get_status() );
+		$out = array(
+			'refund_id' => $refund->get_id(),
+			'status'    => wc_get_order( $order->get_id() )->get_status(),
+		);
 		break;
 
 	case 'order_notes':

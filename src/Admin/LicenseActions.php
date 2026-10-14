@@ -77,34 +77,49 @@ final class LicenseActions {
 			case 'revoke':
 				$this->licenses->revoke_license( $license_id );
 
-				return array( 'url' => $view, 'notice' => 'revoked' );
+				return array(
+					'url'    => $view,
+					'notice' => 'revoked',
+				);
 
 			case 'refund':
 				$this->licenses->revoke_license( $license_id, Status::REFUNDED );
 
-				return array( 'url' => $view, 'notice' => 'refunded' );
+				return array(
+					'url'    => $view,
+					'notice' => 'refunded',
+				);
 
 			case 'reinstate':
 				$this->licenses->reinstate_license( $license_id );
 
-				return array( 'url' => $view, 'notice' => 'reinstated' );
+				return array(
+					'url'    => $view,
+					'notice' => 'reinstated',
+				);
 
 			case 'renew':
 				$this->licenses->renew_license( $license_id, $this->renewal_period() );
 
-				return array( 'url' => $view, 'notice' => 'renewed' );
+				return array(
+					'url'    => $view,
+					'notice' => 'renewed',
+				);
 
 			case 'update':
 				$this->licenses->update_license( $license_id, $this->changes_from_request() );
 
-				return array( 'url' => $view, 'notice' => 'updated' );
+				return array(
+					'url'    => $view,
+					'notice' => 'updated',
+				);
 
 			case 'deactivate_site':
 				return $this->deactivate_site( $license_id );
 
 			case 'add':
 				return $this->add_license();
-		}
+		}//end switch
 
 		throw new LicenseException( LicenseException::INVALID_INPUT, 'Unknown action.' );
 	}
@@ -131,7 +146,10 @@ final class LicenseActions {
 			throw new LicenseException( 'no_site', 'Site not active.' );
 		}
 
-		return array( 'url' => Urls::view( $license_id ), 'notice' => 'deactivated' );
+		return array(
+			'url'    => Urls::view( $license_id ),
+			'notice' => 'deactivated',
+		);
 	}
 
 	/**
@@ -196,10 +214,16 @@ final class LicenseActions {
 		if ( $send ) {
 			$this->email_customer( $license, $post->post_title );
 
-			return array( 'url' => Urls::view( $license->id ), 'notice' => 'emailed' );
+			return array(
+				'url'    => Urls::view( $license->id ),
+				'notice' => 'emailed',
+			);
 		}
 
-		return array( 'url' => Urls::view( $license->id ), 'notice' => 'issued' );
+		return array(
+			'url'    => Urls::view( $license->id ),
+			'notice' => 'issued',
+		);
 	}
 
 	/**

@@ -31,6 +31,9 @@ final class MemoryActivationRepository implements ActivationRepository {
 	 */
 	private int $last_id = 0;
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function find( int $license_id, string $site ): ?Activation {
 		foreach ( $this->rows as $row ) {
 			if ( $row->license_id === $license_id && $row->site === $site ) {
@@ -41,6 +44,9 @@ final class MemoryActivationRepository implements ActivationRepository {
 		return null;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function count_active( int $license_id ): int {
 		$count = 0;
 
@@ -53,6 +59,9 @@ final class MemoryActivationRepository implements ActivationRepository {
 		return $count;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function list_active( int $license_id ): array {
 		return array_values(
 			array_filter(
@@ -62,6 +71,9 @@ final class MemoryActivationRepository implements ActivationRepository {
 		);
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function save( Activation $activation ): Activation {
 		if ( 0 === $activation->id ) {
 			$activation->id = ++$this->last_id;
@@ -72,6 +84,9 @@ final class MemoryActivationRepository implements ActivationRepository {
 		return $activation;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function with_license_lock( int $license_id, callable $callback ) {
 		return $callback();
 	}

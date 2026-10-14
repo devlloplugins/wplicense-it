@@ -18,13 +18,16 @@ final class RestLoopbackProbe implements ReachabilityProbe {
 
 	public const NAMESPACE_NAME = 'wplicense-it/v1';
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function probe(): array {
 		$url      = rest_url( self::NAMESPACE_NAME );
 		$response = wp_remote_get(
 			$url,
 			array(
 				'timeout'   => 8,
-				'sslverify' => (bool) apply_filters( 'https_local_ssl_verify', false ),
+				'sslverify' => (bool) apply_filters( 'https_local_ssl_verify', false ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- A WordPress core filter.
 			)
 		);
 

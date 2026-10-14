@@ -361,11 +361,11 @@ final class TestPurchaseTest extends TestCase {
 	}
 
 	public function test_the_real_order_builder_reads_terms_from_a_woocommerce_product(): void {
-		$GLOBALS['wplit_test_products'] = array();
-		$product                        = new \WC_Product();
-		$product->id                    = 500;
-		$product->name                  = 'SEO Pro - 5 sites';
-		$product->meta                  = array(
+		$GLOBALS['wplit_test_products']      = array();
+		$product                             = new \WC_Product();
+		$product->id                         = 500;
+		$product->name                       = 'SEO Pro - 5 sites';
+		$product->meta                       = array(
 			'_wplit_product_id'       => 7,
 			'_wplit_activation_limit' => '5',
 			'_wplit_period'           => 'P1Y',
@@ -382,10 +382,10 @@ final class TestPurchaseTest extends TestCase {
 	}
 
 	public function test_the_real_order_builder_uses_the_default_for_unset_terms_and_refuses_a_missing_product(): void {
-		$GLOBALS['wplit_test_products'] = array();
-		$product                        = new \WC_Product();
-		$product->id                    = 501;
-		$product->meta                  = array( '_wplit_product_id' => 7 );
+		$GLOBALS['wplit_test_products']      = array();
+		$product                             = new \WC_Product();
+		$product->id                         = 501;
+		$product->meta                       = array( '_wplit_product_id' => 7 );
 		$GLOBALS['wplit_test_products'][501] = $product;
 
 		$order = ( new WcOrderBuilder( new OrderReader() ) )->build( 501, 2 );

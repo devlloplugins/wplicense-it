@@ -77,7 +77,7 @@ final class ConnectTest extends TestCase {
 		$this->assertSame( 'plugin', $config->type );
 		$this->assertSame( 'seo-pro', $config->slug );
 
-		$theme  = Config::from_array( $this->args( Snippet::generate( 'theme', 'Neat', 'neat', 'https://shop.example.com', 9 ) ) );
+		$theme = Config::from_array( $this->args( Snippet::generate( 'theme', 'Neat', 'neat', 'https://shop.example.com', 9 ) ) );
 		$this->assertSame( 'theme', $theme->type );
 		$this->assertSame( 'neat', $theme->slug );
 		$this->assertSame( 9, $theme->product_id );
@@ -100,16 +100,16 @@ final class ConnectTest extends TestCase {
 	 */
 	public function hostile_names(): array {
 		return array(
-			'apostrophe'       => array( "Bob's Plugin", "Bob's Plugin" ),
-			'double quotes'    => array( 'The "Pro" Plugin', 'The "Pro" Plugin' ),
-			'backslash'        => array( 'A\\B', 'A\\B' ),
-			'trailing slash'   => array( 'Ends with \\', 'Ends with \\' ),
-			'dollar'           => array( 'Costs $5 {$x}', 'Costs $5 {$x}' ),
-			'code injection'   => array( "x'); system('id'); //", "x'); system('id'); //" ),
-			'php tag'          => array( 'a <?php echo 1; ?> b', 'a <?php echo 1; ?> b' ),
-			'newline'          => array( "Line one\nLine two", 'Line one Line two' ),
-			'unicode'          => array( 'Plügin 日本語', 'Plügin 日本語' ),
-			'comment closer'   => array( '*/ evil /*', '*/ evil /*' ),
+			'apostrophe'     => array( "Bob's Plugin", "Bob's Plugin" ),
+			'double quotes'  => array( 'The "Pro" Plugin', 'The "Pro" Plugin' ),
+			'backslash'      => array( 'A\\B', 'A\\B' ),
+			'trailing slash' => array( 'Ends with \\', 'Ends with \\' ),
+			'dollar'         => array( 'Costs $5 {$x}', 'Costs $5 {$x}' ),
+			'code injection' => array( "x'); system('id'); //", "x'); system('id'); //" ),
+			'php tag'        => array( 'a <?php echo 1; ?> b', 'a <?php echo 1; ?> b' ),
+			'newline'        => array( "Line one\nLine two", 'Line one Line two' ),
+			'unicode'        => array( 'Plügin 日本語', 'Plügin 日本語' ),
+			'comment closer' => array( '*/ evil /*', '*/ evil /*' ),
 		);
 	}
 
@@ -132,12 +132,12 @@ final class ConnectTest extends TestCase {
 	 */
 	public function slugs(): array {
 		return array(
-			'normal'           => array( 'seo-pro', 'SEO Pro', 'seo-pro' ),
-			'upper case'       => array( 'SEO_Pro', 'x', 'seo_pro' ),
+			'normal'            => array( 'seo-pro', 'SEO Pro', 'seo-pro' ),
+			'upper case'        => array( 'SEO_Pro', 'x', 'seo_pro' ),
 			'unsafe characters' => array( '../etc/passwd', 'x', 'etc-passwd' ),
-			'empty uses name'  => array( '', 'My Cool Plugin', 'my-cool-plugin' ),
-			'nothing usable'   => array( '', '日本語', 'my-product' ),
-			'long'             => array( str_repeat( 'a', 300 ), 'x', str_repeat( 'a', 100 ) ),
+			'empty uses name'   => array( '', 'My Cool Plugin', 'my-cool-plugin' ),
+			'nothing usable'    => array( '', '日本語', 'my-product' ),
+			'long'              => array( str_repeat( 'a', 300 ), 'x', str_repeat( 'a', 100 ) ),
 		);
 	}
 
@@ -173,14 +173,39 @@ final class ConnectTest extends TestCase {
 
 	public function test_a_zip_without_a_version_does_not_count(): void {
 		$this->assertFalse( Checklist::items( $this->facts( array( 'has_package' => true ) ) )[0]['done'] );
-		$this->assertTrue( Checklist::items( $this->facts( array( 'has_package' => true, 'version' => '1.0' ) ) )[0]['done'] );
+		$this->assertTrue(
+			Checklist::items(
+				$this->facts(
+					array(
+						'has_package' => true,
+						'version'     => '1.0',
+					)
+				)
+			)[0]['done']
+		);
 	}
 
 	public function test_every_plan_has_to_be_created_tested_and_published(): void {
-		$some = $this->facts( array( 'plan_count' => 2, 'created_count' => 1, 'tested_count' => 1, 'published_count' => 1 ) );
+		$some = $this->facts(
+			array(
+				'plan_count'      => 2,
+				'created_count'   => 1,
+				'tested_count'    => 1,
+				'published_count' => 1,
+			)
+		);
 		$this->assertSame( array( false, true, false, true, false, false ), $this->done( Checklist::items( $some ) ) );
 
-		$all = $this->facts( array( 'has_package' => true, 'version' => '1.0', 'plan_count' => 2, 'created_count' => 2, 'tested_count' => 2, 'published_count' => 2 ) );
+		$all = $this->facts(
+			array(
+				'has_package'     => true,
+				'version'         => '1.0',
+				'plan_count'      => 2,
+				'created_count'   => 2,
+				'tested_count'    => 2,
+				'published_count' => 2,
+			)
+		);
 		$this->assertSame( array( true, true, true, true, true, true ), $this->done( Checklist::items( $all ) ) );
 	}
 

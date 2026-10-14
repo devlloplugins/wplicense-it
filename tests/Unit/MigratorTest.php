@@ -198,7 +198,7 @@ final class MigratorTest extends TestCase {
 
 	public function test_a_license_that_2_0_already_issued_is_adopted_not_duplicated(): void {
 		$this->seed( 1, 0 );
-		$issued = $this->service->issue_license( 7, 'buyer1@example.com' );
+		$issued                                   = $this->service->issue_license( 7, 'buyer1@example.com' );
 		$this->source->licenses[1]['license_key'] = $issued->license_key; // 1.x kept its own copy of the same key.
 
 		$state = $this->migrator()->run();
@@ -289,7 +289,7 @@ final class MigratorTest extends TestCase {
 		$this->assertSame( MigrationState::PENDING, $state->status );
 
 		$this->source->licenses[3]['license_key'] = 'FIXED';
-		$done = $this->migrator()->run();
+		$done                                     = $this->migrator()->run();
 
 		$this->assertSame( MigrationState::DONE, $done->status );
 		$this->assertSame( 3, $this->target->count_migrated_licenses() );
@@ -303,11 +303,11 @@ final class MigratorTest extends TestCase {
 	}
 
 	public function test_state_round_trips_through_storage(): void {
-		$state                   = new MigrationState();
-		$state->phase            = MigrationState::PHASE_ORDERS;
-		$state->license_cursor   = 42;
-		$state->finalized        = true;
-		$state->problems         = array( 'a', 'b' );
+		$state                 = new MigrationState();
+		$state->phase          = MigrationState::PHASE_ORDERS;
+		$state->license_cursor = 42;
+		$state->finalized      = true;
+		$state->problems       = array( 'a', 'b' );
 
 		$copy = MigrationState::from_array( $state->to_array() );
 

@@ -17,13 +17,13 @@ final class OrderData {
 	/**
 	 * Constructor.
 	 *
-	 * @param int              $id          WooCommerce order ID.
-	 * @param string           $number      Order number shown to the customer.
-	 * @param int|null         $user_id     WordPress user, null for guests.
-	 * @param string           $email       Billing email.
-	 * @param string           $currency    ISO 4217 code.
-	 * @param int              $total_minor Order total in minor units.
-	 * @param OrderItemData[]  $items       Order lines.
+	 * @param int             $id          WooCommerce order ID.
+	 * @param string          $number      Order number shown to the customer.
+	 * @param int|null        $user_id     WordPress user, null for guests.
+	 * @param string          $email       Billing email.
+	 * @param string          $currency    ISO 4217 code.
+	 * @param int             $total_minor Order total in minor units.
+	 * @param OrderItemData[] $items       Order lines.
 	 */
 	public function __construct(
 		public int $id,

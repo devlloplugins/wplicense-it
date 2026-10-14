@@ -129,7 +129,8 @@ final class LicensesScreen {
 				}
 				++$done;
 			} catch ( LicenseException $e ) {
-				continue; // Already in that state, or gone. Skip it.
+				continue;
+				// Already in that state, or gone. Skip it.
 			}
 		}
 

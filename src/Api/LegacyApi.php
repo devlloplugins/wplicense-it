@@ -104,13 +104,13 @@ final class LegacyApi {
 		return new ApiResponse(
 			200,
 			array(
-				'name'         => $product->name,
-				'description'  => $product->description,
-				'version'      => $product->version,
-				'tested'       => $product->tested,
-				'banner_low'   => $product->logo_url,
-				'banner_high'  => $product->banner_url,
-				'package_url'  => ( $this->package_url )( $product_id, $api_key, $email, $license_key ),
+				'name'        => $product->name,
+				'description' => $product->description,
+				'version'     => $product->version,
+				'tested'      => $product->tested,
+				'banner_low'  => $product->logo_url,
+				'banner_high' => $product->banner_url,
+				'package_url' => ( $this->package_url )( $product_id, $api_key, $email, $license_key ),
 			)
 		);
 	}

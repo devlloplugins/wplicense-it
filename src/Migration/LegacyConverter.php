@@ -113,7 +113,8 @@ final class LegacyConverter {
 			$key,
 			$email,
 			$status,
-			0, // 1.x never limited sites. A new limit would lock out existing customers.
+			0,
+			// 1.x never limited sites. A new limit would lock out existing customers.
 			$expires,
 			$created,
 			$updated
@@ -167,7 +168,8 @@ final class LegacyConverter {
 			0 === $total ? 'free' : 'legacy_stripe',
 			$user_id > 0 ? $user_id : null,
 			$product_id,
-			'USD', // 1.x charged in USD only.
+			'USD',
+			// 1.x charged in USD only.
 			$total,
 			'' === $status ? 'completed' : $status,
 			$billing,

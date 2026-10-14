@@ -23,10 +23,18 @@ final class WpFileStore implements FileStore {
 		'webp'         => 'image/webp',
 	);
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function is_uploaded( string $path ): bool {
 		return is_uploaded_file( $path );
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws FileStoreException If the file cannot be stored or deleted.
+	 */
 	public function store_package( int $product_id, string $tmp, string $original_name, string $version ): StoredFile {
 		$name = sanitize_file_name( basename( $original_name ) );
 		if ( '' === $name || 0 !== validate_file( $name ) || 'zip' !== strtolower( pathinfo( $name, PATHINFO_EXTENSION ) ) ) {
@@ -59,13 +67,19 @@ final class WpFileStore implements FileStore {
 		return new StoredFile( $relative, $uploads['baseurl'] . '/' . $relative, $name );
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws FileStoreException If the file cannot be stored or deleted.
+	 */
 	public function delete_package( string $relative ): void {
 		$uploads = wp_upload_dir();
 		$root    = realpath( $uploads['basedir'] . '/wplit-files' );
 		$file    = realpath( $uploads['basedir'] . '/' . $relative );
 
 		if ( false === $file ) {
-			return; // Already gone.
+			return;
+			// Already gone.
 		}
 
 		if ( false === $root || 0 !== strpos( $file, $root . DIRECTORY_SEPARATOR ) || 'zip' !== strtolower( pathinfo( $file, PATHINFO_EXTENSION ) ) || ! is_file( $file ) ) {
@@ -90,6 +104,11 @@ final class WpFileStore implements FileStore {
 		}
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws FileStoreException If the file cannot be stored or deleted.
+	 */
 	public function delete_product_files( int $product_id ): void {
 		if ( $product_id <= 0 ) {
 			return;
@@ -100,7 +119,8 @@ final class WpFileStore implements FileStore {
 		$folder  = $uploads['basedir'] . '/wplit-files/p' . $product_id;
 
 		if ( false === $root || ! is_dir( $folder ) ) {
-			return; // Nothing was ever stored.
+			return;
+			// Nothing was ever stored.
 		}
 
 		// A link in place of the folder is removed as a link; what it points to is not ours to delete.
@@ -114,7 +134,9 @@ final class WpFileStore implements FileStore {
 
 		$real = realpath( $folder );
 
-		if ( false === $real || dirname( $real ) !== $root || 'p' . $product_id !== basename( $real ) ) {
+		$expected = 'p' . $product_id;
+
+		if ( false === $real || dirname( $real ) !== $root || basename( $real ) !== $expected ) { // phpcs:ignore WordPress.PHP.YodaConditions.NotYoda -- Both sides are values, neither is a constant.
 			throw new FileStoreException( 'The product folder is not inside the releases folder, so it was not deleted.' );
 		}
 
@@ -143,6 +165,11 @@ final class WpFileStore implements FileStore {
 		}
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws FileStoreException If the file cannot be stored or deleted.
+	 */
 	public function store_image( int $product_id, string $kind, array $file ): StoredFile {
 		if ( ! function_exists( 'wp_handle_upload' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';

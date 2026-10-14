@@ -61,11 +61,30 @@ final class PrivacyTest extends TestCase {
 	// Export.
 
 	public function test_a_persons_licenses_sites_orders_and_history_are_exported(): void {
-		$order_id = 1;
-		$license  = $this->licenses->issue_license( 7, 'Ada@Example.com', 5, $order_id, 2, $this->utc( '2027-03-01 00:00:00' ) );
+		$order_id                                = 1;
+		$license                                 = $this->licenses->issue_license( 7, 'Ada@Example.com', 5, $order_id, 2, $this->utc( '2027-03-01 00:00:00' ) );
 		$this->data->activations[ $license->id ] = array( new Activation( 1, $license->id, 'ada-site.com', false, 'active', '1.0.0', $this->utc( '2026-03-02 10:00:00' ), null, null ) );
-		$this->data->events[ $license->id ]      = array( array( 'type' => 'issued', 'data' => array( 'product_id' => 7 ), 'created_at' => '2026-03-01 00:00:00' ) );
-		$this->data->orders[ $order_id ]         = array( 'id' => 1, 'order_number' => 'WC-100', 'source' => 'woocommerce', 'currency' => 'USD', 'total_minor' => 2999, 'status' => 'completed', 'created_at' => '2026-03-01 00:00:00', 'user_id' => 5, 'billing' => array( 'first_name' => 'Ada', 'billing_phone' => '555' ) );
+		$this->data->events[ $license->id ]      = array(
+			array(
+				'type'       => 'issued',
+				'data'       => array( 'product_id' => 7 ),
+				'created_at' => '2026-03-01 00:00:00',
+			),
+		);
+		$this->data->orders[ $order_id ]         = array(
+			'id'           => 1,
+			'order_number' => 'WC-100',
+			'source'       => 'woocommerce',
+			'currency'     => 'USD',
+			'total_minor'  => 2999,
+			'status'       => 'completed',
+			'created_at'   => '2026-03-01 00:00:00',
+			'user_id'      => 5,
+			'billing'      => array(
+				'first_name'    => 'Ada',
+				'billing_phone' => '555',
+			),
+		);
 
 		$export = $this->privacy->export( 'ada@example.com', 5, 1 );
 
@@ -121,8 +140,27 @@ final class PrivacyTest extends TestCase {
 	}
 
 	public function test_old_1x_records_are_exported_once(): void {
-		$this->data->legacy['licenses'][] = array( 'id' => 3, 'user_id' => 5, 'product_id' => 7, 'license_key' => 'OLDKEY', 'email' => 'ada@example.com', 'valid_until' => '0000-00-00 00:00:00', 'created_at' => '2025-01-01 00:00:00' );
-		$this->data->legacy['orders'][]   = array( 'id' => 4, 'user_id' => 5, 'order_number' => '#2025-AB', 'order_total' => '29.99', 'order_email' => 'ada@example.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace', 'billing_address' => '1 Main St', 'billing_phone' => '555', 'created_at' => '2025-01-01 00:00:00' );
+		$this->data->legacy['licenses'][] = array(
+			'id'          => 3,
+			'user_id'     => 5,
+			'product_id'  => 7,
+			'license_key' => 'OLDKEY',
+			'email'       => 'ada@example.com',
+			'valid_until' => '0000-00-00 00:00:00',
+			'created_at'  => '2025-01-01 00:00:00',
+		);
+		$this->data->legacy['orders'][]   = array(
+			'id'              => 4,
+			'user_id'         => 5,
+			'order_number'    => '#2025-AB',
+			'order_total'     => '29.99',
+			'order_email'     => 'ada@example.com',
+			'first_name'      => 'Ada',
+			'last_name'       => 'Lovelace',
+			'billing_address' => '1 Main St',
+			'billing_phone'   => '555',
+			'created_at'      => '2025-01-01 00:00:00',
+		);
 
 		$page1 = $this->privacy->export( 'ada@example.com', 5, 1 );
 		$page2 = $this->privacy->export( 'ada@example.com', 5, 2 );
@@ -140,9 +178,28 @@ final class PrivacyTest extends TestCase {
 	// Erase.
 
 	public function test_erasing_removes_the_identity_but_keeps_the_license_working_for_support(): void {
-		$license = $this->licenses->issue_license( 7, 'ada@example.com', 5, 1, 1 );
-		$this->data->orders[1]              = array( 'id' => 1, 'order_number' => 'WC-100', 'source' => 'woocommerce', 'currency' => 'USD', 'total_minor' => 2999, 'status' => 'completed', 'created_at' => '2026-03-01 00:00:00', 'user_id' => 5, 'billing' => array( 'first_name' => 'Ada' ) );
-		$this->data->events[ $license->id ] = array( array( 'type' => 'updated', 'data' => array( 'email' => array( 'a@x.com', 'b@x.com' ), 'activation_limit' => array( 1, 2 ) ), 'created_at' => '2026-03-01 00:00:00' ) );
+		$license                            = $this->licenses->issue_license( 7, 'ada@example.com', 5, 1, 1 );
+		$this->data->orders[1]              = array(
+			'id'           => 1,
+			'order_number' => 'WC-100',
+			'source'       => 'woocommerce',
+			'currency'     => 'USD',
+			'total_minor'  => 2999,
+			'status'       => 'completed',
+			'created_at'   => '2026-03-01 00:00:00',
+			'user_id'      => 5,
+			'billing'      => array( 'first_name' => 'Ada' ),
+		);
+		$this->data->events[ $license->id ] = array(
+			array(
+				'type'       => 'updated',
+				'data'       => array(
+					'email'            => array( 'a@x.com', 'b@x.com' ),
+					'activation_limit' => array( 1, 2 ),
+				),
+				'created_at' => '2026-03-01 00:00:00',
+			),
+		);
 
 		$result = $this->privacy->erase( 'ADA@example.com', 5 );
 
@@ -192,8 +249,25 @@ final class PrivacyTest extends TestCase {
 	}
 
 	public function test_old_1x_records_are_erased_too(): void {
-		$this->data->legacy['licenses'][] = array( 'id' => 3, 'user_id' => 5, 'product_id' => 7, 'license_key' => 'OLDKEY', 'email' => 'ada@example.com', 'valid_until' => '', 'created_at' => '' );
-		$this->data->legacy['orders'][]   = array( 'id' => 4, 'user_id' => 5, 'order_number' => '#1', 'order_total' => '1', 'order_email' => 'ada@example.com', 'first_name' => 'Ada', 'billing_address' => '1 Main St', 'created_at' => '' );
+		$this->data->legacy['licenses'][] = array(
+			'id'          => 3,
+			'user_id'     => 5,
+			'product_id'  => 7,
+			'license_key' => 'OLDKEY',
+			'email'       => 'ada@example.com',
+			'valid_until' => '',
+			'created_at'  => '',
+		);
+		$this->data->legacy['orders'][]   = array(
+			'id'              => 4,
+			'user_id'         => 5,
+			'order_number'    => '#1',
+			'order_total'     => '1',
+			'order_email'     => 'ada@example.com',
+			'first_name'      => 'Ada',
+			'billing_address' => '1 Main St',
+			'created_at'      => '',
+		);
 
 		$result = $this->privacy->erase( 'ada@example.com', 5 );
 

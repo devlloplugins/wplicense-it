@@ -55,9 +55,33 @@ final class SettingsScreen {
 				'sanitize_callback' => 'rest_sanitize_boolean',
 			)
 		);
-		register_setting( self::GROUP, self::OPTION_FAILURES, array( 'type' => 'integer', 'default' => 20, 'sanitize_callback' => fn( $v ): int => self::clamp( $v, 1, 1000, 20 ) ) );
-		register_setting( self::GROUP, self::OPTION_WINDOW, array( 'type' => 'integer', 'default' => 15, 'sanitize_callback' => fn( $v ): int => self::clamp( $v, 1, 1440, 15 ) ) );
-		register_setting( self::GROUP, self::OPTION_RETENTION, array( 'type' => 'integer', 'default' => 2, 'sanitize_callback' => fn( $v ): int => self::clamp( $v, 0, 20, 2 ) ) );
+		register_setting(
+			self::GROUP,
+			self::OPTION_FAILURES,
+			array(
+				'type'              => 'integer',
+				'default'           => 20,
+				'sanitize_callback' => fn( $v ): int => self::clamp( $v, 1, 1000, 20 ),
+			)
+		);
+		register_setting(
+			self::GROUP,
+			self::OPTION_WINDOW,
+			array(
+				'type'              => 'integer',
+				'default'           => 15,
+				'sanitize_callback' => fn( $v ): int => self::clamp( $v, 1, 1440, 15 ),
+			)
+		);
+		register_setting(
+			self::GROUP,
+			self::OPTION_RETENTION,
+			array(
+				'type'              => 'integer',
+				'default'           => 2,
+				'sanitize_callback' => fn( $v ): int => self::clamp( $v, 0, 20, 2 ),
+			)
+		);
 
 		add_settings_section( 'wplit_sales', __( 'Selling with WooCommerce', 'wplicense-it' ), '__return_false', self::PAGE );
 		add_settings_field( WooAdapter::OPTION_ISSUE_ON, __( 'Issue licenses when an order is', 'wplicense-it' ), array( $this, 'field_issue_on' ), self::PAGE, 'wplit_sales' );

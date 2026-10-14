@@ -244,8 +244,8 @@ final class LicenseServiceTest extends TestCase {
 	public function test_activate_uses_a_slot_and_is_idempotent_per_site(): void {
 		$license = $this->service->issue_license( 7, 'a@example.com', null, null, 1 );
 
-		$first  = $this->service->activate( $license->license_key, 'https://www.Example.com/', 7, '1.2.0' );
-		$again  = $this->service->activate( $license->license_key, 'example.com', 7 );
+		$first = $this->service->activate( $license->license_key, 'https://www.Example.com/', 7, '1.2.0' );
+		$again = $this->service->activate( $license->license_key, 'example.com', 7 );
 
 		$this->assertSame( ActivationResult::ACTIVATED, $first->code );
 		$this->assertSame( 'example.com', $first->activation->site );

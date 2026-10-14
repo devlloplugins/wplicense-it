@@ -21,9 +21,9 @@ use Devllo\WPLicenseIt\Licenses\Status;
  */
 final class AccountPage {
 
-	public const ENDPOINT          = 'licenses';
+	public const ENDPOINT           = 'licenses';
 	private const DEACTIVATE_ACTION = 'wplit_deactivate_site';
-	private const FLUSH_OPTION     = 'wplit_woo_endpoint_version';
+	private const FLUSH_OPTION      = 'wplit_woo_endpoint_version';
 
 	/**
 	 * Constructor.
@@ -141,7 +141,7 @@ final class AccountPage {
 		echo '<tr><th>' . esc_html__( 'Status', 'wplicense-it' ) . '</th><td>' . esc_html( $this->status_label( $license, $usable ) ) . '</td></tr>';
 		echo '<tr><th>' . esc_html__( 'Expires', 'wplicense-it' ) . '</th><td>' . esc_html( null === $license->expires_at ? __( 'Never', 'wplicense-it' ) : wp_date( get_option( 'date_format' ), $license->expires_at->getTimestamp() ) ) . '</td></tr>';
 		/* translators: 1: sites in use, 2: sites allowed. */
-		echo '<tr><th>' . esc_html__( 'Sites', 'wplicense-it' ) . '</th><td>' . esc_html( sprintf( __( '%1$d of %2$s in use', 'wplicense-it' ), $used, $limit ) ) . $this->sites_list( $license, $sites ) . '</td></tr>';
+		echo '<tr><th>' . esc_html__( 'Sites', 'wplicense-it' ) . '</th><td>' . esc_html( sprintf( __( '%1$d of %2$s in use', 'wplicense-it' ), $used, $limit ) ) . $this->sites_list( $license, $sites ) . '</td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- sites_list() escapes everything it prints.
 		echo '</tbody></table>';
 
 		echo '<p>';
@@ -182,8 +182,8 @@ final class AccountPage {
 	/**
 	 * The sites a license is active on, each with a Deactivate button.
 	 *
-	 * @param License                                       $license License.
-	 * @param \Devllo\WPLicenseIt\Licenses\Activation[]     $sites   Active sites.
+	 * @param License                                   $license License.
+	 * @param \Devllo\WPLicenseIt\Licenses\Activation[] $sites   Active sites.
 	 */
 	private function sites_list( License $license, array $sites ): string {
 		if ( array() === $sites ) {
@@ -250,7 +250,7 @@ final class AccountPage {
 		$result  = null;
 
 		// Only the license's owner may free a site.
-		if ( $license && $license->user_id === get_current_user_id() && '' !== $site ) {
+		if ( $license && get_current_user_id() === $license->user_id && '' !== $site ) {
 			$result = $this->licenses->deactivate( $license->license_key, $site );
 		}
 

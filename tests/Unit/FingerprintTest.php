@@ -32,21 +32,21 @@ final class FingerprintTest extends TestCase {
 	public function test_each_tested_thing_changes_it(): void {
 		$base = Fingerprint::of( 7, $this->plan(), '/u/a.zip' );
 
-		$this->assertTrue( $base !== Fingerprint::of( 8, $this->plan(), '/u/a.zip' ), 'software' );
-		$this->assertTrue( $base !== Fingerprint::of( 7, $this->plan(), '/u/b.zip' ), 'zip' );
-		$this->assertTrue( $base !== Fingerprint::of( 7, $this->plan(), null ), 'no zip' );
+		$this->assertNotSame( $base, Fingerprint::of( 8, $this->plan(), '/u/a.zip' ), 'software' );
+		$this->assertNotSame( $base, Fingerprint::of( 7, $this->plan(), '/u/b.zip' ), 'zip' );
+		$this->assertNotSame( $base, Fingerprint::of( 7, $this->plan(), null ), 'no zip' );
 
-		$product = $this->plan();
+		$product                 = $this->plan();
 		$product->woo_product_id = 501;
-		$this->assertTrue( $base !== Fingerprint::of( 7, $product, '/u/a.zip' ), 'product' );
+		$this->assertNotSame( $base, Fingerprint::of( 7, $product, '/u/a.zip' ), 'product' );
 
 		$sites        = $this->plan();
 		$sites->sites = 6;
-		$this->assertTrue( $base !== Fingerprint::of( 7, $sites, '/u/a.zip' ), 'sites' );
+		$this->assertNotSame( $base, Fingerprint::of( 7, $sites, '/u/a.zip' ), 'sites' );
 
 		$period         = $this->plan();
 		$period->period = 'P2Y';
-		$this->assertTrue( $base !== Fingerprint::of( 7, $period, '/u/a.zip' ), 'period' );
+		$this->assertNotSame( $base, Fingerprint::of( 7, $period, '/u/a.zip' ), 'period' );
 	}
 
 	public function test_the_price_and_name_do_not_change_it(): void {
@@ -60,8 +60,8 @@ final class FingerprintTest extends TestCase {
 	}
 
 	public function test_is_current_needs_a_stored_pass_that_matches(): void {
-		$plan   = $this->plan();
-		$print  = Fingerprint::of( 7, $plan, '/u/a.zip' );
+		$plan  = $this->plan();
+		$print = Fingerprint::of( 7, $plan, '/u/a.zip' );
 
 		$this->assertFalse( Fingerprint::is_current( $plan, $print ) );
 
@@ -86,6 +86,19 @@ final class FingerprintTest extends TestCase {
 
 	public function test_damaged_stored_reports_are_dropped(): void {
 		$this->assertCount( 0, TestReport::from_array( 'junk' )->results );
-		$this->assertCount( 0, TestReport::from_array( array( array( 'id' => 'x' ), array( 'id' => 'x', 'label' => 'X', 'status' => 'bogus', 'message' => '' ) ) )->results );
+		$this->assertCount(
+			0,
+			TestReport::from_array(
+				array(
+					array( 'id' => 'x' ),
+					array(
+						'id'      => 'x',
+						'label'   => 'X',
+						'status'  => 'bogus',
+						'message' => '',
+					),
+				)
+			)->results
+		);
 	}
 }

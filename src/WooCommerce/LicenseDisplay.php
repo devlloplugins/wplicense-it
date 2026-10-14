@@ -125,7 +125,7 @@ final class LicenseDisplay {
 						: wp_date( get_option( 'date_format' ), $license->expires_at->getTimestamp() ),
 				);
 			}
-		}
+		}//end foreach
 
 		return $rows;
 	}

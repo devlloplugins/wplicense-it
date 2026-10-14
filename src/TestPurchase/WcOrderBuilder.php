@@ -34,6 +34,11 @@ final class WcOrderBuilder implements OrderBuilder {
 		$this->reader = $reader;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws \RuntimeException If the WooCommerce product cannot be loaded.
+	 */
 	public function build( int $woo_product_id, int $quantity ): OrderData {
 		$product = wc_get_product( $woo_product_id );
 		if ( ! $product ) {

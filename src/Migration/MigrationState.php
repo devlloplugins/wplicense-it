@@ -26,16 +26,16 @@ final class MigrationState {
 
 	private const MAX_PROBLEMS = 50;
 
-	public string $status           = self::PENDING;
-	public string $phase            = self::PHASE_LICENSES;
-	public int $license_cursor      = 0;
-	public int $order_cursor        = 0;
-	public int $licenses_migrated   = 0;
-	public int $licenses_skipped    = 0;
-	public int $orders_migrated     = 0;
-	public int $orders_skipped      = 0;
-	public int $products_updated    = 0;
-	public int $warnings            = 0;
+	public string $status         = self::PENDING;
+	public string $phase          = self::PHASE_LICENSES;
+	public int $license_cursor    = 0;
+	public int $order_cursor      = 0;
+	public int $licenses_migrated = 0;
+	public int $licenses_skipped  = 0;
+	public int $orders_migrated   = 0;
+	public int $orders_skipped    = 0;
+	public int $products_updated  = 0;
+	public int $warnings          = 0;
 
 	/**
 	 * True once the 2.0 tables became the source of truth. A last pass then picks up

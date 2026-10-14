@@ -31,7 +31,10 @@ final class DownloadSignerTest extends TestCase {
 		$token = $this->signer()->sign( 11, 7, 900 );
 
 		$this->assertSame(
-			array( 'license_id' => 11, 'product_id' => 7 ),
+			array(
+				'license_id' => 11,
+				'product_id' => 7,
+			),
 			$this->signer()->verify( $token )
 		);
 	}
@@ -47,10 +50,10 @@ final class DownloadSignerTest extends TestCase {
 	}
 
 	public function test_tampered_or_foreign_tokens_are_rejected(): void {
-		$token = $this->signer()->sign( 11, 7, 900 );
+		$token                       = $this->signer()->sign( 11, 7, 900 );
 		list( $payload, $signature ) = explode( '.', $token );
 
-		$other = $this->signer()->sign( 99, 7, 900 );
+		$other                 = $this->signer()->sign( 99, 7, 900 );
 		list( $other_payload ) = explode( '.', $other );
 
 		$this->assertNull( $this->signer( 'different secret' )->verify( $token ) );

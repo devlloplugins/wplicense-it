@@ -51,14 +51,15 @@ final class PackageReader {
 
 	/**
 	 * @param \ZipArchive $zip Open archive.
+	 * @throws PackageException If the archive is not a plugin or theme.
 	 */
 	private static function read_archive( \ZipArchive $zip ): PackageInfo {
-		if ( $zip->numFiles > self::MAX_ENTRIES ) {
+		if ( $zip->numFiles > self::MAX_ENTRIES ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- ZipArchive property.
 			throw new PackageException( 'This zip has too many files to be a plugin or theme.' );
 		}
 
 		$names = array();
-		for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+		for ( $i = 0; $i < $zip->numFiles; $i++ ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- ZipArchive property.
 			$name = (string) $zip->getNameIndex( $i );
 			if ( '' === $name || 0 === strpos( $name, '__MACOSX/' ) || 0 === strpos( basename( $name ), '._' ) ) {
 				continue;
@@ -110,12 +111,12 @@ final class PackageReader {
 			throw new PackageException( 'The version "' . $version . '" is not a valid version number. Use something like 1.4.2.' );
 		}
 
-		$info                = new PackageInfo( $type, $name, $version, $folder, $main_file );
-		$info->requires_wp   = self::clean( $headers['requires_wp'] ?? '', 20 );
-		$info->requires_php  = self::clean( $headers['requires_php'] ?? '', 20 );
-		$info->text_domain   = self::clean( $headers['text_domain'] ?? '', 80 );
-		$info->author        = self::clean( $headers['author'] ?? '', self::MAX_NAME_LENGTH );
-		$info->warnings      = $warnings;
+		$info               = new PackageInfo( $type, $name, $version, $folder, $main_file );
+		$info->requires_wp  = self::clean( $headers['requires_wp'] ?? '', 20 );
+		$info->requires_php = self::clean( $headers['requires_php'] ?? '', 20 );
+		$info->text_domain  = self::clean( $headers['text_domain'] ?? '', 80 );
+		$info->author       = self::clean( $headers['author'] ?? '', self::MAX_NAME_LENGTH );
+		$info->warnings     = $warnings;
 
 		self::apply_readme( $zip, $files, $info );
 
@@ -179,7 +180,9 @@ final class PackageReader {
 		uksort(
 			$php,
 			static function ( $a, $b ) use ( $folder ) {
-				return ( ( $b === $folder . '.php' ) <=> ( $a === $folder . '.php' ) ) ?: strcmp( $a, $b );
+				$by_main = ( $b === $folder . '.php' ) <=> ( $a === $folder . '.php' );
+
+				return 0 !== $by_main ? $by_main : strcmp( $a, $b );
 			}
 		);
 
@@ -206,7 +209,7 @@ final class PackageReader {
 					'author'       => self::header( $head, 'Author' ),
 				),
 			);
-		}
+		}//end foreach
 
 		return null;
 	}
@@ -298,7 +301,7 @@ final class PackageReader {
 
 		$lines = array();
 		foreach ( explode( "\n", $entry[1] ) as $line ) {
-			$line = trim( strip_tags( $line ) );
+			$line = trim( strip_tags( $line ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags -- Plain text is wanted, and this also runs without WordPress.
 			if ( '' !== $line ) {
 				$lines[] = $line;
 			}
@@ -323,7 +326,7 @@ final class PackageReader {
 		}
 		// fread() on a zip stream returns at most one chunk (8 KB), so read until the amount is collected.
 		$data = (string) stream_get_contents( $stream, $bytes );
-		fclose( $stream );
+		fclose( $stream ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- A stream inside a zip, not a file on disk.
 
 		return str_replace( "\r", "\n", $data );
 	}
@@ -349,7 +352,7 @@ final class PackageReader {
 	 * @param int    $length Maximum length.
 	 */
 	private static function clean( string $value, int $length ): string {
-		$value = strip_tags( $value );
+		$value = strip_tags( $value ); // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags -- Plain text is wanted, and this also runs without WordPress.
 		$value = (string) preg_replace( '/[\x00-\x1F\x7F]+/', ' ', $value );
 		$value = trim( (string) preg_replace( '/\s+/', ' ', $value ) );
 

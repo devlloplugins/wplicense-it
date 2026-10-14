@@ -35,21 +35,33 @@ final class MemoryLicenseRepository implements LicenseRepository {
 	 */
 	private int $last_id = 0;
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function insert( License $license ): License {
-		$license->id          = ++$this->last_id;
+		$license->id                = ++$this->last_id;
 		$this->rows[ $license->id ] = clone $license;
 
 		return $license;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function update( License $license ): void {
 		$this->rows[ $license->id ] = clone $license;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function find( int $id ): ?License {
 		return isset( $this->rows[ $id ] ) ? clone $this->rows[ $id ] : null;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function find_by_key( string $license_key ): ?License {
 		foreach ( $this->rows as $row ) {
 			if ( $row->license_key === $license_key ) {
@@ -60,18 +72,27 @@ final class MemoryLicenseRepository implements LicenseRepository {
 		return null;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function find_by_user( int $user_id ): array {
 		$found = array_filter( $this->rows, static fn( License $row ): bool => $row->user_id === $user_id );
 
 		return array_map( static fn( License $row ): License => clone $row, array_reverse( array_values( $found ) ) );
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function find_by_order( int $order_id ): array {
 		$found = array_filter( $this->rows, static fn( License $row ): bool => $row->order_id === $order_id );
 
 		return array_map( static fn( License $row ): License => clone $row, array_values( $found ) );
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function search( LicenseQuery $query ): LicensePage {
 		$found = array_filter(
 			$this->rows,
@@ -98,6 +119,9 @@ final class MemoryLicenseRepository implements LicenseRepository {
 		);
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function status_counts(): array {
 		$counts = array_fill_keys( \Devllo\WPLicenseIt\Licenses\Status::all(), 0 );
 
@@ -108,6 +132,9 @@ final class MemoryLicenseRepository implements LicenseRepository {
 		return $counts;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function find_due_for_expiry( DateTimeImmutable $now, int $limit ): array {
 		$due = array();
 

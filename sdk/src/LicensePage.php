@@ -164,7 +164,14 @@ final class LicensePage {
 			}
 		}
 
-		set_transient( $this->notice_key(), array( 'ok' => $result->ok, 'text' => $text ), 60 );
+		set_transient(
+			$this->notice_key(),
+			array(
+				'ok'   => $result->ok,
+				'text' => $text,
+			),
+			60
+		);
 
 		wp_safe_redirect( wp_get_referer() ? wp_get_referer() : self::url( $this->config ) );
 		exit;

@@ -66,7 +66,7 @@ final class InMemoryPrivacyRepository implements PrivacyRepository {
 		$mine = array_values(
 			array_filter(
 				$this->repo->search( $query )->items,
-				static fn( License $license ): bool => $license->email === strtolower( $email ) || ( null !== $user_id && $license->user_id === $user_id )
+				static fn( License $license ): bool => strtolower( $email ) === $license->email || ( null !== $user_id && $license->user_id === $user_id )
 			)
 		);
 

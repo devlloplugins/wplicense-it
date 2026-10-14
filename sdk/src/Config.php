@@ -188,7 +188,7 @@ final class Config {
 	/**
 	 * Slug from the plugin basename.
 	 *
-	 * @param Config $config Configuration so far.
+	 * @param self $config Configuration so far.
 	 */
 	private static function default_slug( self $config ): string {
 		if ( 'plugin' !== $config->type ) {

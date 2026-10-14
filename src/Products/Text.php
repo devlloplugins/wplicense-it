@@ -25,7 +25,7 @@ final class Text {
 			return '';
 		}
 
-		$text = strip_tags( (string) $value );
+		$text = strip_tags( (string) $value ); // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags -- Plain text is wanted, and this also runs without WordPress.
 		$text = (string) preg_replace( '/[\x00-\x1F\x7F]+/', ' ', $text );
 		$text = trim( (string) preg_replace( '/\s+/', ' ', $text ) );
 

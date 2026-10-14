@@ -106,15 +106,15 @@ final class PlanInput {
 			// Only an ID that belongs to a saved plan is trusted, and only once.
 			$id = self::text( $row['id'] ?? '' );
 			if ( preg_match( self::ID_PATTERN, $id ) && isset( $known[ $id ] ) && ! isset( $used[ $id ] ) ) {
-				$old        = $known[ $id ];
+				$old         = $known[ $id ];
 				$used[ $id ] = true;
-				$plan       = new Plan( $id, $name_raw, $price, (int) $sites_raw, $period, $old->woo_product_id, $old->synced_minor, $old->synced_currency, $old->conflict_minor, $old->tested_at, $old->tested_hash );
+				$plan        = new Plan( $id, $name_raw, $price, (int) $sites_raw, $period, $old->woo_product_id, $old->synced_minor, $old->synced_currency, $old->conflict_minor, $old->tested_at, $old->tested_hash );
 			} else {
 				$plan = new Plan( (string) $new_id(), $name_raw, $price, (int) $sites_raw, $period );
 			}
 
 			$plans[] = $plan;
-		}
+		}//end foreach
 
 		return array(
 			'plans'  => $plans,
@@ -155,7 +155,7 @@ final class PlanInput {
 			return '';
 		}
 
-		$value = strip_tags( (string) $value );
+		$value = strip_tags( (string) $value ); // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags -- Plain text is wanted, and this also runs without WordPress.
 		$value = (string) preg_replace( '/[\x00-\x1F\x7F]+/', ' ', $value );
 
 		return trim( (string) preg_replace( '/\s+/', ' ', $value ) );

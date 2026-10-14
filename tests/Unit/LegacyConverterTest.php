@@ -96,7 +96,16 @@ final class LegacyConverterTest extends TestCase {
 	}
 
 	public function test_guest_users_and_missing_dates(): void {
-		$license = $this->converter->license( $this->license_row( array( 'user_id' => '0', 'created_at' => '0000-00-00 00:00:00', 'updated_at' => '0000-00-00 00:00:00' ) ), $this->now )['license'];
+		$license = $this->converter->license(
+			$this->license_row(
+				array(
+					'user_id'    => '0',
+					'created_at' => '0000-00-00 00:00:00',
+					'updated_at' => '0000-00-00 00:00:00',
+				)
+			),
+			$this->now
+		)['license'];
 
 		$this->assertNull( $license->user_id );
 		$this->assertSame( $this->now, $license->created_at );

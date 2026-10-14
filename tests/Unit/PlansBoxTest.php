@@ -79,8 +79,8 @@ final class PlansBoxTest extends TestCase {
 			}
 		};
 
-		$box  = new PlansBox( $this->plans, $this->woo, new TestPurchase( $this->woo, $this->catalog, new FakeOrderBuilder( $this->woo ), $probe ), $this->catalog );
-		$post = new \WP_Post();
+		$box      = new PlansBox( $this->plans, $this->woo, new TestPurchase( $this->woo, $this->catalog, new FakeOrderBuilder( $this->woo ), $probe ), $this->catalog );
+		$post     = new \WP_Post();
 		$post->ID = 7;
 
 		ob_start();
@@ -90,7 +90,15 @@ final class PlansBoxTest extends TestCase {
 	}
 
 	private function queue_report( bool $passed, array $rows ): void {
-		set_transient( 'wplit_plans_test_1_7', array( 'plan' => 'Five sites', 'passed' => $passed, 'rows' => $rows ), 300 );
+		set_transient(
+			'wplit_plans_test_1_7',
+			array(
+				'plan'   => 'Five sites',
+				'passed' => $passed,
+				'rows'   => $rows,
+			),
+			300
+		);
 	}
 
 	public function test_an_untested_draft_plan_offers_a_test_and_no_publish(): void {
@@ -107,7 +115,7 @@ final class PlansBoxTest extends TestCase {
 
 	public function test_a_plan_with_a_current_pass_can_be_published(): void {
 		$this->product();
-		$plan = $this->plan();
+		$plan              = $this->plan();
 		$plan->tested_at   = '2026-10-11 12:00:00';
 		$plan->tested_hash = Fingerprint::of( 7, $plan, null );
 		$this->plans->save( 7, array( $plan ) );
@@ -120,7 +128,7 @@ final class PlansBoxTest extends TestCase {
 
 	public function test_a_stale_pass_cannot_be_published(): void {
 		$this->product();
-		$plan = $this->plan();
+		$plan              = $this->plan();
 		$plan->tested_at   = '2026-10-11 12:00:00';
 		$plan->tested_hash = Fingerprint::of( 7, $plan, '/an/older/upload.zip' );
 		$this->plans->save( 7, array( $plan ) );

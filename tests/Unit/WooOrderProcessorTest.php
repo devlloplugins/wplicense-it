@@ -56,7 +56,7 @@ final class WooOrderProcessorTest extends TestCase {
 		$items = array();
 
 		foreach ( $lines as $item_id => $line ) {
-			$line    += array(
+			$line   += array(
 				'name'     => 'Great Plugin',
 				'quantity' => 1,
 				'product'  => 7,
@@ -89,7 +89,16 @@ final class WooOrderProcessorTest extends TestCase {
 	}
 
 	public function test_lifetime_and_unlimited_lines(): void {
-		$this->processor->issue( $this->order( array( 10 => array( 'period' => 'lifetime', 'limit' => 0 ) ) ) );
+		$this->processor->issue(
+			$this->order(
+				array(
+					10 => array(
+						'period' => 'lifetime',
+						'limit'  => 0,
+					),
+				)
+			)
+		);
 
 		$license = $this->service->find( $this->store->links[10][0] );
 		$this->assertNull( $license->expires_at );
@@ -146,7 +155,18 @@ final class WooOrderProcessorTest extends TestCase {
 	}
 
 	public function test_several_lines_are_handled_independently(): void {
-		$report = $this->processor->issue( $this->order( array( 10 => array(), 11 => array( 'product' => 0 ), 12 => array( 'product' => 8, 'period' => 'lifetime' ) ) ) );
+		$report = $this->processor->issue(
+			$this->order(
+				array(
+					10 => array(),
+					11 => array( 'product' => 0 ),
+					12 => array(
+						'product' => 8,
+						'period'  => 'lifetime',
+					),
+				)
+			)
+		);
 
 		$this->assertSame( 2, $report->issued );
 		$this->assertArrayNotHasKey( 11, $this->store->links );
@@ -181,7 +201,16 @@ final class WooOrderProcessorTest extends TestCase {
 	public function test_a_renewal_with_extra_units_renews_one_and_issues_the_rest(): void {
 		$first = $this->service->issue_license( 7, 'buyer@example.com', 5, null, 1, $this->clock->__invoke()->add( new DateInterval( 'P1M' ) ) );
 
-		$report = $this->processor->issue( $this->order( array( 10 => array( 'renew' => $first->id, 'quantity' => 3 ) ) ) );
+		$report = $this->processor->issue(
+			$this->order(
+				array(
+					10 => array(
+						'renew'    => $first->id,
+						'quantity' => 3,
+					),
+				)
+			)
+		);
 
 		$this->assertSame( 1, $report->renewed );
 		$this->assertSame( 2, $report->issued );
@@ -270,7 +299,16 @@ final class WooOrderProcessorTest extends TestCase {
 		$this->processor->issue( $this->order( array( 10 => array( 'quantity' => 3 ) ) ) );
 		list( $oldest, $middle, $newest ) = $this->store->links[10];
 
-		$one = $this->processor->revoke_refunded_units( $this->order( array( 10 => array( 'quantity' => 3, 'refunded' => 1 ) ) ) );
+		$one = $this->processor->revoke_refunded_units(
+			$this->order(
+				array(
+					10 => array(
+						'quantity' => 3,
+						'refunded' => 1,
+					),
+				)
+			)
+		);
 
 		$this->assertSame( 1, $one->revoked );
 		$this->assertSame( Status::REFUNDED, $this->service->find( $newest )->status );
@@ -278,11 +316,29 @@ final class WooOrderProcessorTest extends TestCase {
 		$this->assertSame( Status::ACTIVE, $this->service->find( $oldest )->status );
 
 		// The same refund again changes nothing.
-		$repeat = $this->processor->revoke_refunded_units( $this->order( array( 10 => array( 'quantity' => 3, 'refunded' => 1 ) ) ) );
+		$repeat = $this->processor->revoke_refunded_units(
+			$this->order(
+				array(
+					10 => array(
+						'quantity' => 3,
+						'refunded' => 1,
+					),
+				)
+			)
+		);
 		$this->assertSame( 0, $repeat->revoked );
 
 		// A second refund ends one more.
-		$two = $this->processor->revoke_refunded_units( $this->order( array( 10 => array( 'quantity' => 3, 'refunded' => 2 ) ) ) );
+		$two = $this->processor->revoke_refunded_units(
+			$this->order(
+				array(
+					10 => array(
+						'quantity' => 3,
+						'refunded' => 2,
+					),
+				)
+			)
+		);
 		$this->assertSame( 1, $two->revoked );
 		$this->assertSame( Status::REFUNDED, $this->service->find( $middle )->status );
 		$this->assertSame( Status::ACTIVE, $this->service->find( $oldest )->status );
@@ -291,7 +347,16 @@ final class WooOrderProcessorTest extends TestCase {
 	public function test_refunding_more_units_than_licenses_is_capped(): void {
 		$this->processor->issue( $this->order( array( 10 => array( 'quantity' => 2 ) ) ) );
 
-		$report = $this->processor->revoke_refunded_units( $this->order( array( 10 => array( 'quantity' => 2, 'refunded' => 5 ) ) ) );
+		$report = $this->processor->revoke_refunded_units(
+			$this->order(
+				array(
+					10 => array(
+						'quantity' => 2,
+						'refunded' => 5,
+					),
+				)
+			)
+		);
 
 		$this->assertSame( 2, $report->revoked );
 	}

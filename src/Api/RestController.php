@@ -87,7 +87,7 @@ final class RestController {
 			)
 		);
 
-		$deactivate_args                        = $license_args + $site_args;
+		$deactivate_args                           = $license_args + $site_args;
 		$deactivate_args['product_id']['required'] = false;
 		$this->route( '/licenses/deactivate', 'deactivate', $deactivate_args );
 

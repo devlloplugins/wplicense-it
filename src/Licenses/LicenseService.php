@@ -259,7 +259,7 @@ final class LicenseService {
 			}
 
 			if ( $changes->activation_limit !== $license->activation_limit ) {
-				$diff['activation_limit'] = array( $license->activation_limit, $changes->activation_limit );
+				$diff['activation_limit']  = array( $license->activation_limit, $changes->activation_limit );
 				$updated->activation_limit = $changes->activation_limit;
 			}
 		}
@@ -463,7 +463,7 @@ final class LicenseService {
 				$existing = $this->activations->find( $license->id, $site );
 
 				if ( null !== $existing && $existing->is_active() ) {
-					$existing->last_checked_at  = $now;
+					$existing->last_checked_at = $now;
 					$existing->product_version = $product_version ?? $existing->product_version;
 					$this->activations->save( $existing );
 
@@ -530,10 +530,10 @@ final class LicenseService {
 					return new ActivationResult( ActivationResult::NOT_ACTIVE, $license, $activation );
 				}
 
-				$now                         = $this->now();
-				$activation->status          = Activation::DEACTIVATED;
-				$activation->deactivated_at  = $now;
-				$activation                  = $this->activations->save( $activation );
+				$now                        = $this->now();
+				$activation->status         = Activation::DEACTIVATED;
+				$activation->deactivated_at = $now;
+				$activation                 = $this->activations->save( $activation );
 
 				$this->events->record( $license->id, EventLog::DEACTIVATED, array( 'site' => $site ) );
 

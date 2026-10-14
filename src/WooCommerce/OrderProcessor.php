@@ -109,7 +109,7 @@ final class OrderProcessor {
 					break;
 				}
 			}
-		}
+		}//end foreach
 
 		return $report;
 	}
@@ -170,7 +170,7 @@ final class OrderProcessor {
 			for ( $i = 0; $i < $to_end; $i++ ) {
 				$report->revoked += $this->end_license( $still_open[ $i ], Status::REFUNDED, $report );
 			}
-		}
+		}//end foreach
 
 		return $report;
 	}

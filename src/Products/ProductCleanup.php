@@ -52,8 +52,8 @@ final class ProductCleanup {
 	/**
 	 * Runs just before WordPress deletes a post for good.
 	 *
-	 * @param int          $post_id Post ID.
-	 * @param object|null  $post    The post.
+	 * @param int         $post_id Post ID.
+	 * @param object|null $post    The post.
 	 */
 	public function on_delete( int $post_id, $post = null ): void {
 		$type = is_object( $post ) && isset( $post->post_type ) ? (string) $post->post_type : (string) get_post_type( $post_id );
@@ -76,7 +76,8 @@ final class ProductCleanup {
 			$paths = array();
 			foreach ( $this->releases->all( $product_id ) as $release ) {
 				if ( '' !== $release->path ) {
-					$paths[ $release->path ] = true; // Releases can share one zip, which is deleted once.
+					$paths[ $release->path ] = true;
+					// Releases can share one zip, which is deleted once.
 				}
 			}
 

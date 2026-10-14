@@ -23,6 +23,9 @@ final class MemoryItemLicenseStore implements ItemLicenseStore {
 	 */
 	public array $links = array();
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function append( int $item_id, int $license_id ): void {
 		$this->links[ $item_id ][] = $license_id;
 	}

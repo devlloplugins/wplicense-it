@@ -26,7 +26,16 @@ final class Urls {
 	 * @param array<string, scalar> $args Extra query arguments.
 	 */
 	public static function list( array $args = array() ): string {
-		return add_query_arg( array_merge( array( 'post_type' => 'wplit_product', 'page' => self::PAGE_LICENSES ), $args ), admin_url( 'edit.php' ) );
+		return add_query_arg(
+			array_merge(
+				array(
+					'post_type' => 'wplit_product',
+					'page'      => self::PAGE_LICENSES,
+				),
+				$args
+			),
+			admin_url( 'edit.php' )
+		);
 	}
 
 	/**
@@ -43,14 +52,26 @@ final class Urls {
 	 * The add license screen.
 	 */
 	public static function add(): string {
-		return add_query_arg( array( 'post_type' => 'wplit_product', 'page' => self::PAGE_ADD ), admin_url( 'edit.php' ) );
+		return add_query_arg(
+			array(
+				'post_type' => 'wplit_product',
+				'page'      => self::PAGE_ADD,
+			),
+			admin_url( 'edit.php' )
+		);
 	}
 
 	/**
 	 * The settings screen.
 	 */
 	public static function settings(): string {
-		return add_query_arg( array( 'post_type' => 'wplit_product', 'page' => self::PAGE_SETTINGS ), admin_url( 'edit.php' ) );
+		return add_query_arg(
+			array(
+				'post_type' => 'wplit_product',
+				'page'      => self::PAGE_SETTINGS,
+			),
+			admin_url( 'edit.php' )
+		);
 	}
 
 	/**

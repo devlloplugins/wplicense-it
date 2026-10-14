@@ -99,10 +99,10 @@ final class TestPurchase {
 		$results[]  = $package;
 		$package_ok = CheckResult::PASS === $package->status;
 
-		$sandbox    = new Sandbox( $this->clock );
-		$license    = null;
-		$purchase   = CheckResult::PASS === $terms->status && null !== $order ? $this->check_purchase( $software_id, $plan, $order, $sandbox, $license ) : $this->skipped( 'purchase', 'A purchase issues a license' );
-		$results[]  = $purchase;
+		$sandbox     = new Sandbox( $this->clock );
+		$license     = null;
+		$purchase    = CheckResult::PASS === $terms->status && null !== $order ? $this->check_purchase( $software_id, $plan, $order, $sandbox, $license ) : $this->skipped( 'purchase', 'A purchase issues a license' );
+		$results[]   = $purchase;
 		$purchase_ok = CheckResult::PASS === $purchase->status && null !== $license;
 
 		$api = $sandbox->api( $this->catalog );

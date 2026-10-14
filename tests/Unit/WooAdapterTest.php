@@ -59,21 +59,21 @@ final class WooAdapterTest extends TestCase {
 		$this->adapter = new WooAdapter( $processor, $reader );
 
 		// A WooCommerce product linked to license product 7, selling 2 sites per license.
-		$this->product                       = new \WC_Product();
-		$this->product->meta                 = array(
+		$this->product                      = new \WC_Product();
+		$this->product->meta                = array(
 			OrderReader::META_PRODUCT => '7',
 			OrderReader::META_LIMIT   => '2',
 		);
 		$GLOBALS['wplit_test_products'][55] = $this->product;
 
-		$this->item            = new \WC_Order_Item_Product();
-		$this->item->id        = 10;
-		$this->item->product   = $this->product;
+		$this->item                   = new \WC_Order_Item_Product();
+		$this->item->id               = 10;
+		$this->item->product          = $this->product;
 		\WC_Order_Factory::$items[10] = $this->item;
 
-		$this->order                          = new \WC_Order();
-		$this->order->items                   = array( 10 => $this->item );
-		$GLOBALS['wplit_test_orders'][100]    = $this->order;
+		$this->order                       = new \WC_Order();
+		$this->order->items                = array( 10 => $this->item );
+		$GLOBALS['wplit_test_orders'][100] = $this->order;
 	}
 
 	private function complete(): void {
@@ -105,7 +105,7 @@ final class WooAdapterTest extends TestCase {
 	}
 
 	public function test_a_snapshot_on_the_order_line_wins_over_later_product_changes(): void {
-		$this->item->meta = array(
+		$this->item->meta                               = array(
 			OrderReader::META_PRODUCT => '7',
 			OrderReader::META_LIMIT   => '5',
 			OrderReader::META_PERIOD  => 'P6M',
@@ -120,12 +120,15 @@ final class WooAdapterTest extends TestCase {
 	}
 
 	public function test_a_variation_overrides_the_parent_product(): void {
-		$variation                         = new \WC_Product();
-		$variation->id                     = 56;
-		$variation->meta                   = array( OrderReader::META_LIMIT => '0', OrderReader::META_PERIOD => 'lifetime' );
+		$variation                          = new \WC_Product();
+		$variation->id                      = 56;
+		$variation->meta                    = array(
+			OrderReader::META_LIMIT  => '0',
+			OrderReader::META_PERIOD => 'lifetime',
+		);
 		$GLOBALS['wplit_test_products'][56] = $variation;
-		$this->item->variation_id          = 56;
-		$this->item->product               = $variation;
+		$this->item->variation_id           = 56;
+		$this->item->product                = $variation;
 
 		$this->complete();
 
@@ -145,7 +148,7 @@ final class WooAdapterTest extends TestCase {
 
 	public function test_issuing_on_processing_is_opt_in(): void {
 		$this->adapter->on_status_changed( 100, 'pending', 'processing', $this->order );
-		$this->assertSame( array(), WooItemLicenseStore::ids( $this->item ));
+		$this->assertSame( array(), WooItemLicenseStore::ids( $this->item ) );
 
 		$GLOBALS['wplit_test_options'][ WooAdapter::OPTION_ISSUE_ON ] = 'processing';
 		$this->adapter->on_status_changed( 100, 'pending', 'processing', $this->order );
@@ -228,10 +231,10 @@ final class WooAdapterTest extends TestCase {
 	public function test_license_ids_come_from_the_saved_item_not_a_stale_copy(): void {
 		// Found on real WooCommerce: the order object an email is built from holds its own copy of each item, which does
 		// not see a license saved during the same request, so the email had no keys.
-		$saved                                = new \WC_Order_Item_Product();
-		$saved->id                            = 77;
+		$saved                                        = new \WC_Order_Item_Product();
+		$saved->id                                    = 77;
 		$saved->meta[ WooItemLicenseStore::META_KEY ] = array( 5, 6 );
-		\WC_Order_Factory::$items[77]         = $saved;
+		\WC_Order_Factory::$items[77]                 = $saved;
 
 		$stale     = new \WC_Order_Item_Product();
 		$stale->id = 77;
@@ -240,8 +243,8 @@ final class WooAdapterTest extends TestCase {
 	}
 
 	public function test_an_item_that_is_not_saved_yet_uses_its_own_meta(): void {
-		$item                                = new \WC_Order_Item_Product();
-		$item->id                            = 0;
+		$item                                        = new \WC_Order_Item_Product();
+		$item->id                                    = 0;
 		$item->meta[ WooItemLicenseStore::META_KEY ] = array( 9 );
 
 		$this->assertSame( array( 9 ), WooItemLicenseStore::ids( $item ) );

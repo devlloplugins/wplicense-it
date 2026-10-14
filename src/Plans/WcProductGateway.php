@@ -19,10 +19,16 @@ final class WcProductGateway implements ProductGateway {
 
 	public const META_PLAN = '_wplit_plan_id';
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function currency(): string {
 		return (string) get_woocommerce_currency();
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function find( int $id ): ?RemoteProduct {
 		$product = $id > 0 ? wc_get_product( $id ) : false;
 		if ( ! $product ) {
@@ -42,6 +48,11 @@ final class WcProductGateway implements ProductGateway {
 		);
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws PlanException If WooCommerce cannot do it.
+	 */
 	public function create( string $plan_id, string $title, int $price_minor, int $software_id, int $sites, string $period ): int {
 		try {
 			$product = new \WC_Product_Simple();
@@ -65,6 +76,11 @@ final class WcProductGateway implements ProductGateway {
 		return $id;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws PlanException If WooCommerce cannot do it.
+	 */
 	public function update_price( int $id, int $price_minor ): void {
 		$product = $this->load( $id );
 
@@ -76,6 +92,11 @@ final class WcProductGateway implements ProductGateway {
 		}
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws PlanException If WooCommerce cannot do it.
+	 */
 	public function update_terms( int $id, int $software_id, int $sites, string $period ): void {
 		$product = $this->load( $id );
 
@@ -89,6 +110,11 @@ final class WcProductGateway implements ProductGateway {
 		}
 	}
 
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @throws PlanException If WooCommerce cannot do it.
+	 */
 	public function set_status( int $id, string $status ): void {
 		if ( ! in_array( $status, array( 'draft', 'publish' ), true ) ) {
 			throw new PlanException( 'Unsupported product status.' );
