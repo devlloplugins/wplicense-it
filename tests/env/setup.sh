@@ -186,7 +186,7 @@ $wplit_trace = static function ( $line ) {
 add_action(
 	'http_api_debug',
 	static function ( $response, $context, $class, $args, $url ) use ( $wplit_trace ) {
-		$wplit_trace( 'HTTP ' . preg_replace( '#license_key=[^&]+#', 'license_key=x', (string) $url ) . ' -> ' . ( is_wp_error( $response ) ? 'ERROR ' . $response->get_error_message() : wp_remote_retrieve_response_code( $response ) . ' ' . substr( (string) wp_remote_retrieve_body( $response ), 0, 80 ) ) );
+		$wplit_trace( 'HTTP ' . preg_replace( '#(license_key|token)=[^&]+#', '$1=x', (string) $url ) . ' -> ' . ( is_wp_error( $response ) ? 'ERROR ' . $response->get_error_message() : wp_remote_retrieve_response_code( $response ) . ' ' . preg_replace( '/\\s+/', ' ', substr( (string) wp_remote_retrieve_body( $response ), 0, 80 ) ) ) );
 	},
 	10,
 	5
