@@ -1,10 +1,10 @@
 === WPLicense It ===
 Contributors: devlloplugins, femiyb
-Tags: key, license, license key, serial key, software license, digital store, stripe
+Tags: key, license, license key, serial key, software license, digital store, woocommerce
 Requires at least: 5.0
 Tested up to: 6.0
 Requires PHP: 7.0
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 
 Sell and manage license keys for WordPress Applications (Plugins and Themes)
@@ -14,7 +14,8 @@ The best number-one software license management solution for your WordPress appl
 
 = FEATURES =
 
-- Automatically Generate and Sell Licenses for WordPress plugins and Themes
+- Sell licenses for WordPress plugins and themes with WooCommerce
+- Activation limits per license, renewals and refunds handled automatically
 - Check License Status with the API
 - Push New updates for your Plugins and Themes from your dashboard
 - One click update from WordPress Dashboard.
@@ -70,3 +71,22 @@ Fix issue with Checkout and Stripe Tokens
 
 = 1.0.1 =
 Bug fix: Activation Functions.
+
+= 1.0.2 =
+Security and stability release.
+* Fix: payments are only treated as successful when Stripe confirms the charge.
+* Fix: checkout no longer fails with an undefined redirect, and redirects are validated.
+* Fix: license API validates input, handles unknown products, and only serves files from the WPLicense It folder.
+* Fix: product edits now require permission to edit the product, and file uploads work on PHP 8.
+* Fix: uploaded product files are no longer copied to the public uploads folder.
+* Fix: Stripe secret keys are no longer printed in the settings page.
+* Fix: escaped output on product, license and checkout pages.
+* Fix: emails no longer change the content type of other emails sent by the site.
+* Fix: .htaccess protection for product files and database version check.
+
+= 2.0.0 =
+Major release (unreleased). See docs/UPGRADING.md.
+* New: licensing core with activation limits, REST API, native admin screens, WooCommerce integration and a client SDK for plugins and themes.
+* Your 1.x licenses and orders are migrated automatically and keep working.
+* Removed: the built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes. Sell licenses with WooCommerce instead.
+* Requires PHP 8.0 and WordPress 6.2.
