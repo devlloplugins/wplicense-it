@@ -60,9 +60,6 @@ jobs:
     name: Browser tests (real WordPress and WooCommerce)
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # Not run on GitHub yet: written against a sandbox that behaves like this runner. Until the first run is green, a failure
-    # here is shown but does not block the other checks. Remove this line once it has passed.
-    continue-on-error: true
     env:
       PLAYWRIGHT_BROWSERS_PATH: /home/runner/pw-browsers
       WPLIT_ENV_ROOT: /opt/wp-test
