@@ -126,6 +126,7 @@ async function save( page ) {
 		// Run the same check from the command line and report every web request it makes and how it ended.
 		const trace = execFileSync( 'php', [ '-r', 'define( "WP_ADMIN", true ); $_GET["force-check"] = "1"; require "' + path.join( CLIENT_ROOT, 'wp-load.php' ) + '"; require_once ABSPATH . "wp-admin/includes/update.php"; wp_set_current_user( 1 ); add_action( "http_api_debug", function ( $r, $ctx, $class, $args, $url ) { $u = preg_replace( "#(license_key=)[^&]+#", "$1…", (string) $url ); echo "HTTP " . $u . " -> " . ( is_wp_error( $r ) ? "ERROR " . $r->get_error_message() : wp_remote_retrieve_response_code( $r ) . " " . substr( (string) wp_remote_retrieve_body( $r ), 0, 160 ) ) . "\n"; }, 10, 5 ); delete_site_transient( "update_plugins" ); wp_update_plugins(); $t = get_site_transient( "update_plugins" ); echo "after check: response keys " . json_encode( array_keys( (array) ( $t->response ?? array() ) ) ) . "\n";' ], { encoding: 'utf8' } );
 		console.log( 'TRACE (a forced update check run by hand):\n' + trace );
+		try { console.log( 'WHAT THE CUSTOMER SITE DID (last lines of wp-content/http-trace.log):\n' + execFileSync( 'tail', [ '-n', '25', path.join( CLIENT_ROOT, 'wp-content/http-trace.log' ) ], { encoding: 'utf8' } ) ); } catch ( e ) { console.log( 'no http-trace.log' ); }
 	}
 	check( /WPLit Sample/.test( updates ) && /1\.1\.0/.test( updates ), 'step 27: the Updates screen offers WPLit Sample 1.1.0: ' + updates.slice( 0, 1200 ).replace( /\n/g, ' | ' ) );
 

@@ -168,6 +168,41 @@ if [ ! -f "$CLIENT/wp-load.php" ]; then
 fi
 write_config "$CLIENT" wp_client "$CLIENT_URL"
 install_site "$CLIENT" wp_client "WPLit Customer Site"
+# Test environment only: the customer site writes down the web requests it makes and when WordPress builds its update list,
+# so a failure of the update step can be explained afterwards (tests/e2e/04-sample-plugin.cjs prints it).
+mkdir -p "$CLIENT/wp-content/mu-plugins"
+cat > "$CLIENT/wp-content/mu-plugins/wplit-test-trace.php" <<'PHP'
+<?php
+/**
+ * Test environment only.
+ *
+ * @package Devllo\WPLicenseIt
+ */
+
+$wplit_trace = static function ( $line ) {
+	file_put_contents( WP_CONTENT_DIR . '/http-trace.log', gmdate( 'H:i:s' ) . ' ' . $line . "\n", FILE_APPEND );
+};
+
+add_action(
+	'http_api_debug',
+	static function ( $response, $context, $class, $args, $url ) use ( $wplit_trace ) {
+		$wplit_trace( 'HTTP ' . preg_replace( '#license_key=[^&]+#', 'license_key=x', (string) $url ) . ' -> ' . ( is_wp_error( $response ) ? 'ERROR ' . $response->get_error_message() : wp_remote_retrieve_response_code( $response ) . ' ' . substr( (string) wp_remote_retrieve_body( $response ), 0, 80 ) ) );
+	},
+	10,
+	5
+);
+
+add_filter(
+	'pre_set_site_transient_update_plugins',
+	static function ( $value ) use ( $wplit_trace ) {
+		$wplit_trace( 'update list built on ' . ( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'cli' ) . ' user_can_update=' . ( function_exists( 'current_user_can' ) && current_user_can( 'update_plugins' ) ? 'yes' : 'no' ) );
+
+		return $value;
+	},
+	1
+);
+PHP
+
 serve "$CLIENT" "$CLIENT_PORT" client
 
 say "Ready"
