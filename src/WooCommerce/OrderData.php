@@ -35,4 +35,21 @@ final class OrderData {
 		public array $items
 	) {
 	}
+
+	/**
+	 * The licensed product this order is for: its ID when every licensed line is for the same product, 0 when the order
+	 * has lines for several products (no one of them is "the" product) or none. The licenses themselves, which each
+	 * link to the order, are the full record; see OrderProducts.
+	 */
+	public function licensed_product_id(): int {
+		$ids = array();
+
+		foreach ( $this->items as $item ) {
+			if ( $item->wplit_product_id > 0 ) {
+				$ids[ $item->wplit_product_id ] = true;
+			}
+		}
+
+		return 1 === count( $ids ) ? (int) array_key_first( $ids ) : 0;
+	}
 }

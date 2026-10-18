@@ -87,7 +87,7 @@ Minimal record of where a license came from.
 | `external_id` | `VARCHAR(100)` NULL | WooCommerce order ID or Stripe charge ID. |
 | `order_number` | `VARCHAR(48)` NOT NULL | Human-readable number. |
 | `user_id` | `BIGINT UNSIGNED` NULL | |
-| `product_id` | `BIGINT UNSIGNED` NOT NULL | |
+| `product_id` | `BIGINT UNSIGNED` NOT NULL | The licensed product when the order is for one, `0` when it has lines for several (read those from the licenses linked to the order). |
 | `currency` | `CHAR(3)` NOT NULL | ISO 4217. |
 | `total_minor` | `BIGINT` NOT NULL | Cents. |
 | `status` | `VARCHAR(20)` NOT NULL | `completed`, `refunded`. |

@@ -19,8 +19,9 @@ use wpdb;
 /**
  * One row per WooCommerce order in wplit_license_orders (source "woocommerce").
  *
- * The table has a single product column, so an order with several licensed products
- * records the first one. Each license points to its order, so nothing is lost.
+ * The table has a single product column: it holds the product when the order is for one, and 0 when the order has
+ * lines for several (see OrderData::licensed_product_id()). Each license points to its order, so the full list of
+ * products is read from the licenses (OrderProducts).
  */
 final class WpdbLicenseOrderRepository implements LicenseOrderRepository {
 
@@ -54,14 +55,6 @@ final class WpdbLicenseOrderRepository implements LicenseOrderRepository {
 			return $existing;
 		}
 
-		$product_id = 0;
-		foreach ( $order->items as $item ) {
-			if ( $item->wplit_product_id > 0 ) {
-				$product_id = $item->wplit_product_id;
-				break;
-			}
-		}
-
 		$now = Dates::to_db( new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) ) );
 
 		$result = $this->db->insert(
@@ -71,7 +64,7 @@ final class WpdbLicenseOrderRepository implements LicenseOrderRepository {
 				'external_id'  => (string) $order->id,
 				'order_number' => 'WC-' . $order->number,
 				'user_id'      => $order->user_id,
-				'product_id'   => $product_id,
+				'product_id'   => $order->licensed_product_id(),
 				'currency'     => strtoupper( substr( $order->currency, 0, 3 ) ),
 				'total_minor'  => $order->total_minor,
 				'status'       => 'completed',

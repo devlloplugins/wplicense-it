@@ -78,6 +78,9 @@ switch ( $op ) {
 		if ( ! empty( $in['renew_license_id'] ) ) {
 			wc_add_order_item_meta( $item, '_wplit_renew_license_id', (int) $in['renew_license_id'] );
 		}
+		foreach ( (array) ( $in['more_product_ids'] ?? array() ) as $more ) {
+			$order->add_product( wc_get_product( (int) $more ), 1 );
+		}
 		$order->set_billing_email( $in['email'] );
 		$order->set_billing_first_name( 'Test' );
 		$order->set_billing_last_name( 'Customer' );
@@ -92,6 +95,12 @@ switch ( $op ) {
 			'total'    => $order->get_total(),
 			'item_id'  => $item,
 		);
+		break;
+
+	case 'order_products':
+		// The products of an order as the plugin reads them from the licenses (OrderProducts), by the order's row in the license orders table.
+		global $wpdb;
+		$out = array( 'ids' => ( new \Devllo\WPLicenseIt\WooCommerce\OrderProducts( new \Devllo\WPLicenseIt\Database\WpdbLicenseRepository( $wpdb ) ) )->ids( (int) $in['order_row_id'] ) );
 		break;
 
 	case 'set_order_status':

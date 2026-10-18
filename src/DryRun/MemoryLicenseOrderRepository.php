@@ -18,9 +18,9 @@ use Devllo\WPLicenseIt\WooCommerce\OrderData;
 final class MemoryLicenseOrderRepository implements LicenseOrderRepository {
 
 	/**
-	 * Records by WooCommerce order ID: id, number, total and status.
+	 * Records by WooCommerce order ID: id, number, product, total and status.
 	 *
-	 * @var array<int, array{id:int,number:string,total_minor:int,currency:string,status:string}>
+	 * @var array<int, array{id:int,number:string,product_id:int,total_minor:int,currency:string,status:string}>
 	 */
 	public array $records = array();
 
@@ -32,6 +32,7 @@ final class MemoryLicenseOrderRepository implements LicenseOrderRepository {
 			$this->records[ $order->id ] = array(
 				'id'          => count( $this->records ) + 1,
 				'number'      => 'WC-' . $order->number,
+				'product_id'  => $order->licensed_product_id(),
 				'total_minor' => $order->total_minor,
 				'currency'    => $order->currency,
 				'status'      => 'completed',

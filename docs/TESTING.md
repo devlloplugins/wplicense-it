@@ -24,6 +24,10 @@ owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 `bin/build-release.sh --check` builds the release zip, checks what is in it and that two builds are identical (see `RELEASE.md`). It runs in CI.
 The browser suite was also run once against the plugin unpacked from that zip, with all 19 files passing.
 
+`tests/e2e/20-several-products-order.cjs` (10 checks) makes two products with plans and one order with lines for both: each line gets its
+licenses, all linked to the one order record, the record names no single product (0), the products are read back from the licenses, and an
+order for one product still records that product. It fails with the old behaviour (the first product).
+
 `tests/e2e/19-order-problems.cjs` (25 checks) pays an order for a product whose license period is nonsense and checks: no license is made, the order
 remembers the problem, the administrator gets one email with the order's address (WooCommerce's own new-order email is not
 counted), the order screen shows an alert with a Try again button, the Overview lists the order with a link, trying again while

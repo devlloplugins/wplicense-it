@@ -93,8 +93,10 @@ expires after 15 minutes) and a **Deactivate** button per site, so customers can
 ## Data
 
 One row per WooCommerce order in `wplit_license_orders` (`source` = `woocommerce`, `order_number` =
-`WC-<number>`). The table has a single product column, so an order with several licensed products
-records the first; every license points back to its order.
+`WC-<number>`). The table has a single product column. It holds the product when the order is for one licensed
+product, and `0` when the order has lines for several, so that no one of them is shown as "the" product. The full list is
+read from the licenses: every license points back to its order, and `OrderProducts` returns the distinct products of an
+order's licenses. A line that got no license (for example a period that could not be used) is not in that list.
 
 ## When an order could not get its license
 

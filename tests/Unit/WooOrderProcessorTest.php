@@ -23,11 +23,14 @@ use Devllo\WPLicenseIt\WooCommerce\LicenseTerms;
 use Devllo\WPLicenseIt\WooCommerce\OrderData;
 use Devllo\WPLicenseIt\WooCommerce\OrderItemData;
 use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
+use Devllo\WPLicenseIt\WooCommerce\OrderProducts;
 use Devllo\WPLicenseIt\WooCommerce\PeriodParser;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Devllo\WPLicenseIt\WooCommerce\OrderProcessor
+ * @covers \Devllo\WPLicenseIt\WooCommerce\OrderData
+ * @covers \Devllo\WPLicenseIt\WooCommerce\OrderProducts
  * @covers \Devllo\WPLicenseIt\WooCommerce\PeriodParser
  * @covers \Devllo\WPLicenseIt\WooCommerce\LicenseTerms
  */
@@ -118,6 +121,70 @@ final class WooOrderProcessorTest extends TestCase {
 		$this->assertSame( 0, $report->issued );
 		$this->assertFalse( $report->changed() );
 		$this->assertSame( array(), $this->orders->records );
+	}
+
+	public function test_an_order_for_one_product_records_that_product(): void {
+		$this->processor->issue(
+			$this->order(
+				array(
+					10 => array( 'quantity' => 2 ),
+					11 => array(),
+				)
+			)
+		);
+
+		$this->assertSame( 7, $this->orders->records[100]['product_id'] );
+	}
+
+	public function test_lines_that_are_not_licensed_do_not_count_as_a_product(): void {
+		$this->processor->issue(
+			$this->order(
+				array(
+					10 => array( 'product' => 0 ),
+					11 => array( 'product' => 8 ),
+				)
+			)
+		);
+
+		$this->assertSame( 8, $this->orders->records[100]['product_id'] );
+	}
+
+	public function test_an_order_for_several_products_does_not_pretend_the_first_is_the_product(): void {
+		$this->processor->issue(
+			$this->order(
+				array(
+					10 => array(),
+					11 => array( 'product' => 8 ),
+					12 => array( 'product' => 7 ),
+				)
+			)
+		);
+
+		$this->assertSame( 0, $this->orders->records[100]['product_id'] );
+		$this->assertSame( 8, $this->service->find( $this->store->links[11][0] )->product_id, 'the licenses keep their own products' );
+	}
+
+	public function test_the_products_of_an_order_are_read_from_its_licenses(): void {
+		$repository = new MemoryLicenseRepository();
+		$service    = new LicenseService( $repository, new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), $this->clock );
+		$processor  = new OrderProcessor( $service, $this->orders, $this->store, $this->clock );
+
+		$processor->issue(
+			$this->order(
+				array(
+					10 => array( 'quantity' => 2 ),
+					11 => array( 'product' => 8 ),
+					12 => array( 'product' => 0 ),
+				)
+			)
+		);
+		$processor->issue( $this->order( array( 20 => array( 'product' => 9 ) ), 5, 'Buyer@Example.com', 101 ) );
+
+		$products = new OrderProducts( $repository );
+
+		$this->assertSame( array( 7, 8 ), $products->ids( $this->orders->records[100]['id'] ), 'every product of the order, once each, in the order they were licensed' );
+		$this->assertSame( array( 9 ), $products->ids( $this->orders->records[101]['id'] ), 'and nothing from another order' );
+		$this->assertSame( array(), $products->ids( 999 ), 'an order with no licenses has no products' );
 	}
 
 	public function test_processing_an_order_twice_issues_nothing_twice(): void {
