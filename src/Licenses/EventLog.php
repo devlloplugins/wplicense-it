@@ -24,6 +24,7 @@ interface EventLog {
 	public const REINSTATED  = 'reinstated';
 	public const UPDATED     = 'updated';
 	public const REMINDER    = 'reminder_sent';
+	public const INVOICED    = 'renewal_invoiced';
 
 	/**
 	 * Records an event.

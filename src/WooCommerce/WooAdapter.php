@@ -86,6 +86,7 @@ final class WooAdapter {
 
 		if ( in_array( $to, $this->issue_statuses( $order ), true ) ) {
 			$this->process( $order, fn( OrderData $data ): ProcessReport => $this->processor->issue( $data ) );
+			WooRenewalOrderCreator::cancel_open_invoices( $order );
 		} elseif ( 'refunded' === $to ) {
 			$this->process( $order, fn( OrderData $data ): ProcessReport => $this->processor->revoke( $data, Status::REFUNDED ) );
 		} elseif ( 'cancelled' === $to ) {

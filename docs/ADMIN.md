@@ -121,6 +121,7 @@ The seller still has to copy the `sdk` folder from the WPLicense It plugin into 
 |---|---|
 | Issue licenses when an order is | WooCommerce: Completed (default) or Processing. |
 | Expiry reminders | Email customers before their license expires (off by default), on which days (default `30, 7`), and the renewal address the email links to. See below. |
+| Renewal invoices | Create an unpaid renewal order and email WooCommerce's invoice before a license expires (off by default), and how many days before. See below. |
 | Failed lookups allowed / time window | How many wrong keys a client may send before it is blocked, and for how long. |
 | Keep license history for | Years of audit history kept. `0` keeps it forever. |
 | Billing details from 1.x orders | Whether the migration keeps address and phone numbers. |
@@ -146,10 +147,41 @@ expiry date, says what expiry means (no more updates) and links to the renewal a
 - **Filters:** `wplicense_it_send_reminder` (return `false` to skip a license), `wplicense_it_reminder_email` (change the
   recipient, subject, message or headers) and `wplicense_it_reminder_renew_url`.
 
+## Renewal invoices
+
+Off until the site owner turns it on in **Licensing settings > Renewal invoices** (needs WooCommerce and a product that sells the
+license, with a price). A set number of days before a license expires (default 14, from 1 to 90), once a day, the plugin:
+
+1. creates an **unpaid WooCommerce order** for the renewal, for the same customer (or a guest order for a license without an
+   account), with one line for the product that sells the license, marked as a renewal of that license;
+2. emails the customer **WooCommerce's own invoice email**, which has the order and a link to pay it. Edit the wording under
+   WooCommerce > Settings > Emails > Customer invoice. The customer pays with any payment method the store offers;
+3. when the order is paid and reaches the status that issues licenses (Completed, or Processing if you chose that), the
+   existing renewal logic extends the license from its current expiry, or from today if it has already expired. **No second
+   license is made.**
+
+Good to know:
+
+- **One invoice per expiry date.** It is recorded in the license history ("Renewal invoice sent", with the order number). A
+  renewal changes the date and starts a new cycle. An invoice you cancel or delete is not made again for the same date.
+- **Renewed another way?** If the license is renewed by a different order (for example the customer used the Renew button), its
+  unpaid invoice is cancelled, with a note on the order, so nobody is asked to pay twice.
+- **Unpaid after expiry:** the order stays open and paying it later still renews the license (from today, since it expired).
+  WooCommerce's automatic cancelling of unpaid orders does not touch these orders.
+- **Skipped:** licenses that never expire, are revoked, refunded or expired, have no valid address, or were erased with the
+  privacy tool; and licenses whose product has no purchasable WooCommerce product with a price above zero.
+- **Limits:** at most 100 invoices per run; the rest are made the next day. A failure to make one is logged, nothing is recorded,
+  and it is tried again the next day.
+- **With expiry reminders:** the two are independent. The reminder emails link to My Account, the invoice email has the pay link.
+  Turn on both for a reminder at 30 days and an invoice at 14, or only one of them.
+- **Filter:** `wplicense_it_create_renewal_invoice` (return `false` to skip a license).
+
+This is not automatic charging: the customer still pays each time. Charging a saved card automatically is a separate step.
+
 ## Daily maintenance
 
 A daily WP-Cron job marks licenses past their expiry as expired (in batches, so a large backlog cannot slow
-a request), sends expiry reminders when they are on, and deletes history older than the retention setting. Licenses are checked against their expiry date
+a request), sends expiry reminders and makes renewal invoices when they are on, and deletes history older than the retention setting. Licenses are checked against their expiry date
 every time they are used, so this only keeps the stored status and the list accurate.
 
 ## Accessibility

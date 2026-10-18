@@ -21,6 +21,13 @@ measures it on a big one (100,000 licenses by default, which takes about two min
 PHP memory limit, a third for the number of rows that cannot be migrated, and `stop` to leave it waiting for the
 owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 
+`tests/e2e/17-renewal-invoices.cjs` (37 checks) covers renewal invoices with real WooCommerce: off by default and the days setting, the
+daily job run through a real `wp-cron.php` request, an unpaid order made for each license inside the window and none for
+one outside it (with the renewal mark, the customer or a guest, the price), WooCommerce's invoice email and its pay link, the
+history entry, no second invoice or email, a guest paying from the link, the account customer logging in from the link and
+paying with cash on delivery, the license renewed by a year only when the order is completed and no second license made, and an
+unpaid invoice cancelled when its license is renewed by another order.
+
 `tests/e2e/16-reminders.cjs` (43 checks) covers expiry reminder emails: off by default, junk cleaned from the days setting, the
 daily job run through a real `wp-cron.php` request, who is mailed and who is not (far away, lifetime, revoked), the subject, no
 license key in the email, the link (a customer logs in and sees the license, a guest license goes to the home page), the history

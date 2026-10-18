@@ -150,7 +150,7 @@ final class AccountPage {
 			echo '<a class="button" href="' . esc_url( add_query_arg( 'token', rawurlencode( $token ), rest_url( 'wplicense-it/v1/download' ) ) ) . '">' . esc_html__( 'Download', 'wplicense-it' ) . '</a> ';
 		}
 
-		$woo_product = in_array( $license->status, Status::terminal(), true ) || null === $license->expires_at ? 0 : $this->renewal_product( $license->product_id );
+		$woo_product = in_array( $license->status, Status::terminal(), true ) || null === $license->expires_at ? 0 : RenewalProduct::find( $license->product_id );
 		if ( $woo_product > 0 ) {
 			echo '<a class="button alt" href="' . esc_url( CartRenewal::renewal_url( $woo_product, $license->id ) ) . '">' . esc_html__( 'Renew', 'wplicense-it' ) . '</a>';
 		}
@@ -204,37 +204,6 @@ final class AccountPage {
 		}
 
 		return $html . '</ul>';
-	}
-
-	/**
-	 * A simple WooCommerce product that sells the license product, for the Renew button.
-	 *
-	 * Variable products are not offered here: the customer renews from the product page.
-	 *
-	 * @param int $license_product_id WPLicense It product ID.
-	 * @return int WooCommerce product ID, 0 if none.
-	 */
-	private function renewal_product( int $license_product_id ): int {
-		$ids = get_posts(
-			array(
-				'post_type'      => 'product',
-				'post_status'    => 'publish',
-				'posts_per_page' => 5,
-				'fields'         => 'ids',
-				'meta_key'       => OrderReader::META_PRODUCT, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- A handful of products, shown on a customer page.
-				'meta_value'     => (string) $license_product_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			)
-		);
-
-		foreach ( $ids as $id ) {
-			$product = wc_get_product( $id );
-
-			if ( $product && $product->is_type( 'simple' ) && $product->is_purchasable() ) {
-				return (int) $id;
-			}
-		}
-
-		return 0;
 	}
 
 	/**

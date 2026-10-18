@@ -81,6 +81,8 @@ if ( ! class_exists( 'WC_Order_Item' ) ) {
 		public function get_total( $context = 'view' ) { return '29.99'; }
 		public function get_qty_refunded_for_item( $item_id ) { return -1 * ( $this->refunded[ $item_id ] ?? 0 ); }
 		public function add_order_note( $note ) { $this->notes[] = $note; }
+		public function update_status( $status, $note = '' ) { $this->status = $status; $this->notes[] = $note; }
+		public string $status = 'pending';
 	}
 
 	class WC_Email {
@@ -90,6 +92,7 @@ if ( ! class_exists( 'WC_Order_Item' ) ) {
 
 if ( ! function_exists( 'wc_get_order' ) ) {
 	function wc_get_order( $id ) { return $GLOBALS['wplit_test_orders'][ $id ] ?? false; }
+	function wc_get_orders( $args ) { return $GLOBALS['wplit_test_open_invoices'][ (int) ( $args['meta_query'][0]['value'] ?? 0 ) ] ?? array(); }
 	function wc_get_product( $id ) { return $GLOBALS['wplit_test_products'][ $id ] ?? false; }
 	function get_post_meta( $id, $key = '', $single = false ) { return $GLOBALS['wplit_test_post_meta'][ $id ][ $key ] ?? ''; }
 	function get_option( $name, $default = false ) { return $GLOBALS['wplit_test_options'][ $name ] ?? $default; }

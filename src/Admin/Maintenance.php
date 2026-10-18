@@ -16,8 +16,12 @@ use Devllo\WPLicenseIt\Database\WpdbEventLog;
 use Devllo\WPLicenseIt\Database\WpdbLicenseRepository;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Reminders\ReminderService;
+use Devllo\WPLicenseIt\Renewals\RenewalInvoiceService;
+use Devllo\WPLicenseIt\Renewals\RenewalSettings;
 use Devllo\WPLicenseIt\Reminders\ReminderSettings;
 use Devllo\WPLicenseIt\Reminders\WpReminderMailer;
+use Devllo\WPLicenseIt\WooCommerce\OrderReader;
+use Devllo\WPLicenseIt\WooCommerce\WooRenewalOrderCreator;
 
 /**
  * Once a day: marks licenses past their expiry as expired, sends expiry reminders (when the site owner turned them on), and
@@ -58,6 +62,10 @@ final class Maintenance {
 
 		if ( ReminderSettings::enabled() ) {
 			( new ReminderService( new WpdbLicenseRepository( $wpdb ), new WpdbEventLog( $wpdb ), new WpReminderMailer( new WpProductCatalog() ) ) )->send_due( ReminderSettings::days() );
+		}
+
+		if ( RenewalSettings::enabled() && class_exists( 'WooCommerce' ) ) {
+			( new RenewalInvoiceService( new WpdbLicenseRepository( $wpdb ), new WpdbEventLog( $wpdb ), new WooRenewalOrderCreator( new OrderReader() ) ) )->create_due( RenewalSettings::days() );
 		}
 
 		// Two years by default, changeable in Licensing Settings and with the filter.

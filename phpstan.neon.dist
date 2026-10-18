@@ -22,3 +22,4 @@ parameters:
             paths:
                 - src/Plans/WcProductGateway.php
                 - src/WooCommerce/CartRenewal.php
+                - src/WooCommerce/WooRenewalOrderCreator.php

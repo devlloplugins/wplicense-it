@@ -44,13 +44,14 @@ final class WooAdapterTest extends TestCase {
 	private \WC_Product $product;
 
 	protected function setUp(): void {
-		$GLOBALS['wplit_test_orders']    = array();
-		$GLOBALS['wplit_test_products']  = array();
-		$GLOBALS['wplit_test_options']   = array();
-		$GLOBALS['wplit_test_post_meta'] = array( 7 => array( 'wplit_period' => 'P1Y' ) );
-		$store                           = &wplit_test_transients();
-		$store                           = array();
-		\WC_Order_Factory::$items        = array();
+		$GLOBALS['wplit_test_orders']        = array();
+		$GLOBALS['wplit_test_open_invoices'] = array();
+		$GLOBALS['wplit_test_products']      = array();
+		$GLOBALS['wplit_test_options']       = array();
+		$GLOBALS['wplit_test_post_meta']     = array( 7 => array( 'wplit_period' => 'P1Y' ) );
+		$store                               = &wplit_test_transients();
+		$store                               = array();
+		\WC_Order_Factory::$items            = array();
 
 		$clock         = new FixedClock( '2026-03-01 00:00:00' );
 		$this->service = new LicenseService( new MemoryLicenseRepository(), new MemoryActivationRepository(), new MemoryEventLog(), new KeyGenerator(), $clock );
@@ -102,6 +103,20 @@ final class WooAdapterTest extends TestCase {
 
 		$this->assertCount( 1, WooItemLicenseStore::ids( $this->item ) );
 		$this->assertCount( 1, $this->order->notes );
+	}
+
+	public function test_completing_a_renewal_cancels_the_unpaid_invoices_of_that_license(): void {
+		$this->complete();
+		$license_id = WooItemLicenseStore::ids( $this->item )[0];
+
+		$invoice     = new \WC_Order();
+		$invoice->id = 900;
+		$GLOBALS['wplit_test_open_invoices'][ $license_id ] = array( $invoice );
+
+		\Devllo\WPLicenseIt\WooCommerce\WooRenewalOrderCreator::cancel_open_invoices( $this->order );
+
+		$this->assertSame( 'cancelled', $invoice->status );
+		$this->assertStringContainsString( 'renewed by order', $invoice->notes[0] );
 	}
 
 	public function test_a_snapshot_on_the_order_line_wins_over_later_product_changes(): void {

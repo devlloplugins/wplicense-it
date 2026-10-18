@@ -130,6 +130,50 @@ switch ( $op ) {
 		);
 		break;
 
+	case 'find_invoices':
+		// The renewal invoice orders made for a license, newest first.
+		$ids = wc_get_orders(
+			array(
+				'limit'      => 20,
+				'orderby'    => 'ID',
+				'order'      => 'DESC',
+				'return'     => 'ids',
+				'status'     => array_keys( wc_get_order_statuses() ),
+				'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- A test helper.
+					array(
+						'key'   => '_wplit_invoice_license_id',
+						'value' => (int) $in['license_id'],
+					),
+				),
+			)
+		);
+		$min = (int) ( $in['min_id'] ?? 0 );
+		$out = array( 'orders' => array_values( array_filter( array_map( 'intval', $ids ), static fn( int $id ): bool => $id > $min ) ) );
+		break;
+
+	case 'order_info':
+		$order = wc_get_order( (int) $in['order_id'] );
+		$lines = array();
+		foreach ( $order->get_items() as $line ) {
+			$lines[] = array(
+				'name'    => $line->get_name(),
+				'renew'   => (int) $line->get_meta( '_wplit_renew_license_id', true ),
+				'product' => (int) $line->get_meta( '_wplit_product_id', true ),
+				'period'  => (string) $line->get_meta( '_wplit_period', true ),
+				'ids'     => array_map( 'intval', array_filter( (array) $line->get_meta( '_wplit_license_ids', true ) ) ),
+			);
+		}
+		$out = array(
+			'status'      => $order->get_status(),
+			'total'       => $order->get_total(),
+			'created_via' => $order->get_created_via(),
+			'user_id'     => (int) $order->get_user_id(),
+			'email'       => $order->get_billing_email(),
+			'pay_url'     => $order->get_checkout_payment_url(),
+			'lines'       => $lines,
+		);
+		break;
+
 	case 'order_notes':
 		$notes = wc_get_order_notes( array( 'order_id' => (int) $in['order_id'] ) );
 		$out   = array( 'notes' => array_map( static fn( $n ) => wp_strip_all_tags( $n->content ), $notes ) );

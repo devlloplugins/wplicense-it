@@ -13,6 +13,7 @@ use Devllo\WPLicenseIt\Api\RestController;
 use Devllo\WPLicenseIt\Migration\MigrationState;
 use Devllo\WPLicenseIt\Migration\OptionStateStore;
 use Devllo\WPLicenseIt\Reminders\ReminderSettings;
+use Devllo\WPLicenseIt\Renewals\RenewalSettings;
 use Devllo\WPLicenseIt\WooCommerce\WooAdapter;
 
 /**
@@ -112,8 +113,31 @@ final class SettingsScreen {
 			)
 		);
 
+		register_setting(
+			self::GROUP,
+			RenewalSettings::OPTION_ENABLED,
+			array(
+				'type'              => 'boolean',
+				'default'           => false,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			)
+		);
+		register_setting(
+			self::GROUP,
+			RenewalSettings::OPTION_DAYS,
+			array(
+				'type'              => 'integer',
+				'default'           => RenewalSettings::DEFAULT_DAYS,
+				'sanitize_callback' => array( RenewalSettings::class, 'clamp_days' ),
+			)
+		);
+
 		add_settings_section( 'wplit_sales', __( 'Selling with WooCommerce', 'wplicense-it' ), '__return_false', self::PAGE );
 		add_settings_field( WooAdapter::OPTION_ISSUE_ON, __( 'Issue licenses when an order is', 'wplicense-it' ), array( $this, 'field_issue_on' ), self::PAGE, 'wplit_sales', array( 'label_for' => WooAdapter::OPTION_ISSUE_ON ) );
+
+		add_settings_section( 'wplit_invoices', __( 'Renewal invoices', 'wplicense-it' ), array( $this, 'section_invoices' ), self::PAGE );
+		add_settings_field( RenewalSettings::OPTION_ENABLED, __( 'Invoice customers', 'wplicense-it' ), array( $this, 'field_invoices_enabled' ), self::PAGE, 'wplit_invoices' );
+		add_settings_field( RenewalSettings::OPTION_DAYS, __( 'Days before expiry', 'wplicense-it' ), array( $this, 'field_invoice_days' ), self::PAGE, 'wplit_invoices', array( 'label_for' => RenewalSettings::OPTION_DAYS ) );
 
 		add_settings_section( 'wplit_reminders', __( 'Expiry reminders', 'wplicense-it' ), array( $this, 'section_reminders' ), self::PAGE );
 		add_settings_field( ReminderSettings::OPTION_ENABLED, __( 'Email customers', 'wplicense-it' ), array( $this, 'field_reminders_enabled' ), self::PAGE, 'wplit_reminders' );
@@ -185,6 +209,28 @@ final class SettingsScreen {
 		echo '<option value="processing"' . selected( $value, 'processing', false ) . '>' . esc_html__( 'Processing (as soon as payment is received)', 'wplicense-it' ) . '</option>';
 		echo '</select>';
 		echo '<p class="description">' . esc_html__( 'Virtual and downloadable products are completed automatically, so "Completed" is right for most stores.', 'wplicense-it' ) . '</p>';
+	}
+
+	/**
+	 * Renewal invoices section text.
+	 */
+	public function section_invoices(): void {
+		echo '<p>' . esc_html__( 'Some days before a license expires, create an order for its renewal and email the customer WooCommerce\'s invoice with a link to pay it. The customer pays with any payment method your store offers, and the license is renewed when the order is paid and completed. Needs WooCommerce and a product that sells the license.', 'wplicense-it' ) . '</p>';
+	}
+
+	/**
+	 * Renewal invoices on or off.
+	 */
+	public function field_invoices_enabled(): void {
+		echo '<label><input type="checkbox" name="' . esc_attr( RenewalSettings::OPTION_ENABLED ) . '" value="1"' . checked( RenewalSettings::enabled(), true, false ) . '> ' . esc_html__( 'Send renewal invoices', 'wplicense-it' ) . '</label>';
+		echo '<p class="description">' . esc_html__( 'Off until you turn it on. One invoice is made per expiry date and recorded in the license history. An unpaid invoice is cancelled if the license is renewed another way. Licenses that never expire, or whose product has no price, are skipped.', 'wplicense-it' ) . '</p>';
+	}
+
+	/**
+	 * Renewal invoice days field.
+	 */
+	public function field_invoice_days(): void {
+		echo '<input type="number" min="1" max="' . esc_attr( (string) RenewalSettings::MAX_DAYS ) . '" class="small-text" id="' . esc_attr( RenewalSettings::OPTION_DAYS ) . '" name="' . esc_attr( RenewalSettings::OPTION_DAYS ) . '" value="' . esc_attr( (string) RenewalSettings::days() ) . '">';
 	}
 
 	/**
