@@ -42,6 +42,7 @@ final class Notices {
 		return array(
 			'not_found'     => __( 'That license no longer exists.', 'wplicense-it' ),
 			'invalid_input' => __( 'Some of the values were not valid. Nothing was changed.', 'wplicense-it' ),
+			'invalid_email' => __( 'That is not a valid email address. Nothing was changed.', 'wplicense-it' ),
 			'not_renewable' => __( 'A revoked or refunded license cannot be renewed. Reinstate it first.', 'wplicense-it' ),
 			'no_site'       => __( 'That site is not active on this license.', 'wplicense-it' ),
 			'no_user'       => __( 'No user was found for that username or email.', 'wplicense-it' ),

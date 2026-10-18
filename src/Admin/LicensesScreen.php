@@ -86,6 +86,9 @@ final class LicensesScreen {
 		echo '<div class="wrap"><h1 class="wp-heading-inline">' . esc_html__( 'Licenses', 'wplicense-it' ) . '</h1> ';
 		echo '<a href="' . esc_url( Urls::add() ) . '" class="page-title-action">' . esc_html__( 'Add license', 'wplicense-it' ) . '</a><hr class="wp-header-end">';
 
+		// The table lays its columns out at equal widths, which wrapped every license key onto three lines. Give the key room.
+		echo '<style>.wp-list-table .column-license{width:29%}.wp-list-table .column-product{width:12%}.wp-list-table .column-email{width:15%}.wp-list-table .column-status{width:9%}.wp-list-table .column-sites{width:6%}.wp-list-table .column-expires,.wp-list-table .column-created{width:13%}.wp-list-table .column-license code{word-break:break-all}@media screen and (max-width:782px){.wp-list-table .column-license{width:auto}}</style>';
+
 		Notices::render();
 		$table->views();
 
@@ -97,7 +100,7 @@ final class LicensesScreen {
 		$table->search_box( __( 'Search key or email', 'wplicense-it' ), 'wplit-license' );
 		echo '</form>';
 
-		echo '<form method="post" action="' . esc_url( Urls::list() ) . '">';
+		echo '<form method="post" action="' . esc_url( add_query_arg( $this->current_view_args(), Urls::list() ) ) . '">';
 		wp_nonce_field( 'bulk-licenses' );
 		$table->display();
 		echo '</form></div>';
@@ -107,6 +110,24 @@ final class LicensesScreen {
 	 * Revokes or reinstates the selected licenses.
 	 */
 	private function maybe_handle_bulk_action(): void {
+		// The product filter sits inside the table's form, which posts. Turn it into a link, so it can be shared and bookmarked
+		// and works like the search box and the status links do.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by check_admin_referer() below.
+		if ( isset( $_POST['filter_action'] ) ) {
+			check_admin_referer( 'bulk-licenses' );
+
+			$args = $this->current_view_args();
+			unset( $args['paged'], $args['product_id'] );
+			$product_id = isset( $_POST['product_id'] ) ? absint( wp_unslash( $_POST['product_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified just above.
+
+			if ( $product_id > 0 ) {
+				$args['product_id'] = $product_id;
+			}
+
+			wp_safe_redirect( add_query_arg( $args, Urls::list() ) );
+			exit;
+		}
+
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified by check_admin_referer() below.
 		$action = isset( $_POST['action'] ) && '-1' !== $_POST['action'] ? sanitize_key( wp_unslash( $_POST['action'] ) ) : ( isset( $_POST['action2'] ) ? sanitize_key( wp_unslash( $_POST['action2'] ) ) : '' );
 		$ids    = isset( $_POST['license'] ) && is_array( $_POST['license'] ) ? array_map( 'absint', wp_unslash( $_POST['license'] ) ) : array();
@@ -136,13 +157,35 @@ final class LicensesScreen {
 
 		wp_safe_redirect(
 			add_query_arg(
-				array(
-					'wplit_notice' => 'bulk',
-					'wplit_count'  => $done,
+				array_merge(
+					$this->current_view_args(),
+					array(
+						'wplit_notice' => 'bulk',
+						'wplit_count'  => $done,
+					)
 				),
 				Urls::list()
 			)
 		);
 		exit;
+	}
+
+	/**
+	 * The parts of the address that say which view of the list this is: status, product, search, sorting and page.
+	 *
+	 * @return array<string, string>
+	 */
+	private function current_view_args(): array {
+		$args = array();
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only, and only used to build a link back to the same view.
+		foreach ( array( 'status', 'product_id', 's', 'orderby', 'order', 'paged' ) as $name ) {
+			if ( isset( $_GET[ $name ] ) && is_string( $_GET[ $name ] ) && '' !== $_GET[ $name ] ) {
+				$args[ $name ] = sanitize_text_field( wp_unslash( $_GET[ $name ] ) );
+			}
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		return $args;
 	}
 }

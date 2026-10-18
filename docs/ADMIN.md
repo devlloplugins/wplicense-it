@@ -33,6 +33,9 @@ Rules worth knowing:
 - Revoking, refunding and reinstating ask for no extra confirmation in bulk, but single revoke and
   refund ask first. Every change is recorded in the license's history.
 
+The product filter and the search box work like the status links: they change the address, so a view can be bookmarked
+or shared, and bulk Revoke and Reinstate bring you back to the same view (same filter, search, sort and page).
+
 ## Add license
 
 Issue a license by hand (gifts, support, licenses sold elsewhere). Choose the product, the customer's email

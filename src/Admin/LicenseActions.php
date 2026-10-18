@@ -161,7 +161,7 @@ final class LicenseActions {
 	private function add_license(): array {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified in handle().
 		$product_id = isset( $_POST['product_id'] ) ? absint( wp_unslash( $_POST['product_id'] ) ) : 0;
-		$email      = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+		$email      = self::posted_email();
 		$user_ref   = isset( $_POST['user'] ) ? sanitize_text_field( wp_unslash( $_POST['user'] ) ) : '';
 		$limit      = isset( $_POST['activation_limit'] ) ? sanitize_text_field( wp_unslash( $_POST['activation_limit'] ) ) : '';
 		$mode       = isset( $_POST['expiry_mode'] ) ? sanitize_key( wp_unslash( $_POST['expiry_mode'] ) ) : 'lifetime';
@@ -256,7 +256,7 @@ final class LicenseActions {
 	private function changes_from_request(): LicenseChanges {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified in handle().
 		$limit = isset( $_POST['activation_limit'] ) ? sanitize_text_field( wp_unslash( $_POST['activation_limit'] ) ) : '';
-		$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+		$email = self::posted_email();
 		$mode  = isset( $_POST['expiry_mode'] ) ? sanitize_key( wp_unslash( $_POST['expiry_mode'] ) ) : '';
 		$date  = isset( $_POST['expiry_date'] ) ? sanitize_text_field( wp_unslash( $_POST['expiry_date'] ) ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
@@ -287,6 +287,31 @@ final class LicenseActions {
 		}
 
 		return $changes;
+	}
+
+	/**
+	 * The email address from the form: empty if the field was left empty, and an error if something was typed that is not an
+	 * address. (sanitize_email() turns such text into an empty string, which would read as "nothing to change", so the person
+	 * would be told it was saved when it was not.)
+	 *
+	 * @return string
+	 * @throws LicenseException If an email was typed but is not valid.
+	 */
+	private static function posted_email(): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified in handle().
+		$typed = isset( $_POST['email'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['email'] ) ) ) : '';
+
+		if ( '' === $typed ) {
+			return '';
+		}
+
+		$email = sanitize_email( $typed );
+
+		if ( '' === $email || ! is_email( $email ) ) {
+			throw new LicenseException( 'invalid_email', 'Bad email.' );
+		}
+
+		return $email;
 	}
 
 	/**
