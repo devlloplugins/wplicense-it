@@ -63,3 +63,23 @@ duplicated. It is refused after the switch-over.
 Before the switch-over: deactivate 2.0 and reinstall 1.0.2. Nothing in the 1.x tables was changed.
 After it: licenses issued or changed only in 2.0 (new sales, renewals, revocations, activations) are not
 copied back, so rolling back means losing those changes.
+
+## Removing the 1.x leftovers (planned for 2.1)
+
+2.0 keeps everything needed to migrate and to roll back (decision 22). Nothing here is done yet. When 2.1 is
+prepared, do these together, and only if the site has switched over (`wplit_db_version` 2.0.0 or newer):
+
+1. Delete `includes/wplicense-it-api.php` and the `require_once` for it in `Plugin::load_product_screens()`. Until
+   then it is loaded only on sites that have not switched over; after the switch-over the 2.0 `LegacyEndpoint`
+   answers the old `/api/wplicense-it-api/v1/` addresses from the 2.0 tables, so those addresses keep working.
+2. Decide what happens to a site that updates straight from 1.x to 2.1 without ever running 2.0: either 2.1 still
+   migrates it (keep `src/Migration/`), or 2.1 refuses to update and says to install 2.0 first. Pick one before
+   deleting `src/Migration/`.
+3. Drop the 1.x tables and the `legacy_id` / `legacy_billing` columns only through an explicit administrator
+   action (a button with a confirmation, like **Delete the stored Stripe keys**), never silently. Dropping them
+   ends rollback to 1.0.2.
+4. Update `uninstall.php` (it still drops the 1.x tables and options), `UpgradeNotice`, `LegacyShortcodes`, and the
+   readme's "old API addresses keep working" and `UPGRADING.md` sentences to match.
+5. Keep the old `/api/wplicense-it-api/v1/` addresses working for as long as customers' sites still run a client
+   that uses them. Removing the 2.0 `LegacyEndpoint` is a separate decision, not part of this one.
+
