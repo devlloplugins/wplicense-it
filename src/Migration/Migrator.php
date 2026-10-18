@@ -26,7 +26,7 @@ use Devllo\WPLicenseIt\Licenses\LicenseService;
 final class Migrator {
 
 	private const SAMPLE_SIZE   = 25;
-	private const VERIFY_PREFIX = 'Verify: ';
+	private const VERIFY_PREFIX = MigrationState::VERIFY_PREFIX;
 
 	/**
 	 * Converts the product meta, returns the number of products updated.
@@ -158,7 +158,7 @@ final class Migrator {
 
 					if ( array() !== $problems && ! $accept_errors ) {
 						foreach ( $problems as $problem ) {
-							$state->add_problem( self::VERIFY_PREFIX . $problem );
+							$state->add_summary( $problem );
 						}
 						$state->status = MigrationState::NEEDS_ATTENTION;
 						$this->store->save( $state );

@@ -68,6 +68,8 @@ function checksums() {
 	check( /License 5: its key is already used/.test( notice ) && /License 6: the license key is empty/.test( notice ) && /License 7: it has no product/.test( notice ), 'the notice lists the licenses it could not move' );
 	check( /License 8 has an old product API key/.test( notice ), 'the notice warns about the license with an old product key' );
 	check( /Migrated so far: 445 licenses, 11 orders/.test( notice ), 'the notice shows how many were moved' );
+	check( /Left behind so far: 3 licenses, 1 orders/.test( notice ), 'the notice says how many licenses and orders were left behind' );
+	check( /^Verify: 1\.x has 448 licenses but 445 were migrated/.test( await page.locator( '.notice-error li' ).first().innerText() ), 'the first line of the list is what verification found, not an early note' );
 	check( await page.locator( 'button:has-text("Run the migration now")' ).count() > 0 && await page.locator( 'button:has-text("Switch to 2.0 anyway")' ).count() > 0, 'both buttons are offered' );
 
 	// Until the switch, customers' licenses still work through the old URLs.

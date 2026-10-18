@@ -316,4 +316,79 @@ final class MigratorTest extends TestCase {
 		$this->assertTrue( $copy->finalized );
 		$this->assertSame( MigrationState::PENDING, MigrationState::from_array( 'garbage' )->status );
 	}
+
+	public function test_the_verification_summary_is_kept_when_the_problem_list_is_full(): void {
+		$state = new MigrationState();
+
+		for ( $i = 1; $i <= 80; $i++ ) {
+			$state->add_problem( "License {$i}: the license key is empty or longer than 64 characters." );
+		}
+
+		$this->assertCount( 50, $state->problems, 'single problems stay capped' );
+
+		$state->add_summary( '1.x has 22000 licenses but 20000 were migrated.' );
+
+		$this->assertCount( 51, $state->problems );
+		$this->assertSame( 'Verify: 1.x has 22000 licenses but 20000 were migrated.', $state->problems_to_show( 10 )[0] );
+	}
+
+	public function test_problems_are_shown_summary_first_then_errors_then_notes(): void {
+		$state = new MigrationState();
+		$state->add_problem( "Note: License 1: unknown status 'inactive', migrated as revoked." );
+		$state->add_problem( 'License 5: its key is already used by another license.' );
+		$state->add_summary( '1.x has 10 licenses but 9 were migrated.' );
+		$state->add_problem( 'Note: License 8 has an old product API key.' );
+
+		$this->assertSame(
+			array(
+				'Verify: 1.x has 10 licenses but 9 were migrated.',
+				'License 5: its key is already used by another license.',
+				"Note: License 1: unknown status 'inactive', migrated as revoked.",
+			),
+			$state->problems_to_show( 3 )
+		);
+	}
+
+	public function test_running_again_replaces_the_verification_lines_instead_of_adding_more(): void {
+		$this->seed( 2, 0 );
+		$this->source->add_license( 3, array( 'license_key' => '' ) );
+
+		$is_summary = static fn( string $p ): bool => 0 === strpos( $p, MigrationState::VERIFY_PREFIX );
+
+		$first  = array_values( array_filter( $this->migrator()->run()->problems, $is_summary ) );
+		$second = array_values( array_filter( $this->migrator()->run()->problems, $is_summary ) );
+
+		$this->assertNotSame( array(), $first );
+		$this->assertSame( $first, $second, 'a second run says the same, it does not pile up' );
+		$this->assertStringContainsString( '1.x has 3 licenses but 2 were migrated', $first[0] );
+	}
+
+	public function test_only_the_first_three_verification_lines_are_shown_so_reasons_stay_visible(): void {
+		$state = new MigrationState();
+		$state->add_problem( 'License 9: the license key is empty or longer than 64 characters.' );
+		$state->add_summary( '1.x has 100 licenses but 90 were migrated.' );
+
+		for ( $i = 1; $i <= 6; $i++ ) {
+			$state->add_summary( "License {$i} worked in 1.x but does not validate now (not_found)." );
+		}
+
+		$shown = $state->problems_to_show( 10 );
+
+		$this->assertCount( 4, $shown, 'three verification lines and the one reason' );
+		$this->assertSame( 'License 9: the license key is empty or longer than 64 characters.', $shown[3] );
+	}
+
+	public function test_many_notes_cannot_use_up_the_room_for_rows_that_were_left_behind(): void {
+		$state = new MigrationState();
+
+		for ( $i = 1; $i <= 200; $i++ ) {
+			$state->add_problem( "Note: License {$i}: unknown status 'inactive', migrated as revoked." );
+		}
+
+		$state->add_problem( 'License 500: the license key is empty or longer than 64 characters.' );
+
+		$this->assertContains( 'License 500: the license key is empty or longer than 64 characters.', $state->problems );
+		$this->assertCount( 11, $state->problems, 'ten notes and the one reason' );
+		$this->assertSame( 'License 500: the license key is empty or longer than 64 characters.', $state->problems_to_show( 3 )[0] );
+	}
 }

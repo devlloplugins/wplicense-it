@@ -16,6 +16,11 @@ tests/e2e/01-admin.cjs`, then `02`, `03`, `04`). They cover steps 2 to 9, 18, 23
 they were what found the problems fixed in the commits that added them. They need no WooCommerce, so steps 10 to 17,
 19, 20 and 32 to 34 still need a site with WooCommerce.
 
+`tests/e2e/11-migration.cjs` seeds a 1.x database and runs the migration end to end. `php tests/env/migration-load.php`
+measures it on a big one (100,000 licenses by default, which takes about two minutes; add a second argument for the
+PHP memory limit, a third for the number of rows that cannot be migrated, and `stop` to leave it waiting for the
+owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
+
 The plugin that updates itself must run on a different site from the license server. WordPress puts a site into
 maintenance mode while it updates a plugin, and a license server in maintenance mode cannot hand out the download:
 the update then fails with "The license server had a problem".

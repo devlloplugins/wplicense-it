@@ -160,9 +160,23 @@ final class MigrationRunner {
 				);
 				?>
 			</p>
+			<?php if ( $state->licenses_skipped > 0 || $state->orders_skipped > 0 ) : ?>
+				<p>
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: 1: number of licenses, 2: number of orders. */
+							__( 'Left behind so far: %1$d licenses, %2$d orders.', 'wplicense-it' ),
+							$state->licenses_skipped,
+							$state->orders_skipped
+						)
+					);
+					?>
+				</p>
+			<?php endif; ?>
 			<?php if ( array() !== $state->problems ) : ?>
 				<ul style="list-style: disc; margin-left: 2em;">
-					<?php foreach ( array_slice( $state->problems, 0, 10 ) as $problem ) : ?>
+					<?php foreach ( $state->problems_to_show( 10 ) as $problem ) : ?>
 						<li><?php echo esc_html( $problem ); ?></li>
 					<?php endforeach; ?>
 				</ul>

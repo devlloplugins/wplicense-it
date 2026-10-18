@@ -30,10 +30,23 @@ Customers' licenses work throughout. Until the switch-over the 1.x code answers 
 - A license whose 1.x product API key no longer matches the product's current key is reported as a warning:
   1.x clients using the old key will stop validating after the switch.
 
+## How long it takes on a big site
+
+Measured with `tests/env/migration-load.php` on a test machine (4 cores, MariaDB on the same machine, PHP limited to
+64 MB): **100,000 licenses and 25,000 orders migrated in 5 cron runs, about 100 seconds of work, about 3 minutes with
+the 10 second gap cron leaves between runs.** Every row arrived, nothing was copied twice, and the 1.x tables were
+unchanged. Each run stops after 20 seconds, so it fits a host with a 30 second PHP time limit. The migration needs
+about 2 MB on top of what WordPress and the other plugins already use, and that did not grow from run to run. A slower
+host will take longer (the job is not faster than the database), but it does not need more memory.
+
+Until the switch-over the old API URLs read the 1.x table, which has no index: with 100,000 licenses one lookup took
+about 17 ms more than a page that does not touch licenses. After the switch they use the indexed 2.0 table.
+
 ## If something goes wrong
 
 Rows that cannot be migrated (empty key, no product, duplicate key) are skipped and listed in the admin
-notice. The switch-over then waits for you. Fix the data and click **Run the migration now**, or click
+notice, which also says how many licenses and orders were left behind, what verification found, and then the first
+reasons (up to 50 are kept, plus up to 10 informational notes). The switch-over then waits for you. Fix the data and click **Run the migration now**, or click
 **Switch to 2.0 anyway** to leave those rows behind.
 
 ## WP-CLI
