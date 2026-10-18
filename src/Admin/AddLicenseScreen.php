@@ -56,17 +56,17 @@ final class AddLicenseScreen {
 
 		echo '<tr><th scope="row"><label for="wplit-limit">' . esc_html__( 'Sites per license', 'wplicense-it' ) . '</label></th><td><input type="number" min="0" step="1" id="wplit-limit" name="activation_limit" class="small-text" placeholder="1"> <span class="description">' . esc_html__( 'Empty uses the product default (1). 0 is unlimited.', 'wplicense-it' ) . '</span></td></tr>';
 
-		echo '<tr><th scope="row">' . esc_html__( 'Expiry', 'wplicense-it' ) . '</th><td>';
+		echo '<tr><th scope="row">' . esc_html__( 'Expiry', 'wplicense-it' ) . '</th><td><fieldset><legend class="screen-reader-text">' . esc_html__( 'Expiry', 'wplicense-it' ) . '</legend>';
 		echo '<label><input type="radio" name="expiry_mode" value="lifetime" checked> ' . esc_html__( 'Never expires', 'wplicense-it' ) . '</label><br>';
-		echo '<label><input type="radio" name="expiry_mode" value="period"> ' . esc_html__( 'Expires after', 'wplicense-it' ) . ' <select name="period">';
+		echo '<label><input type="radio" name="expiry_mode" value="period"> ' . esc_html__( 'Expires after', 'wplicense-it' ) . ' <select name="period" aria-label="' . esc_attr__( 'How long the license lasts', 'wplicense-it' ) . '">';
 		foreach ( ProductFields::periods() as $value => $label ) {
 			if ( '' !== $value && 'lifetime' !== $value ) {
 				echo '<option value="' . esc_attr( $value ) . '">' . esc_html( $label ) . '</option>';
 			}
 		}
 		echo '</select></label><br>';
-		echo '<label><input type="radio" name="expiry_mode" value="date"> ' . esc_html__( 'Valid through', 'wplicense-it' ) . ' <input type="date" name="expiry_date"></label>';
-		echo '</td></tr>';
+		echo '<label><input type="radio" name="expiry_mode" value="date"> ' . esc_html__( 'Valid through', 'wplicense-it' ) . ' <input type="date" name="expiry_date" aria-label="' . esc_attr__( 'Date the license is valid through', 'wplicense-it' ) . '"></label>';
+		echo '</fieldset></td></tr>';
 
 		echo '<tr><th scope="row">' . esc_html__( 'Email', 'wplicense-it' ) . '</th><td><label><input type="checkbox" name="send_email" value="1"> ' . esc_html__( 'Email the license key to the customer', 'wplicense-it' ) . '</label></td></tr>';
 

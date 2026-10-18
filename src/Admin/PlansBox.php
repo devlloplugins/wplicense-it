@@ -140,13 +140,16 @@ final class PlansBox {
 	 */
 	private function render_row( int $software_id, int $index, Plan $plan, string $currency ): void {
 		$field = self::POST_FIELD . '[' . $index . ']';
+		// Each field is named for the row it is in, so a screen reader says "Plan 2: Price" and not just "edit text".
+		/* translators: 1: row number, 2: column name such as Price. */
+		$label = static fn( string $column ): string => sprintf( __( 'Plan %1$d: %2$s', 'wplicense-it' ), $index + 1, $column );
 
 		echo '<tr>';
 		echo '<td><input type="hidden" name="' . esc_attr( $field ) . '[id]" value="' . esc_attr( $plan->id ) . '">';
-		echo '<input type="text" style="width:100%;min-width:9em" maxlength="' . esc_attr( (string) PlanInput::MAX_NAME ) . '" name="' . esc_attr( $field ) . '[name]" value="' . esc_attr( $plan->name ) . '" placeholder="' . esc_attr__( 'For example: 5 sites', 'wplicense-it' ) . '"></td>';
-		echo '<td><input type="text" inputmode="decimal" size="8" name="' . esc_attr( $field ) . '[price]" value="' . esc_attr( $plan->price ) . '"></td>';
-		echo '<td><input type="number" min="0" max="' . esc_attr( (string) PlanInput::MAX_SITES ) . '" style="width:6em" name="' . esc_attr( $field ) . '[sites]" value="' . esc_attr( $plan->sites < 0 ? '' : (string) $plan->sites ) . '"></td>';
-		echo '<td><select name="' . esc_attr( $field ) . '[period]">';
+		echo '<input type="text" aria-label="' . esc_attr( $label( __( 'Name', 'wplicense-it' ) ) ) . '" style="width:100%;min-width:9em" maxlength="' . esc_attr( (string) PlanInput::MAX_NAME ) . '" name="' . esc_attr( $field ) . '[name]" value="' . esc_attr( $plan->name ) . '" placeholder="' . esc_attr__( 'For example: 5 sites', 'wplicense-it' ) . '"></td>';
+		echo '<td><input type="text" aria-label="' . esc_attr( $label( __( 'Price', 'wplicense-it' ) ) ) . '" inputmode="decimal" size="8" name="' . esc_attr( $field ) . '[price]" value="' . esc_attr( $plan->price ) . '"></td>';
+		echo '<td><input type="number" aria-label="' . esc_attr( $label( __( 'Sites (0 = unlimited)', 'wplicense-it' ) ) ) . '" min="0" max="' . esc_attr( (string) PlanInput::MAX_SITES ) . '" style="width:6em" name="' . esc_attr( $field ) . '[sites]" value="' . esc_attr( $plan->sites < 0 ? '' : (string) $plan->sites ) . '"></td>';
+		echo '<td><select aria-label="' . esc_attr( $label( __( 'Lasts', 'wplicense-it' ) ) ) . '" name="' . esc_attr( $field ) . '[period]">';
 		foreach ( self::period_labels() as $value => $label ) {
 			echo '<option value="' . esc_attr( $value ) . '"' . selected( $plan->period, $value, false ) . '>' . esc_html( $label ) . '</option>';
 		}

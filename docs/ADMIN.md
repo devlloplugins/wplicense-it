@@ -132,6 +132,15 @@ A daily WP-Cron job marks licenses past their expiry as expired (in batches, so 
 a request) and deletes history older than the retention setting. Licenses are checked against their expiry date
 every time they are used, so this only keeps the stored status and the list accurate.
 
+## Accessibility
+
+The screens are scanned with axe-core in the tests (`tests/e2e/14-accessibility.cjs`), and the plugin's own markup has no
+findings: every form control has a name (the checkbox of each license row says which license it selects, plan fields say
+"Plan 2: Price"), groups of radio buttons have a legend, the status colors and links meet the contrast ratio, the product
+tab bar is a named navigation that marks the current section, and success and error messages are announced to screen
+readers. Everything can be used with the keyboard alone. Revoking a license asks first, from the license screen, from the
+list, and in bulk.
+
 ## On a multisite network
 
 Every site of a network is its own license server: it has its own products, licenses, settings, package files and

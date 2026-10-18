@@ -87,7 +87,7 @@ final class LicensesScreen {
 		echo '<a href="' . esc_url( Urls::add() ) . '" class="page-title-action">' . esc_html__( 'Add license', 'wplicense-it' ) . '</a><hr class="wp-header-end">';
 
 		// The table lays its columns out at equal widths, which wrapped every license key onto three lines. Give the key room.
-		echo '<style>.wp-list-table .column-license{width:29%}.wp-list-table .column-product{width:12%}.wp-list-table .column-email{width:15%}.wp-list-table .column-status{width:9%}.wp-list-table .column-sites{width:6%}.wp-list-table .column-expires,.wp-list-table .column-created{width:13%}.wp-list-table .column-license code{word-break:break-all}@media screen and (max-width:782px){.wp-list-table .column-license{width:auto}}</style>';
+		echo '<style>.wp-list-table .column-license{width:29%}.wp-list-table .column-product{width:12%}.wp-list-table .column-email{width:15%}.wp-list-table .column-status{width:9%}.wp-list-table .column-sites{width:6%}.wp-list-table .column-expires,.wp-list-table .column-created{width:13%}.wp-list-table .column-license code{word-break:break-all;background:transparent;padding:0}@media screen and (max-width:782px){.wp-list-table .column-license{width:auto}}</style>';
 
 		Notices::render();
 		$table->views();
@@ -100,10 +100,35 @@ final class LicensesScreen {
 		$table->search_box( __( 'Search key or email', 'wplicense-it' ), 'wplit-license' );
 		echo '</form>';
 
-		echo '<form method="post" action="' . esc_url( add_query_arg( $this->current_view_args(), Urls::list() ) ) . '">';
+		echo '<form method="post" id="wplit-licenses-form" action="' . esc_url( add_query_arg( $this->current_view_args(), Urls::list() ) ) . '">';
 		wp_nonce_field( 'bulk-licenses' );
 		$table->display();
 		echo '</form></div>';
+
+		// Revoking many licenses with one click on Apply asks first, as revoking one does.
+		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript -- A few lines that only serve this screen.
+		?>
+		<script>
+		( function () {
+			var form = document.getElementById( 'wplit-licenses-form' );
+			if ( ! form ) { return; }
+			form.addEventListener( 'submit', function ( event ) {
+				if ( event.submitter && 'filter_action' === event.submitter.name ) { return; }
+				var action = form.querySelector( '[name="action"]' );
+				var value = action ? action.value : '-1';
+				if ( '-1' === value ) {
+					var second = form.querySelector( '[name="action2"]' );
+					value = second ? second.value : '-1';
+				}
+				var count = form.querySelectorAll( 'input[name="license[]"]:checked' ).length;
+				if ( 'revoke' === value && count > 0 && ! window.confirm( <?php echo wp_json_encode( __( 'Revoke the selected licenses? They stop working immediately.', 'wplicense-it' ) ); ?> ) ) {
+					event.preventDefault();
+				}
+			} );
+		}() );
+		</script>
+		<?php
+		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
 	}
 
 	/**

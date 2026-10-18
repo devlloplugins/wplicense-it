@@ -136,11 +136,11 @@ final class LicenseView {
 
 		echo '<tr><th scope="row"><label for="wplit-limit">' . esc_html__( 'Sites per license', 'wplicense-it' ) . '</label></th><td><input type="number" min="0" step="1" id="wplit-limit" name="activation_limit" class="small-text" value="' . esc_attr( (string) $license->activation_limit ) . '"> <span class="description">' . esc_html__( '0 is unlimited. Lowering it does not deactivate sites that are already active.', 'wplicense-it' ) . '</span></td></tr>';
 
-		echo '<tr><th scope="row">' . esc_html__( 'Expiry', 'wplicense-it' ) . '</th><td>';
+		echo '<tr><th scope="row">' . esc_html__( 'Expiry', 'wplicense-it' ) . '</th><td><fieldset><legend class="screen-reader-text">' . esc_html__( 'Expiry', 'wplicense-it' ) . '</legend>';
 		echo '<label><input type="radio" name="expiry_mode" value="keep" checked> ' . esc_html__( 'Keep as it is', 'wplicense-it' ) . '</label><br>';
 		echo '<label><input type="radio" name="expiry_mode" value="lifetime"> ' . esc_html__( 'Never expires', 'wplicense-it' ) . '</label><br>';
-		echo '<label><input type="radio" name="expiry_mode" value="date"> ' . esc_html__( 'Valid through', 'wplicense-it' ) . ' <input type="date" name="expiry_date" value="' . esc_attr( $date ) . '"></label>';
-		echo '</td></tr></tbody></table>';
+		echo '<label><input type="radio" name="expiry_mode" value="date"> ' . esc_html__( 'Valid through', 'wplicense-it' ) . ' <input type="date" name="expiry_date" aria-label="' . esc_attr__( 'Date the license is valid through', 'wplicense-it' ) . '" value="' . esc_attr( $date ) . '"></label>';
+		echo '</fieldset></td></tr></tbody></table>';
 
 		submit_button( __( 'Save changes', 'wplicense-it' ) );
 		echo '</form>';

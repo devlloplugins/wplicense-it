@@ -116,7 +116,7 @@ final class ProductScreen {
 
 		echo '<nav class="nav-tab-wrapper" id="wplit-tabs" style="display:none;margin:12px 0" aria-label="' . esc_attr__( 'Product sections', 'wplicense-it' ) . '" data-product="' . esc_attr( (string) $post->ID ) . '" data-tabs="' . esc_attr( (string) wp_json_encode( self::TABS ) ) . '">';
 		foreach ( self::tab_labels() as $id => $label ) {
-			echo '<a href="#wplit-' . esc_attr( $id ) . '" class="nav-tab" role="tab" aria-selected="false" data-tab="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</a>';
+			echo '<a href="#wplit-' . esc_attr( $id ) . '" class="nav-tab" data-tab="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</a>';
 		}
 		echo '</nav>';
 
@@ -144,7 +144,7 @@ final class ProductScreen {
 					} );
 					Array.prototype.forEach.call( links, function ( link ) {
 						var on = link.getAttribute( 'data-tab' ) === name;
-						link.setAttribute( 'aria-selected', on ? 'true' : 'false' );
+						if ( on ) { link.setAttribute( 'aria-current', 'true' ); } else { link.removeAttribute( 'aria-current' ); }
 						link.className = 'nav-tab' + ( on ? ' nav-tab-active' : '' );
 					} );
 					try { window.sessionStorage.setItem( key, name ); } catch ( e ) { /* Storage may be blocked. */ }

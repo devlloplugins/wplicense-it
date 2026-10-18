@@ -173,7 +173,7 @@ final class LicensesTable extends WP_List_Table {
 			)
 		);
 
-		echo '<div class="alignleft actions"><select name="product_id"><option value="0">' . esc_html__( 'All products', 'wplicense-it' ) . '</option>';
+		echo '<div class="alignleft actions"><label class="screen-reader-text" for="wplit-filter-product">' . esc_html__( 'Filter by product', 'wplicense-it' ) . '</label><select name="product_id" id="wplit-filter-product"><option value="0">' . esc_html__( 'All products', 'wplicense-it' ) . '</option>';
 		foreach ( $products as $product ) {
 			printf( '<option value="%d"%s>%s</option>', (int) $product->ID, selected( $selected, $product->ID, false ), esc_html( $product->post_title ) );
 		}
@@ -188,7 +188,13 @@ final class LicensesTable extends WP_List_Table {
 	 * @param License $item License.
 	 */
 	protected function column_cb( $item ): string {
-		return sprintf( '<input type="checkbox" name="license[]" value="%d" />', (int) $item->id );
+		// The same markup WordPress's own tables use: a label only screen readers see, so each box says which license it selects.
+		return sprintf(
+			'<label class="screen-reader-text" for="cb-select-%1$d">%2$s</label><input id="cb-select-%1$d" type="checkbox" name="license[]" value="%1$d" />',
+			(int) $item->id,
+			/* translators: %s: license key. */
+			esc_html( sprintf( __( 'Select %s', 'wplicense-it' ), $item->license_key ) )
+		);
 	}
 
 	/**
@@ -204,7 +210,13 @@ final class LicensesTable extends WP_List_Table {
 		if ( in_array( $item->status, Status::terminal(), true ) ) {
 			$actions['reinstate'] = sprintf( '<a href="%s">%s</a>', esc_url( Urls::action( 'reinstate', $item->id ) ), esc_html__( 'Reinstate', 'wplicense-it' ) );
 		} else {
-			$actions['revoke'] = sprintf( '<a href="%s" class="submitdelete">%s</a>', esc_url( Urls::action( 'revoke', $item->id ) ), esc_html__( 'Revoke', 'wplicense-it' ) );
+			// Asks first, like the Revoke button on the license screen: one slip of the mouse should not end a customer's license.
+			$actions['revoke'] = sprintf(
+				'<a href="%1$s" class="submitdelete" onclick="return confirm(\'%3$s\');">%2$s</a>',
+				esc_url( Urls::action( 'revoke', $item->id ) ),
+				esc_html__( 'Revoke', 'wplicense-it' ),
+				esc_js( __( 'Revoke this license? It stops working immediately.', 'wplicense-it' ) )
+			);
 		}
 
 		return sprintf( '<strong><a class="row-title" href="%s"><code>%s</code></a></strong>', esc_url( Urls::view( $item->id ) ), esc_html( $item->license_key ) ) . $this->row_actions( $actions );

@@ -121,7 +121,7 @@ final class ConnectBox {
 		$name   = '' !== $name ? $name : $post->post_title;
 		$slug   = (string) get_post_meta( $post->ID, 'wplit_package_folder', true );
 
-		echo '<h4 style="margin-bottom:4px">' . esc_html__( 'Before you sell', 'wplicense-it' ) . '</h4>';
+		echo '<h3 style="margin-bottom:4px;font-size:14px">' . esc_html__( 'Before you sell', 'wplicense-it' ) . '</h3>';
 		echo '<ul style="margin:0 0 12px">';
 		foreach ( Checklist::items( $this->facts( $post->ID, $server ) ) as $item ) {
 			printf(
@@ -135,7 +135,7 @@ final class ConnectBox {
 		}
 		echo '</ul>';
 
-		echo '<h4 style="margin-bottom:4px">' . esc_html__( 'Put this in your plugin or theme', 'wplicense-it' ) . '</h4>';
+		echo '<h3 style="margin-bottom:4px;font-size:14px">' . esc_html__( 'Put this in your plugin or theme', 'wplicense-it' ) . '</h3>';
 		echo '<ol style="margin-top:0">';
 		echo '<li>' . sprintf(
 			/* translators: %s: link text "Download the SDK". */
@@ -146,7 +146,8 @@ final class ConnectBox {
 		echo '</ol>';
 
 		printf(
-			'<textarea id="wplit-connect-code" class="large-text code" rows="14" readonly style="font-family:monospace">%s</textarea>',
+			'<label class="screen-reader-text" for="wplit-connect-code">%1$s</label><textarea id="wplit-connect-code" class="large-text code" rows="14" readonly style="font-family:monospace">%2$s</textarea>',
+			esc_html__( 'Code to paste into your plugin or theme', 'wplicense-it' ),
 			esc_textarea( Snippet::generate( $type, $name, $slug, $server, $post->ID ) )
 		);
 		echo '<p><button type="button" class="button" id="wplit-connect-copy">' . esc_html__( 'Copy the code', 'wplicense-it' ) . '</button> <span id="wplit-connect-copied" role="status" class="description"></span></p>';

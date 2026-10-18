@@ -256,7 +256,7 @@ async function go( page, url ) {
 	check( 200 === await go( page, BASE + '/wp-admin/post.php?post=' + seed.alpha + '&action=edit' ), 'a product opens' );
 	for ( const tab of [ 'software', 'plans', 'releases', 'connect' ] ) {
 		await page.click( '#wplit-tabs [data-tab="' + tab + '"]' );
-		check( await page.locator( '#wplit-tabs [data-tab="' + tab + '"]' ).getAttribute( 'aria-selected' ).catch( () => 'true' ) !== 'false', 'the ' + tab + ' tab opens' );
+		check( 'true' === await page.locator( '#wplit-tabs [data-tab="' + tab + '"]' ).getAttribute( 'aria-current' ), 'the ' + tab + ' tab opens and is marked as the current one' );
 	}
 
 	// Who may open these screens.

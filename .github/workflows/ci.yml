@@ -78,7 +78,7 @@ jobs:
           node-version: '22'
       - name: Install Playwright and Chromium
         run: |
-          npm install --no-save --prefix "$RUNNER_TEMP/pw" playwright@1.49.1
+          npm install --no-save --prefix "$RUNNER_TEMP/pw" playwright@1.49.1 axe-core@4.10.2
           "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
       - name: Tab bar test (no WordPress needed)
         run: node tests/js/product-tabs.cjs

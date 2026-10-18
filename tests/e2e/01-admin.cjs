@@ -71,7 +71,7 @@ const { BASE, check, finish, login, logSize, shot, start } = require( './lib.cjs
 	check( ! /is not available yet/.test( await page.locator( '#wplit_connect' ).innerText() ), 'the Connect checklist no longer says the test button is missing' );
 
 	await page.reload();
-	check( await page.locator( '#wplit-tabs [data-tab="connect"][aria-selected="true"]' ).count() === 1, 'the tab you were on is remembered after a reload' );
+	check( await page.locator( '#wplit-tabs [data-tab="connect"][aria-current="true"]' ).count() === 1, 'the tab you were on is remembered after a reload' );
 
 	await finish( env, logStart );
 } )();

@@ -65,13 +65,13 @@ final class Notices {
 
 		if ( 'bulk' === $ok ) {
 			/* translators: %d: number of licenses. */
-			printf( '<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html( sprintf( _n( '%d license updated.', '%d licenses updated.', $count, 'wplicense-it' ), $count ) ) );
+			printf( '<div class="notice notice-success is-dismissible" role="status"><p>%s</p></div>', esc_html( sprintf( _n( '%d license updated.', '%d licenses updated.', $count, 'wplicense-it' ), $count ) ) );
 		} elseif ( isset( $messages[ $ok ] ) ) {
-			printf( '<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html( $messages[ $ok ] ) );
+			printf( '<div class="notice notice-success is-dismissible" role="status"><p>%s</p></div>', esc_html( $messages[ $ok ] ) );
 		}
 
 		if ( '' !== $error ) {
-			printf( '<div class="notice notice-error"><p>%s</p></div>', esc_html( $errors[ $error ] ?? __( 'Something went wrong.', 'wplicense-it' ) ) );
+			printf( '<div class="notice notice-error" role="alert"><p>%s</p></div>', esc_html( $errors[ $error ] ?? __( 'Something went wrong.', 'wplicense-it' ) ) );
 		}
 	}
 }

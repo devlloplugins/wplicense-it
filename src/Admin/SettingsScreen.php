@@ -84,14 +84,14 @@ final class SettingsScreen {
 		);
 
 		add_settings_section( 'wplit_sales', __( 'Selling with WooCommerce', 'wplicense-it' ), '__return_false', self::PAGE );
-		add_settings_field( WooAdapter::OPTION_ISSUE_ON, __( 'Issue licenses when an order is', 'wplicense-it' ), array( $this, 'field_issue_on' ), self::PAGE, 'wplit_sales' );
+		add_settings_field( WooAdapter::OPTION_ISSUE_ON, __( 'Issue licenses when an order is', 'wplicense-it' ), array( $this, 'field_issue_on' ), self::PAGE, 'wplit_sales', array( 'label_for' => WooAdapter::OPTION_ISSUE_ON ) );
 
 		add_settings_section( 'wplit_api', __( 'API protection', 'wplicense-it' ), array( $this, 'section_api' ), self::PAGE );
-		add_settings_field( self::OPTION_FAILURES, __( 'Failed lookups allowed', 'wplicense-it' ), array( $this, 'field_failures' ), self::PAGE, 'wplit_api' );
-		add_settings_field( self::OPTION_WINDOW, __( 'Time window (minutes)', 'wplicense-it' ), array( $this, 'field_window' ), self::PAGE, 'wplit_api' );
+		add_settings_field( self::OPTION_FAILURES, __( 'Failed lookups allowed', 'wplicense-it' ), array( $this, 'field_failures' ), self::PAGE, 'wplit_api', array( 'label_for' => self::OPTION_FAILURES ) );
+		add_settings_field( self::OPTION_WINDOW, __( 'Time window (minutes)', 'wplicense-it' ), array( $this, 'field_window' ), self::PAGE, 'wplit_api', array( 'label_for' => self::OPTION_WINDOW ) );
 
 		add_settings_section( 'wplit_data', __( 'Data', 'wplicense-it' ), '__return_false', self::PAGE );
-		add_settings_field( self::OPTION_RETENTION, __( 'Keep license history for (years)', 'wplicense-it' ), array( $this, 'field_retention' ), self::PAGE, 'wplit_data' );
+		add_settings_field( self::OPTION_RETENTION, __( 'Keep license history for (years)', 'wplicense-it' ), array( $this, 'field_retention' ), self::PAGE, 'wplit_data', array( 'label_for' => self::OPTION_RETENTION ) );
 		add_settings_field( 'wplit_keep_legacy_billing', __( 'Billing details from 1.x orders', 'wplicense-it' ), array( $this, 'field_billing' ), self::PAGE, 'wplit_data' );
 	}
 
@@ -146,7 +146,7 @@ final class SettingsScreen {
 			echo '<p class="description">' . esc_html__( 'WooCommerce is not active. Install it to sell licenses from your store.', 'wplicense-it' ) . '</p>';
 		}
 
-		echo '<select name="' . esc_attr( WooAdapter::OPTION_ISSUE_ON ) . '">';
+		echo '<select id="' . esc_attr( WooAdapter::OPTION_ISSUE_ON ) . '" name="' . esc_attr( WooAdapter::OPTION_ISSUE_ON ) . '">';
 		echo '<option value="completed"' . selected( $value, 'completed', false ) . '>' . esc_html__( 'Completed (after you or WooCommerce complete it)', 'wplicense-it' ) . '</option>';
 		echo '<option value="processing"' . selected( $value, 'processing', false ) . '>' . esc_html__( 'Processing (as soon as payment is received)', 'wplicense-it' ) . '</option>';
 		echo '</select>';
@@ -165,21 +165,21 @@ final class SettingsScreen {
 	 * Failures field.
 	 */
 	public function field_failures(): void {
-		echo '<input type="number" min="1" max="1000" class="small-text" name="' . esc_attr( self::OPTION_FAILURES ) . '" value="' . esc_attr( (string) get_option( self::OPTION_FAILURES, 20 ) ) . '">';
+		echo '<input type="number" min="1" max="1000" class="small-text" id="' . esc_attr( self::OPTION_FAILURES ) . '" name="' . esc_attr( self::OPTION_FAILURES ) . '" value="' . esc_attr( (string) get_option( self::OPTION_FAILURES, 20 ) ) . '">';
 	}
 
 	/**
 	 * Window field.
 	 */
 	public function field_window(): void {
-		echo '<input type="number" min="1" max="1440" class="small-text" name="' . esc_attr( self::OPTION_WINDOW ) . '" value="' . esc_attr( (string) get_option( self::OPTION_WINDOW, 15 ) ) . '">';
+		echo '<input type="number" min="1" max="1440" class="small-text" id="' . esc_attr( self::OPTION_WINDOW ) . '" name="' . esc_attr( self::OPTION_WINDOW ) . '" value="' . esc_attr( (string) get_option( self::OPTION_WINDOW, 15 ) ) . '">';
 	}
 
 	/**
 	 * Retention field.
 	 */
 	public function field_retention(): void {
-		echo '<input type="number" min="0" max="20" class="small-text" name="' . esc_attr( self::OPTION_RETENTION ) . '" value="' . esc_attr( (string) get_option( self::OPTION_RETENTION, 2 ) ) . '"> <span class="description">' . esc_html__( '0 keeps it forever.', 'wplicense-it' ) . '</span>';
+		echo '<input type="number" min="0" max="20" class="small-text" id="' . esc_attr( self::OPTION_RETENTION ) . '" name="' . esc_attr( self::OPTION_RETENTION ) . '" value="' . esc_attr( (string) get_option( self::OPTION_RETENTION, 2 ) ) . '"> <span class="description">' . esc_html__( '0 keeps it forever.', 'wplicense-it' ) . '</span>';
 	}
 
 	/**

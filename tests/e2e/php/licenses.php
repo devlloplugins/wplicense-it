@@ -40,6 +40,7 @@ $product = static function ( string $title ): int {
 			'post_type'   => 'wplit_product',
 			'post_status' => 'publish',
 			'post_title'  => $title,
+			'post_author' => 1,
 		)
 	);
 };

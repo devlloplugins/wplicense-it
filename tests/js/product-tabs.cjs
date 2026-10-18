@@ -26,8 +26,8 @@ async function expectTab( page, tab, label ) {
 	const expected = BOXES[ tab ].concat( ALWAYS ).sort();
 	const shown = await visibleIds( page );
 	check( JSON.stringify( shown ) === JSON.stringify( expected ), label + ': expected ' + expected + ' got ' + shown );
-	const selected = await page.evaluate( () => Array.from( document.querySelectorAll( '[data-tab]' ) ).filter( ( a ) => a.getAttribute( 'aria-selected' ) === 'true' ).map( ( a ) => a.dataset.tab ) );
-	check( JSON.stringify( selected ) === JSON.stringify( [ tab ] ), label + ': aria-selected is ' + selected );
+	const selected = await page.evaluate( () => Array.from( document.querySelectorAll( '[data-tab]' ) ).filter( ( a ) => a.getAttribute( 'aria-current' ) === 'true' ).map( ( a ) => a.dataset.tab ) );
+	check( JSON.stringify( selected ) === JSON.stringify( [ tab ] ), label + ': aria-current is ' + selected );
 	const active = await page.evaluate( () => Array.from( document.querySelectorAll( '.nav-tab-active' ) ).map( ( a ) => a.dataset.tab ) );
 	check( JSON.stringify( active ) === JSON.stringify( [ tab ] ), label + ': nav-tab-active is ' + active );
 }

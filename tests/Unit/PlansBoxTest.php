@@ -242,7 +242,7 @@ final class PlansBoxTest extends TestCase {
 		foreach ( $inputs as $input ) {
 			$rows[ (int) $input[1] ][ $input[2] ] = html_entity_decode( $input[3] );
 		}
-		preg_match_all( '/<select name="wplit_plans\[(\d+)\]\[period\]">(.*?)<\/select>/s', $html, $selects, PREG_SET_ORDER );
+		preg_match_all( '/<select[^>]*name="wplit_plans\[(\d+)\]\[period\]"[^>]*>(.*?)<\/select>/s', $html, $selects, PREG_SET_ORDER );
 		foreach ( $selects as $select ) {
 			preg_match( '/<option value="([^"]*)" selected="selected"/', $select[2], $chosen );
 			$rows[ (int) $select[1] ]['period'] = $chosen[1] ?? '';

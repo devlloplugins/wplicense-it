@@ -30,6 +30,11 @@ uninstalling. The network is not served over HTTP, because WordPress refuses to 
 `php tests/env/query-check.php` builds a million licenses and prints the time and EXPLAIN of the plugin's queries (see the
 last section of `docs/SCHEMA.md`). It empties the test site's licenses when it is done.
 
+`tests/e2e/14-accessibility.cjs` scans each admin screen and each product tab with axe-core (WCAG 2.1 A and AA) and checks
+by hand what a scan cannot judge: the controls reached and used with the keyboard alone, a visible keyboard focus, one main
+heading per screen, and messages that announce themselves. It needs `axe-core` next to Playwright (`npm install -g axe-core`
+locally; CI installs it with Playwright).
+
 The plugin that updates itself must run on a different site from the license server. WordPress puts a site into
 maintenance mode while it updates a plugin, and a license server in maintenance mode cannot hand out the download:
 the update then fails with "The license server had a problem".
