@@ -111,7 +111,10 @@ SEED="$(php -d memory_limit=512M -r '
 	$zip->close();
 	update_post_meta( $id, "file_dir_path", $rel );
 	update_post_meta( $id, "file_dir_location", $uploads["baseurl"] . "/" . $rel );
-	delete_option( "wplit_storage_version" );
+	// Any WordPress request that arrives now would move the package before it is fetched (the test servers of the
+	// browser tests are still running, and Action Scheduler and WP-Cron send requests to them), so the upgrade is
+	// only made due in the step that runs it.
+	update_option( \Devllo\WPLicenseIt\Files\ProtectedStorage::VERSION_OPTION, \Devllo\WPLicenseIt\Files\ProtectedStorage::VERSION );
 	echo wp_json_encode( array( "id" => $id, "rel" => $rel, "md5" => md5_file( $abs ) ) );
 ')"
 ID="$(php -r 'echo json_decode($argv[1])->id;' "$SEED")"
@@ -134,6 +137,7 @@ echo "== Run the upgrade step"
 php -d memory_limit=512M -r '
 	define( "WP_ADMIN", true );
 	require "'"$SITE"'/wp-load.php";
+	delete_option( \Devllo\WPLicenseIt\Files\ProtectedStorage::VERSION_OPTION );
 	\Devllo\WPLicenseIt\Files\ProtectedStorage::maybe_create();
 '
 
