@@ -110,6 +110,7 @@ final class Plugin {
 		// Updating a plugin does not run its activation hook, so repeat the safe parts here.
 		add_action( 'plugins_loaded', array( Installer::class, 'maybe_install' ) );
 		add_action( 'plugins_loaded', array( ProtectedStorage::class, 'maybe_create' ) );
+		add_filter( 'wpmu_drop_tables', array( Installer::class, 'drop_with_site' ), 10, 2 );
 
 		$this->load_product_screens();
 

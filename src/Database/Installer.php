@@ -44,4 +44,24 @@ final class Installer {
 
 		update_option( self::OPTION, Schema::VERSION );
 	}
+
+	/**
+	 * Adds this plugin's tables to the ones WordPress drops when a site of a network is deleted. Without it they stay behind,
+	 * with every license and customer email of that site.
+	 *
+	 * @param string[] $tables  Tables WordPress is about to drop.
+	 * @param int      $site_id ID of the site being deleted.
+	 * @return string[]
+	 */
+	public static function drop_with_site( array $tables, int $site_id ): array {
+		global $wpdb;
+
+		$prefix = $wpdb->get_blog_prefix( $site_id );
+
+		foreach ( Schema::table_names() as $name ) {
+			$tables[] = Schema::table( $prefix, $name );
+		}
+
+		return $tables;
+	}
 }

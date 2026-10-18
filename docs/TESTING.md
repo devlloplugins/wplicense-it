@@ -21,6 +21,12 @@ measures it on a big one (100,000 licenses by default, which takes about two min
 PHP memory limit, a third for the number of rows that cannot be migrated, and `stop` to leave it waiting for the
 owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 
+`tests/env/setup-multisite.sh` builds a multisite network (subdirectory type, three sites) in its own database, and
+`php tests/env/multisite-check.php` checks the plugin on it: network activation, per-site tables and files, who may
+manage licenses where, that one site's licenses are invisible to another, migrating a subsite, deleting a site, and
+uninstalling. The network is not served over HTTP, because WordPress refuses to run a network on a port other than 80 or
+443, so each site is loaded from the command line with its own host and path.
+
 The plugin that updates itself must run on a different site from the license server. WordPress puts a site into
 maintenance mode while it updates a plugin, and a license server in maintenance mode cannot hand out the download:
 the update then fails with "The license server had a problem".

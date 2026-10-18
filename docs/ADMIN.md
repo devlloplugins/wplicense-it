@@ -129,6 +129,19 @@ A daily WP-Cron job marks licenses past their expiry as expired (in batches, so 
 a request) and deletes history older than the retention setting. Licenses are checked against their expiry date
 every time they are used, so this only keeps the stored status and the list accurate.
 
+## On a multisite network
+
+Every site of a network is its own license server: it has its own products, licenses, settings, package files and
+tables (`wp_2_wplit_licenses` for site 2, and so on), and a license on one site is unknown to the others.
+
+- **Network activation** works. A site's tables are made the first time the site is opened, not when the plugin is
+  activated, so a site made later needs nothing.
+- **Who may manage licenses:** the administrators of each site (a super admin is not needed). The permission is given
+  the first time an administrator opens that site's admin, and only for that site.
+- **Deleting a site** deletes its plugin tables, with its licenses and customer emails, and its package folder.
+- **Deleting the plugin** from the network removes the tables and settings of every site.
+- **WooCommerce** has to be active on the site that sells; the SDK download and the product screen work without it.
+
 ## Security
 
 Every action is a nonce-protected request to `admin-post.php` that also checks the capability. Notices after an

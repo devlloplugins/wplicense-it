@@ -73,7 +73,9 @@ final class ConnectBox {
 	 * Sends the SDK as a zip.
 	 */
 	public function download_sdk(): void {
-		if ( ! current_user_can( 'edit_products' ) ) {
+		// The licensing capability, not edit_products: that one belongs to WooCommerce, so it is missing on a site without it
+		// (and on every subsite of a network where WooCommerce is not active).
+		if ( ! current_user_can( Capabilities::MANAGE ) ) {
 			wp_die( esc_html__( 'You are not allowed to do this.', 'wplicense-it' ), '', array( 'response' => 403 ) );
 		}
 

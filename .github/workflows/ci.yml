@@ -93,6 +93,10 @@ jobs:
           sudo -E env "PATH=$PATH" bash tests/env/setup-woocommerce.sh
       - name: Run the browser tests
         run: sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh
+      - name: Check the plugin on a multisite network
+        run: |
+          sudo -E env "PATH=$PATH" bash tests/env/setup-multisite.sh
+          sudo -E env "PATH=$PATH" php tests/env/multisite-check.php
       - name: Print the site logs
         if: failure()
         run: |
