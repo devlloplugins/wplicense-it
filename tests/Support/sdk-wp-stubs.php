@@ -30,3 +30,7 @@ if ( ! function_exists( 'trailingslashit' ) ) {
 	function esc_html( $text ) { return htmlspecialchars( (string) $text, ENT_QUOTES ); }
 	function download_url( $url ) { $GLOBALS['wplit_test_downloaded'][] = $url; return '/tmp/downloaded.zip'; }
 }
+
+if ( ! function_exists( 'current_user_can' ) ) {
+	function current_user_can( $capability ) { return $GLOBALS['wplit_test_can'] ?? true; }
+}

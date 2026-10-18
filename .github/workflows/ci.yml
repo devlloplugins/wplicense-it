@@ -47,14 +47,17 @@ jobs:
       - run: composer test
 
   sdk-php74:
-    name: Client SDK syntax (PHP 7.4)
+    name: Client SDK on PHP 7.4
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
+          tools: phpunit:9.6
       - run: find sdk -name '*.php' -print0 | xargs -0 -n1 php -l
+      # The SDK is embedded in other people's plugins that may still run on 7.4, so run its tests there, not only its syntax check.
+      - run: phpunit -c phpunit-sdk.xml.dist
 
   browser:
     name: Browser tests (real WordPress and WooCommerce)

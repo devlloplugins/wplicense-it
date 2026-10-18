@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!-- Only the client SDK tests, run on PHP 7.4 in CI: sellers embed the SDK in plugins that may still run there. -->
+<phpunit
+	bootstrap="tests/sdk-bootstrap.php"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	failOnWarning="true"
+>
+	<testsuites>
+		<testsuite name="sdk">
+			<file>tests/Unit/SdkClientTest.php</file>
+			<file>tests/Unit/SdkUpdaterTest.php</file>
+		</testsuite>
+	</testsuites>
+</phpunit>
