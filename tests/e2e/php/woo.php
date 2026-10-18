@@ -148,13 +148,34 @@ switch ( $op ) {
 	case 'enable_checkout':
 		// Cash on delivery, so a customer can place an order without a payment service, and the classic checkout page, because
 		// the checkout block needs JavaScript this site does not build.
-		update_option( 'woocommerce_cod_settings', array( 'enabled' => 'yes', 'title' => 'Cash on delivery', 'enable_for_methods' => array(), 'enable_for_virtual' => 'yes' ) );
+		update_option(
+			'woocommerce_cod_settings',
+			array(
+				'enabled'            => 'yes',
+				'title'              => 'Cash on delivery',
+				'enable_for_methods' => array(),
+				'enable_for_virtual' => 'yes',
+			)
+		);
 		$page = (int) get_option( 'woocommerce_checkout_page_id' );
-		wp_update_post( array( 'ID' => $page, 'post_content' => '[woocommerce_checkout]' ) );
+		wp_update_post(
+			array(
+				'ID'           => $page,
+				'post_content' => '[woocommerce_checkout]',
+			)
+		);
 		$cart = (int) get_option( 'woocommerce_cart_page_id' );
-		wp_update_post( array( 'ID' => $cart, 'post_content' => '[woocommerce_cart]' ) );
+		wp_update_post(
+			array(
+				'ID'           => $cart,
+				'post_content' => '[woocommerce_cart]',
+			)
+		);
 		update_option( 'woocommerce_enable_guest_checkout', 'no' );
-		$out = array( 'checkout' => $page, 'cart' => $cart );
+		$out = array(
+			'checkout' => $page,
+			'cart'     => $cart,
+		);
 		break;
 
 	default:
