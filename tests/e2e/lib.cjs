@@ -126,4 +126,10 @@ function woo( input ) {
 	try { return JSON.parse( json ); } catch ( e ) { throw new Error( 'woo.php gave: ' + out.slice( 0, 400 ) ); }
 }
 
-module.exports = { BASE, CLIENT, woo, check, createProduct, finish, login, logSize, logSince, meta, secret, shot, sql, start, ROOT };
+/** Prints the result for a test that has no browser to close, and exits. */
+function summary() {
+	console.log( failures ? failures + ' of ' + checks + ' checks failed' : 'All ' + checks + ' checks passed' );
+	process.exit( failures ? 1 : 0 );
+}
+
+module.exports = { BASE, CLIENT, woo, check, summary, createProduct, finish, login, logSize, logSince, meta, secret, shot, sql, start, ROOT };

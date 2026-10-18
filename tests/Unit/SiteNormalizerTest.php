@@ -43,6 +43,13 @@ final class SiteNormalizerTest extends TestCase {
 			'markup in the path'         => array( 'example.com/<script>alert(1)</script>', null ),
 			'quotes in the path'         => array( 'example.com/a"b', null ),
 			'a newline in the path'      => array( "example.com/a\nb", 'example.com/a_b' ), // parse_url already neutralises control characters.
+			'another scheme'             => array( 'ftp://example.com', null ),
+			'a javascript scheme'        => array( 'javascript://example.com/%0aalert(1)', null ),
+			'a way up the folder tree'   => array( 'https://example.com/../../etc', null ),
+			'a single dot folder'        => array( 'https://example.com/a/./b', null ),
+			'an encoded way up'          => array( 'https://example.com/%2e%2e/x', null ),
+			'an encoded slash'           => array( 'https://example.com/a%2fb', null ),
+			'dots inside a folder name'  => array( 'https://example.com/a..b/c', 'example.com/a..b/c' ),
 			'normal folder names'        => array( 'https://example.com/my-blog_2/sub.dir/', 'example.com/my-blog_2/sub.dir' ),
 		);
 	}

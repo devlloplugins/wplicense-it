@@ -21,6 +21,18 @@ measures it on a big one (100,000 licenses by default, which takes about two min
 PHP memory limit, a third for the number of rows that cannot be migrated, and `stop` to leave it waiting for the
 owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 
+`tests/e2e/15-api-fuzz.cjs` (about 790 checks, no browser) sends a hostile or broken client's requests to the REST API and the
+1.x endpoints: every field of every route with the wrong type, huge values (up to 8 MB), unicode and invalid bytes, repeated
+and array parameters, malformed and mistyped bodies, wrong methods and routes, key variants that must not match (case, wildcards,
+partial keys, SQL), guessing until the rate limit blocks, tampered and revoked download links, and many requests at the same
+moment (12 activations of one site use one slot; 12 different sites never exceed the license's slots). Every answer must be a
+clean JSON error with no PHP message, path, SQL or stack trace, and nothing may be added to debug.log. It sets the rate limit to
+the documented 20 in 15 minutes while it runs and puts the old values back. It found the two problems listed as 10 and 11 in
+`docs/SECURITY.md`.
+
+Two behaviours it reports but does not fail on: a POST route also reads a key sent in the URL's query string (the body wins when
+both are sent), and a one megabyte URL is refused by the web server before WordPress sees it.
+
 `tests/env/nginx-check.sh` checks package protection on nginx, which ignores the `.htaccess` file that protects packages
 on Apache. It puts a 1.x package at the old predictable address, serves the site's files with a real nginx and PHP-FPM
 (the usual WordPress configuration, with nothing about the packages folder), and checks that the old address serves the

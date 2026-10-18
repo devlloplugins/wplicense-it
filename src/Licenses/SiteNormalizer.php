@@ -40,6 +40,11 @@ final class SiteNormalizer {
 			return null;
 		}
 
+		// A WordPress site is reached over http or https. Another scheme is not a site.
+		if ( isset( $parts['scheme'] ) && ! in_array( strtolower( $parts['scheme'] ), array( 'http', 'https' ), true ) ) {
+			return null;
+		}
+
 		$host = strtolower( $parts['host'] );
 		if ( 0 === strpos( $host, 'www.' ) ) {
 			$host = substr( $host, 4 );
@@ -60,6 +65,11 @@ final class SiteNormalizer {
 
 			// A path is only ever a folder name. Anything else is not a WordPress install worth recording.
 			if ( '' !== $path && 1 !== preg_match( '#^[A-Za-z0-9._~%/\-]+$#', $path ) ) {
+				return null;
+			}
+
+			// And never a way up the folder tree.
+			if ( 1 === preg_match( '#(^|/)\.{1,2}(/|$)#', $path ) || false !== stripos( $path, '%2e' ) || false !== stripos( $path, '%2f' ) ) {
 				return null;
 			}
 

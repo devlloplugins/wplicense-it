@@ -235,7 +235,9 @@ final class Plugin {
 			}
 		);
 
-		( new RestController( $api ) )->register_routes();
+		$controller = new RestController( $api );
+		$controller->register();
+		$controller->register_routes();
 	}
 
 	/**

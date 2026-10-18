@@ -32,6 +32,75 @@ final class RestController {
 	}
 
 	/**
+	 * Registers the hooks. The routes themselves are registered on rest_api_init (see register_routes).
+	 */
+	public function register(): void {
+		add_filter( 'rest_post_dispatch', array( $this, 'document_errors' ), 10, 3 );
+	}
+
+	/**
+	 * WordPress checks the body and the declared parameters before the callback runs, and answers a broken body or a missing
+	 * or invalid parameter in its own shape ({code, message, data}). The API promises one shape for every failure, so those answers are rewritten.
+	 *
+	 * @param mixed           $result  Response.
+	 * @param mixed           $server  Server.
+	 * @param WP_REST_Request $request Request.
+	 * @return mixed
+	 */
+	public function document_errors( $result, $server, $request ) {
+		unset( $server );
+
+		if ( ! $result instanceof WP_REST_Response || 0 !== strpos( $request->get_route(), '/' . self::ROUTE_NAMESPACE . '/' ) ) {
+			return $result;
+		}
+
+		$body = self::documented_error( $result->get_data(), $result->get_status() );
+
+		if ( null !== $body ) {
+			$result->set_data( $body );
+			$result->header( 'Cache-Control', 'no-store' );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * The documented error body for one of WordPress's own parameter errors, or null for any other response.
+	 *
+	 * @param mixed $data   Response data.
+	 * @param int   $status HTTP status.
+	 * @return array<string, mixed>|null
+	 */
+	public static function documented_error( $data, int $status ): ?array {
+		if ( 400 !== $status || ! is_array( $data ) || ! isset( $data['code'] ) || ! in_array( $data['code'], array( 'rest_missing_callback_param', 'rest_invalid_param', 'rest_invalid_json' ), true ) ) {
+			return null;
+		}
+
+		if ( 'rest_invalid_json' === $data['code'] ) {
+			return array(
+				'success' => false,
+				'code'    => 'invalid_request',
+				'message' => 'The request body is not valid JSON.',
+			);
+		}
+
+		$names = array();
+		if ( isset( $data['data']['params'] ) && is_array( $data['data']['params'] ) ) {
+			$names = array_keys( 'rest_invalid_param' === $data['code'] ? $data['data']['params'] : array_flip( $data['data']['params'] ) );
+		}
+
+		$names = array_values( array_filter( array_map( 'strval', $names ), static fn( string $name ): bool => 1 === preg_match( '/^[a-z_]{1,32}$/', $name ) ) );
+
+		return array(
+			'success' => false,
+			'code'    => 'invalid_request',
+			'message' => 'rest_missing_callback_param' === $data['code']
+				? 'A required parameter is missing: ' . implode( ', ', $names ) . '.'
+				: 'A parameter is not valid: ' . implode( ', ', $names ) . '.',
+		);
+	}
+
+	/**
 	 * Registers the routes.
 	 */
 	public function register_routes(): void {

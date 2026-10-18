@@ -30,6 +30,8 @@ them), and a penetration test.
 | 7 | Low | Sites-per-license accepted any integer, beyond what the database column holds. | Limited to 0-100000. |
 | 8 | Low (docs) | Docs and a settings help text claimed the WordPress privacy export and erase tools cover migrated billing details. They did not. | Implemented the export and erase hooks (see `docs/PRIVACY.md`), and the text is now true. |
 | 9 | Low (availability) | Rate limiting uses the client IP. Behind a proxy or CDN all customers share one address, so one attacker could lock everyone out. | The settings page and `docs/API.md` now say so, with the `wplicense_it_client_ip` filter and a Cloudflare example. |
+| 10 | Low | A missing or invalid parameter, or a broken JSON body, was answered in WordPress's own error shape (`rest_missing_callback_param`, `rest_invalid_param`, `rest_invalid_json`, with no `success` field), not the shape this API promises for every failure. | Those answers are rewritten to `{ success: false, code: "invalid_request", message }` (400). |
+| 11 | Low | A site address with another scheme (`ftp://`, `javascript://`) or with `.`/`..` or encoded `%2e`/`%2f` folders was accepted and recorded as a site. | Only http and https sites are accepted, and a site path may not go up the folder tree (invalid site, 400). |
 
 ## Checked and found sound
 
@@ -78,5 +80,5 @@ them), and a penetration test.
 2. On a staging copy of a real 1.x site: run the migration, then try to fetch an old package URL directly (it must fail
    on nginx too), try wrong keys until the rate limit triggers, and try another customer's license IDs in the My Account
    deactivate form (it must refuse).
-3. Test the REST API with a fuzzer (invalid types, huge values, unicode, repeated parameters).
+3. ~~Test the REST API with a fuzzer~~ Done: `tests/e2e/15-api-fuzz.cjs` (see `docs/TESTING.md`).
 4. Run an export and an erase on staging for a customer who has a license, an order and a 1.x record (Tools > Export Personal Data / Erase Personal Data), and read the result.
