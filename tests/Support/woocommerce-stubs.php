@@ -83,6 +83,13 @@ if ( ! class_exists( 'WC_Order_Item' ) ) {
 		public function add_order_note( $note ) { $this->notes[] = $note; }
 		public function update_status( $status, $note = '' ) { $this->status = $status; $this->notes[] = $note; }
 		public string $status = 'pending';
+		public array $order_meta = array();
+		public function get_status() { return $this->status; }
+		public function get_meta( $key, $single = true ) { return $this->order_meta[ $key ] ?? ''; }
+		public function update_meta_data( $key, $value ) { $this->order_meta[ $key ] = $value; }
+		public function delete_meta_data( $key ) { unset( $this->order_meta[ $key ] ); }
+		public function save() { return $this->id; }
+		public function get_edit_order_url() { return 'https://example.test/wp-admin/order/' . $this->id; }
 	}
 
 	class WC_Email {
@@ -92,6 +99,7 @@ if ( ! class_exists( 'WC_Order_Item' ) ) {
 
 if ( ! function_exists( 'wc_get_order' ) ) {
 	function wc_get_order( $id ) { return $GLOBALS['wplit_test_orders'][ $id ] ?? false; }
+	function wp_mail( $to, $subject, $message ) { $GLOBALS['wplit_test_mail'][] = compact( 'to', 'subject', 'message' ); return true; }
 	function wc_get_orders( $args ) { return $GLOBALS['wplit_test_open_invoices'][ (int) ( $args['meta_query'][0]['value'] ?? 0 ) ] ?? array(); }
 	function wc_get_product( $id ) { return $GLOBALS['wplit_test_products'][ $id ] ?? false; }
 	function get_post_meta( $id, $key = '', $single = false ) { return $GLOBALS['wplit_test_post_meta'][ $id ][ $key ] ?? ''; }

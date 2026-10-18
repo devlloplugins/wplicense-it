@@ -9,7 +9,8 @@ which administrators get automatically. Add roles with the `wplicense_it_manage_
 **License Products > Overview** (second in the menu, after All Products) is the screen to start from. Only people who may manage
 licenses can open it. It shows:
 
-- **Problems**, when there are any: the 1.x data migration needs attention; the packages folder cannot be written to;
+- **Problems**, when there are any: paid orders that could not be given their license (listed with links, see
+  `WOOCOMMERCE.md`); the 1.x data migration needs attention; the packages folder cannot be written to;
   published products with no release uploaded (customers cannot download or update them); WP-Cron switched off
   (`DISABLE_WP_CRON`), which stops marking expired licenses, reminders and renewal invoices unless a real cron job calls
   `wp-cron.php`; and the daily job not running (not for two days, or never although it was due more than a day ago).

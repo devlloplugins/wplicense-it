@@ -21,6 +21,7 @@ use Devllo\WPLicenseIt\Migration\OptionStateStore;
 use Devllo\WPLicenseIt\Overview\OverviewReport;
 use Devllo\WPLicenseIt\Reminders\ReminderSettings;
 use Devllo\WPLicenseIt\Renewals\RenewalSettings;
+use Devllo\WPLicenseIt\WooCommerce\IssueProblems;
 use Devllo\WPLicenseIt\WooCommerce\OrderReader;
 
 /**
@@ -67,7 +68,7 @@ final class OverviewScreen {
 			. '.wplit-overview code{background:transparent;padding:0;white-space:nowrap}'
 			. '</style>';
 
-		$this->render_problems( OverviewReport::problems( $facts ) );
+		$this->render_problems( OverviewReport::problems( $facts ), $facts['order_problem_list'] ?? array() );
 
 		echo '<div class="wplit-grid">';
 		$this->render_checklist( OverviewReport::checklist( $facts ) );
@@ -133,6 +134,11 @@ final class OverviewScreen {
 			);
 		}
 
+		$orders = $woo ? IssueProblems::recent( 5 ) : array(
+			'total'  => 0,
+			'orders' => array(),
+		);
+
 		$uploads = wp_upload_dir();
 		$folder  = ProtectedStorage::directory();
 		$state   = ( new OptionStateStore() )->load();
@@ -151,6 +157,8 @@ final class OverviewScreen {
 			'cron_disabled'            => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
 			'last_maintenance'         => (int) get_option( Maintenance::LAST_RUN_OPTION, 0 ),
 			'next_maintenance'         => false === $next ? 0 : (int) $next,
+			'order_problems'           => $orders['total'],
+			'order_problem_list'       => $orders['orders'],
 			'migration_attention'      => MigrationState::NEEDS_ATTENTION === $state->status,
 			'storage_writable'         => is_dir( $folder ) ? wp_is_writable( $folder ) : wp_is_writable( (string) $uploads['basedir'] ),
 		);
@@ -159,9 +167,10 @@ final class OverviewScreen {
 	/**
 	 * Problems, as notices.
 	 *
-	 * @param list<array{level:string,key:string,count:int}> $problems From OverviewReport::problems().
+	 * @param list<array{level:string,key:string,count:int}>              $problems    From OverviewReport::problems().
+	 * @param list<array{id:int,number:string,problem:string,url:string}> $order_list The orders that could not get a license.
 	 */
-	private function render_problems( array $problems ): void {
+	private function render_problems( array $problems, array $order_list ): void {
 		foreach ( $problems as $problem ) {
 			$class = 'error' === $problem['level'] ? 'notice-error' : 'notice-warning';
 			$link  = '';
@@ -172,8 +181,24 @@ final class OverviewScreen {
 				$link = ' <a href="' . esc_url( admin_url( 'edit.php?post_type=wplit_product' ) ) . '">' . esc_html__( 'Open the products', 'wplicense-it' ) . '</a>';
 			}
 
-			echo '<div class="notice ' . esc_attr( $class ) . ' inline" role="' . ( 'error' === $problem['level'] ? 'alert' : 'status' ) . '"><p>' . esc_html( $this->problem_text( $problem ) ) . $link . '</p></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $link is built from escaped parts.
-		}
+			$list = '';
+
+			if ( 'orders' === $problem['key'] ) {
+				foreach ( $order_list as $order ) {
+					$list .= '<li><a href="' . esc_url( $order['url'] ) . '">' . esc_html(
+						sprintf(
+							/* translators: %s: order number. */
+							__( 'Order %s', 'wplicense-it' ),
+							$order['number']
+						)
+					) . '</a>: ' . esc_html( strtok( $order['problem'], "\n" ) ) . '</li>';
+				}
+
+				$list = '' === $list ? '' : '<ul style="list-style:disc;margin-left:20px">' . $list . '</ul>';
+			}
+
+			echo '<div class="notice ' . esc_attr( $class ) . ' inline" role="' . ( 'error' === $problem['level'] ? 'alert' : 'status' ) . '"><p>' . esc_html( $this->problem_text( $problem ) ) . $link . '</p>' . $list . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $link and $list are built from escaped parts.
+		}//end foreach
 	}
 
 	/**
@@ -183,6 +208,10 @@ final class OverviewScreen {
 	 */
 	private function problem_text( array $problem ): string {
 		switch ( $problem['key'] ) {
+			case 'orders':
+				/* translators: %d: number of orders. */
+				return sprintf( _n( '%d paid order could not be given its license, so the customer is waiting. Open it, fix the cause and press Try again.', '%d paid orders could not be given their licenses, so the customers are waiting. Open each one, fix the cause and press Try again.', $problem['count'], 'wplicense-it' ), $problem['count'] );
+
 			case 'migration':
 				return __( 'The move of your 1.x data needs attention. Some licenses or orders were not moved.', 'wplicense-it' );
 
@@ -201,7 +230,7 @@ final class OverviewScreen {
 
 			default:
 				return __( 'The daily job (expiry, reminders, renewal invoices) was due more than a day ago and has not run yet. Check that WP-Cron works on this site.', 'wplicense-it' );
-		}
+		}//end switch
 	}
 
 	/**

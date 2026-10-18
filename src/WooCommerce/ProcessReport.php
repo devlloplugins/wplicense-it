@@ -43,6 +43,23 @@ final class ProcessReport {
 	public array $notes = array();
 
 	/**
+	 * What went wrong and left the customer without something they are owed. These are also in the notes.
+	 *
+	 * @var string[]
+	 */
+	public array $problems = array();
+
+	/**
+	 * Records something that went wrong, in the order note and in the problems.
+	 *
+	 * @param string $text What went wrong.
+	 */
+	public function problem( string $text ): void {
+		$this->notes[]    = $text;
+		$this->problems[] = $text;
+	}
+
+	/**
 	 * Whether anything changed.
 	 */
 	public function changed(): bool {

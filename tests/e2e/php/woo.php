@@ -130,6 +130,13 @@ switch ( $op ) {
 		);
 		break;
 
+	case 'set_product_meta':
+		$p = wc_get_product( (int) $in['product_id'] );
+		$p->update_meta_data( (string) $in['key'], (string) $in['value'] );
+		$p->save();
+		$out = array( 'ok' => true );
+		break;
+
 	case 'find_invoices':
 		// The renewal invoice orders made for a license, newest first.
 		$ids = wc_get_orders(
@@ -170,6 +177,9 @@ switch ( $op ) {
 			'user_id'     => (int) $order->get_user_id(),
 			'email'       => $order->get_billing_email(),
 			'pay_url'     => $order->get_checkout_payment_url(),
+			'edit_url'    => $order->get_edit_order_url(),
+			'number'      => $order->get_order_number(),
+			'problem'     => (string) $order->get_meta( '_wplit_issue_problem', true ),
 			'lines'       => $lines,
 		);
 		break;

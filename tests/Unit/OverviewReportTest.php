@@ -127,6 +127,19 @@ final class OverviewReportTest extends TestCase {
 		$this->assertSame( 3, $problems[2]['count'] );
 	}
 
+	public function test_paid_orders_without_their_license_come_first(): void {
+		$problems = OverviewReport::problems(
+			array(
+				'order_problems'      => 2,
+				'migration_attention' => true,
+			)
+		);
+
+		$this->assertSame( array( 'orders', 'migration' ), array_column( $problems, 'key' ) );
+		$this->assertSame( 2, $problems[0]['count'] );
+		$this->assertSame( array(), OverviewReport::problems( array( 'order_problems' => 0 ) ) );
+	}
+
 	public function test_a_daily_job_that_stopped_is_reported(): void {
 		$now = 10000000;
 

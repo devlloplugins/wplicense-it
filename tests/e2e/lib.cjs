@@ -77,10 +77,19 @@ async function start() {
 
 /** Logs in to the license server, or to another site (such as the customer site) given its address. */
 async function login( page, base = BASE ) {
-	await page.goto( base + '/wp-login.php' );
-	await page.fill( '#user_login', 'admin' );
-	await page.fill( '#user_pass', secret( 'ADMIN_PASSWORD' ) );
-	await Promise.all( [ page.waitForURL( /wp-admin/ ), page.click( '#wp-submit' ) ] );
+	// The site is slow now and then (a full run once stalled here for 30 seconds), so a failed attempt is made once more.
+	for ( let attempt = 1; ; attempt++ ) {
+		try {
+			await page.goto( base + '/wp-login.php' );
+			await page.fill( '#user_login', 'admin' );
+			await page.fill( '#user_pass', secret( 'ADMIN_PASSWORD' ) );
+			await Promise.all( [ page.waitForURL( /wp-admin/, { timeout: 45000 } ), page.click( '#wp-submit' ) ] );
+			return;
+		} catch ( e ) {
+			if ( attempt >= 2 ) { throw e; }
+			console.log( 'Login did not finish (' + e.message.split( '\n' )[ 0 ] + '), trying again.' );
+		}
+	}
 }
 
 async function shot( page, name ) {

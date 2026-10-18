@@ -95,6 +95,12 @@ final class OverviewReport {
 		$now      = (int) ( $facts['now'] ?? time() );
 		$problems = array();
 
+		$orders = (int) ( $facts['order_problems'] ?? 0 );
+
+		if ( $orders > 0 ) {
+			$problems[] = self::problem( 'error', 'orders', $orders );
+		}
+
 		if ( ! empty( $facts['migration_attention'] ) ) {
 			$problems[] = self::problem( 'error', 'migration' );
 		}

@@ -17,6 +17,7 @@ use Devllo\WPLicenseIt\DryRun\MemoryActivationRepository;
 use Devllo\WPLicenseIt\DryRun\MemoryLicenseOrderRepository;
 use Devllo\WPLicenseIt\DryRun\MemoryLicenseRepository;
 use Devllo\WPLicenseIt\DryRun\MemoryEventLog;
+use Devllo\WPLicenseIt\WooCommerce\IssueProblems;
 use Devllo\WPLicenseIt\WooCommerce\Money;
 use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
 use Devllo\WPLicenseIt\WooCommerce\OrderReader;
@@ -46,6 +47,7 @@ final class WooAdapterTest extends TestCase {
 	protected function setUp(): void {
 		$GLOBALS['wplit_test_orders']        = array();
 		$GLOBALS['wplit_test_open_invoices'] = array();
+		$GLOBALS['wplit_test_mail']          = array();
 		$GLOBALS['wplit_test_products']      = array();
 		$GLOBALS['wplit_test_options']       = array();
 		$GLOBALS['wplit_test_post_meta']     = array( 7 => array( 'wplit_period' => 'P1Y' ) );
@@ -117,6 +119,58 @@ final class WooAdapterTest extends TestCase {
 
 		$this->assertSame( 'cancelled', $invoice->status );
 		$this->assertStringContainsString( 'renewed by order', $invoice->notes[0] );
+	}
+
+	public function test_an_order_that_cannot_get_its_license_is_flagged_and_the_administrator_told_once(): void {
+		$GLOBALS['wplit_test_options']['admin_email'] = 'owner@example.test';
+		$this->item->meta                             = array(
+			OrderReader::META_PRODUCT => '7',
+			OrderReader::META_PERIOD  => 'not a period',
+		);
+
+		$this->complete();
+
+		$this->assertCount( 0, WooItemLicenseStore::ids( $this->item ), 'no license was made' );
+		$this->assertStringContainsString( 'No license was issued', $this->order->get_meta( IssueProblems::META ) );
+		$this->assertSame( $this->order->get_meta( IssueProblems::META ), IssueProblems::problem_of( $this->order ) );
+		$this->assertCount( 1, $GLOBALS['wplit_test_mail'] );
+		$this->assertSame( 'owner@example.test', $GLOBALS['wplit_test_mail'][0]['to'] );
+		$this->assertStringContainsString( 'could not be issued', $GLOBALS['wplit_test_mail'][0]['subject'] );
+		$this->assertStringContainsString( 'https://example.test/wp-admin/order/100', $GLOBALS['wplit_test_mail'][0]['message'] );
+
+		$this->complete();
+
+		$this->assertCount( 1, $GLOBALS['wplit_test_mail'], 'trying again while it is still broken does not email again' );
+	}
+
+	public function test_trying_again_after_the_cause_is_fixed_issues_the_license_and_clears_the_problem(): void {
+		$this->item->meta = array(
+			OrderReader::META_PRODUCT => '7',
+			OrderReader::META_PERIOD  => 'not a period',
+		);
+		$this->complete();
+		$this->assertNotSame( '', IssueProblems::problem_of( $this->order ) );
+
+		$this->item->meta[ OrderReader::META_PERIOD ] = 'P1Y';
+		$this->order->status                          = 'completed';
+		$this->adapter->retry( $this->order );
+
+		$this->assertCount( 1, WooItemLicenseStore::ids( $this->item ) );
+		$this->assertSame( '', IssueProblems::problem_of( $this->order ) );
+	}
+
+	public function test_an_order_that_gets_its_license_has_no_problem_and_nobody_is_emailed(): void {
+		$this->complete();
+
+		$this->assertSame( '', IssueProblems::problem_of( $this->order ) );
+		$this->assertCount( 0, $GLOBALS['wplit_test_mail'] );
+	}
+
+	public function test_a_refund_or_cancellation_never_counts_as_a_problem(): void {
+		$this->complete();
+		$this->adapter->on_status_changed( 100, 'completed', 'cancelled', $this->order );
+
+		$this->assertSame( '', IssueProblems::problem_of( $this->order ) );
 	}
 
 	public function test_a_snapshot_on_the_order_line_wins_over_later_product_changes(): void {

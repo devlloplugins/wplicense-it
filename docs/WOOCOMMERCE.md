@@ -95,3 +95,23 @@ expires after 15 minutes) and a **Deactivate** button per site, so customers can
 One row per WooCommerce order in `wplit_license_orders` (`source` = `woocommerce`, `order_number` =
 `WC-<number>`). The table has a single product column, so an order with several licensed products
 records the first; every license points back to its order.
+
+## When an order could not get its license
+
+If a paid order reaches the status that issues licenses and a license cannot be made (for example the product's license period
+is not valid), the customer has paid and is waiting. The plugin does not leave that in an order note only:
+
+- the **order's own screen** shows a red notice at the top with what went wrong and a **Try again** button;
+- the **Overview** screen (License Products > Overview) lists the orders in this state, newest first, each with a link, at the
+  top of its problems;
+- the site's **administrator** (the Settings > General email address) gets **one email** when an order first has the problem. Trying
+  again while it is still broken does not send another. The recipient can be changed, or switched off by returning an empty
+  address, with the `wplicense_it_issue_problem_recipient` filter;
+- the order note keeps saying what happened, as before.
+
+Fix the cause, then press **Try again** (or change the order status to Completed again, which does the same). The license is
+issued, the order's problem and the Overview entry go away, and a notice says so. Trying again is safe: an order that already has
+its license is not given a second one. Only people who may manage licenses can use the button.
+
+A refund or cancellation is never a problem of this kind, and neither is a renewal that fell back to a new license (that stays an
+order note).

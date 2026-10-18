@@ -85,13 +85,22 @@ final class WooAdapter {
 		}
 
 		if ( in_array( $to, $this->issue_statuses( $order ), true ) ) {
-			$this->process( $order, fn( OrderData $data ): ProcessReport => $this->processor->issue( $data ) );
+			$this->process( $order, fn( OrderData $data ): ProcessReport => $this->processor->issue( $data ), true );
 			WooRenewalOrderCreator::cancel_open_invoices( $order );
 		} elseif ( 'refunded' === $to ) {
 			$this->process( $order, fn( OrderData $data ): ProcessReport => $this->processor->revoke( $data, Status::REFUNDED ) );
 		} elseif ( 'cancelled' === $to ) {
 			$this->process( $order, fn( OrderData $data ): ProcessReport => $this->processor->revoke( $data, Status::REVOKED ) );
 		}
+	}
+
+	/**
+	 * Processes an order again, for the Try again button.
+	 *
+	 * @param WC_Order $order Order.
+	 */
+	public function retry( WC_Order $order ): void {
+		$this->on_status_changed( (int) $order->get_id(), '', $order->get_status(), $order );
 	}
 
 	/**
@@ -127,8 +136,10 @@ final class WooAdapter {
 	 *
 	 * @param WC_Order $order     Order.
 	 * @param callable $operation Receives OrderData, returns a ProcessReport.
+	 * @param bool     $issuing   Whether this is the step that gives the customer their license. Then a problem is remembered on the
+	 *                            order (and the administrator told once), and a success forgets an earlier problem.
 	 */
-	private function process( WC_Order $order, callable $operation ): void {
+	private function process( WC_Order $order, callable $operation, bool $issuing = false ): void {
 		$lock = 'wplit_woo_order_' . $order->get_id();
 
 		if ( get_transient( $lock ) ) {
@@ -137,17 +148,32 @@ final class WooAdapter {
 
 		set_transient( $lock, 1, self::LOCK_SECONDS );
 
+		$problems = array();
+
 		try {
 			$report = $operation( $this->reader->read( $order ) );
 
 			if ( $report->changed() ) {
 				$order->add_order_note( $this->note( $report ) );
 			}
+
+			$problems = $report->problems;
 		} catch ( Throwable $e ) {
 			error_log( 'WPLicense It: order ' . $order->get_id() . ': ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operators need to see this.
 			$order->add_order_note( 'WPLicense It error: ' . $e->getMessage() . ' Change the order status again to retry.' );
+			$problems = array( 'WPLicense It error: ' . $e->getMessage() );
 		} finally {
 			delete_transient( $lock );
+		}
+
+		if ( ! $issuing ) {
+			return;
+		}
+
+		if ( array() === $problems ) {
+			IssueProblems::clear( $order );
+		} elseif ( IssueProblems::flag( $order, $problems ) ) {
+			IssueProblems::notify_admin( $order, $problems );
 		}
 	}
 

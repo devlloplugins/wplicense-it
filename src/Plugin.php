@@ -48,6 +48,7 @@ use Devllo\WPLicenseIt\TestPurchase\WcOrderBuilder;
 use Devllo\WPLicenseIt\Privacy\PrivacyHooks;
 use Devllo\WPLicenseIt\WooCommerce\AccountPage;
 use Devllo\WPLicenseIt\WooCommerce\CartRenewal;
+use Devllo\WPLicenseIt\WooCommerce\IssueProblems;
 use Devllo\WPLicenseIt\WooCommerce\LicenseDisplay;
 use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
 use Devllo\WPLicenseIt\WooCommerce\OrderReader;
@@ -191,7 +192,9 @@ final class Plugin {
 		$reader    = new OrderReader();
 		$processor = new OrderProcessor( $this->licenses(), new WpdbLicenseOrderRepository( $wpdb ), new WooItemLicenseStore() );
 
-		( new WooAdapter( $processor, $reader ) )->register();
+		$adapter = new WooAdapter( $processor, $reader );
+		$adapter->register();
+		( new IssueProblems( $adapter ) )->register();
 		( new ProductFields() )->register();
 		$gateway = new WcProductGateway();
 		$catalog = new WpProductCatalog();

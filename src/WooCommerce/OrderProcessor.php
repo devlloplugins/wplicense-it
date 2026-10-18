@@ -76,7 +76,7 @@ final class OrderProcessor {
 			try {
 				$interval = PeriodParser::parse( $item->period );
 			} catch ( InvalidArgumentException $e ) {
-				$report->notes[] = "{$item->name}: {$e->getMessage()} No license was issued.";
+				$report->problem( "{$item->name}: {$e->getMessage()} No license was issued." );
 				continue;
 			}
 
@@ -105,7 +105,7 @@ final class OrderProcessor {
 					$this->store->append( $item->item_id, $license->id );
 					++$report->issued;
 				} catch ( LicenseException $e ) {
-					$report->notes[] = "{$item->name}: could not issue a license ({$e->getMessage()}).";
+					$report->problem( "{$item->name}: could not issue a license ({$e->getMessage()})." );
 					break;
 				}
 			}
