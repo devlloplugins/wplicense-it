@@ -1,7 +1,14 @@
 # Releasing on wordpress.org
 
+**Decision: 2.0 is not hosted on wordpress.org.** Everything in 2.0 is the Pro plugin and is distributed from the plugin's own
+site. The client SDK contains an updater, which wordpress.org does not allow in hosted plugins, so the one Plugin Check error it
+causes is accepted on purpose (`plugin-check.sh` accepts `plugin_updater_detected` by default). The checks below are still run on
+every change, so the plugin stays compatible with the directory's other rules if that is ever reconsidered. What happens to the
+free 1.x listing is not decided here.
+
 `tests/env/plugin-check.sh` runs WordPress.org's own **Plugin Check** tool on the plugin as it would be released (the files that
-`.distignore` does not exclude). Run it before every release. `WPLIT_PC_IGNORE=code1,code2` accepts error codes that were decided on.
+`.distignore` does not exclude). It runs in CI on every push. `WPLIT_PC_IGNORE=code1,code2` sets the accepted error codes
+(default: `plugin_updater_detected`; an empty value accepts nothing).
 
 ## State at the compliance pass (2.0.0-dev)
 
@@ -14,11 +21,11 @@ Plugin Check first reported 15 findings. These were fixed:
 | `Domain Path: /languages` pointed at a folder that does not exist | Header removed, and the `load_plugin_textdomain()` call with it: WordPress loads translations itself since 4.6 |
 | Hidden file (`.phpunit.result.cache`) | `.distignore` keeps development files out of the release |
 
-Still reported, and waiting for a decision:
+Still reported:
 
 | Finding | Why it is there | Options |
 |---|---|---|
-| **Error: plugin updater detected** in `sdk/src/Updater.php` (plus two warnings about update routines) | The client SDK that sellers copy into their own plugins and themes contains an updater. wordpress.org does not allow updater code in any plugin it hosts, even when it is not active on the site | Do not host 2.0 on wordpress.org; or release a wordpress.org build without the `sdk` folder and hand the SDK out from your own site |
+| **Error: plugin updater detected** in `sdk/src/Updater.php` (plus two warnings about update routines) | The client SDK that sellers copy into their own plugins and themes contains an updater. wordpress.org does not allow updater code in any plugin it hosts, even when it is not active on the site | **Decided: not hosted on wordpress.org**, so accepted. Had it been hosted: release a build without the `sdk` folder and hand the SDK out from the own site |
 | Warning: the name and slug contain the restricted term "wp" | The name is "WPLicense It" | The plugin already has this slug in the directory, so it was accepted before. Rename only if the review team asks |
 
 ## What was checked by hand

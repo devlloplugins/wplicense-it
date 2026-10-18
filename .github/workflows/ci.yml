@@ -102,6 +102,8 @@ jobs:
         run: |
           sudo -E env "PATH=$PATH" bash tests/env/setup-multisite.sh
           sudo -E env "PATH=$PATH" php tests/env/multisite-check.php
+      - name: Run WordPress.org's Plugin Check on the release files
+        run: sudo -E env "PATH=$PATH" bash tests/env/plugin-check.sh
       - name: Print the site logs
         if: failure()
         run: |

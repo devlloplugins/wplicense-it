@@ -4,7 +4,7 @@
 # folder named like the plugin. Prints one line per finding and exits with 1 if there is an ERROR that is not in the ignore list.
 #
 #   tests/env/plugin-check.sh
-#   WPLIT_PC_IGNORE="plugin_updater_detected" tests/env/plugin-check.sh     # error codes to accept, comma separated
+#   WPLIT_PC_IGNORE="" tests/env/plugin-check.sh        # accept nothing (by default the SDK's updater is accepted, see docs/WORDPRESS-ORG.md)
 #
 # Needs the test site (tests/env/setup.sh), git, composer, rsync and python3. It downloads Plugin Check and WP-CLI into
 # $WPLIT_ENV_ROOT (default /opt/wp-test), once.
@@ -14,7 +14,7 @@ set -uo pipefail
 ROOT="${WPLIT_ENV_ROOT:-/opt/wp-test}"
 SITE="$ROOT/wordpress"
 PLUGIN_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
-IGNORE="${WPLIT_PC_IGNORE:-}"
+IGNORE="${WPLIT_PC_IGNORE-plugin_updater_detected}"
 DIST="$ROOT/dist/wplicense-it"
 
 mkdir -p "$ROOT"
