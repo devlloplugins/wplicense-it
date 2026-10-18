@@ -1,6 +1,6 @@
 # WPLicense It 2.0: Schema and Migration
 
-Status: **approved design**. Nothing here is implemented yet.
+Status: **implemented in 2.0**. This is the design it was built from; `docs/MIGRATION.md` describes what the migration does for a site owner.
 
 This follows `docs/DECISIONS.md`: a licensing core with payment adapters (decision 3: activation limits,
 decision 7: migrate 1.x data and keep the old API working).

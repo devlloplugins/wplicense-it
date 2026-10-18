@@ -91,7 +91,7 @@ function finish( env, logStart ) {
 	// Not the plugin's doing: PHP deprecations inside WordPress core, and core's update checks that cannot reach
 	// wordpress.org from a sandbox without internet access.
 	// WooCommerce's JavaScript is not built in this environment (it comes from a git checkout, not the release zip).
-	const noise = [ /PHP Deprecated:.*(wp-includes|wp-admin)\//, /(wp_version_check|wp_update_plugins|wp_update_themes)\(\): An unexpected error/, /WCAdminAssets::register_scripts\. Could not find asset registry/ ];
+	const noise = [ /PHP Deprecated:.*(wp-includes|wp-admin)\//, /(wp_version_check|wp_update_plugins|wp_update_themes|get_core_checksums)\(\): An unexpected error/, /WCAdminAssets::register_scripts\. Could not find asset registry/ ];
 	const lines = logSince( logStart ).filter( ( line ) => ! noise.some( ( pattern ) => pattern.test( line ) ) );
 	check( 0 === lines.length, 'debug.log has new lines:\n  ' + lines.slice( 0, 12 ).join( '\n  ' ) );
 	check( 0 === env.problems.length, 'browser problems:\n  ' + env.problems.slice( 0, 12 ).join( '\n  ' ) );
