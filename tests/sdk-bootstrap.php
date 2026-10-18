@@ -9,8 +9,8 @@
 spl_autoload_register(
 	static function ( $class ) {
 		$maps = array(
-			'WPLicenseIt\\Client\\'              => dirname( __DIR__ ) . '/sdk/src/',
-			'Devllo\\WPLicenseIt\\Tests\\'       => __DIR__ . '/',
+			'WPLicenseIt\\Client\\'        => dirname( __DIR__ ) . '/sdk/src/',
+			'Devllo\\WPLicenseIt\\Tests\\' => __DIR__ . '/',
 		);
 
 		foreach ( $maps as $prefix => $dir ) {
