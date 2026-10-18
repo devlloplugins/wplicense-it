@@ -5,6 +5,7 @@
  *   php tests/e2e/php/reminders.php seed USER_ID EMAIL   licenses that expire at different times, and the product they are for
  *   php tests/e2e/php/reminders.php run            the daily maintenance, as WordPress cron would run it
  *   php tests/e2e/php/reminders.php due            makes the daily maintenance event due now (for wp-cron.php to run)
+ *   php tests/e2e/php/reminders.php state          what WordPress holds about the job and the reminders (for a failure message)
  */
 
 declare( strict_types=1 );
@@ -22,6 +23,22 @@ $op = $argv[1] ?? '';
 if ( 'run' === $op ) {
 	\Devllo\WPLicenseIt\Admin\Maintenance::run();
 	echo wp_json_encode( array( 'ok' => true ) );
+	exit( 0 );
+}
+
+if ( 'state' === $op ) {
+	echo wp_json_encode(
+		array(
+			'enabled'     => get_option( 'wplit_reminders_enabled' ),
+			'days'        => get_option( 'wplit_reminder_days' ),
+			'next_run'    => wp_next_scheduled( \Devllo\WPLicenseIt\Admin\Maintenance::HOOK ),
+			'now'         => time(),
+			'doing_cron'  => get_transient( 'doing_cron' ),
+			'expiring'    => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}wplit_licenses WHERE status='active' AND expires_at > UTC_TIMESTAMP() AND expires_at <= DATE_ADD(UTC_TIMESTAMP(), INTERVAL 30 DAY)" ),
+			'db_now'      => $wpdb->get_var( 'SELECT UTC_TIMESTAMP()' ),
+			'sent_events' => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}wplit_license_events WHERE type='reminder_sent'" ),
+		)
+	);
 	exit( 0 );
 }
 
