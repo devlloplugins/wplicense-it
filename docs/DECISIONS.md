@@ -49,3 +49,10 @@ Sellers must not need a paid plugin to use WPLicense It, so renewals are layered
 | 16 | Kind of test | A dry run unlocks Publish. It runs the real purchase code on an order built in memory, with in-memory storage, so it writes nothing and needs no cleanup. A live test order is not built; it can be added later as an extra. |
 | 17 | API reachability check | If this site's own license API does not answer a request from the server, the test shows a warning but does not block Publish, because some hosts block requests from the server to itself while the public can reach the site. |
 | 18 | When a pass stops counting | A pass is tied to a fingerprint of the product link, sites, period and zip file. Changing any of them cancels the pass. Price changes do not. |
+
+## Selling and renewal decisions
+
+| # | Topic | Decision |
+|---|---|---|
+| 19 | Selling without WooCommerce | Not supported. Selling stays on WooCommerce, which takes the payment; a site without it issues licenses by hand (Add license). Expiry reminders, renewal invoices and the renewal button are built on WooCommerce. An issue-a-license API for other payment services, a built-in checkout and an Easy Digital Downloads adapter were considered and not chosen for now. |
+| 20 | Automatic renewal | No separate Pro add-on and no need to buy another premium plugin such as WooCommerce Subscriptions: the plugin gets its own subscription function. Phase 1 is renewal invoices (an unpaid renewal order with a pay link, any payment method); phase 2, charging a saved card automatically for gateways that support it, is not built yet. |

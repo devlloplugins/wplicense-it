@@ -1,7 +1,8 @@
 # WooCommerce adapter
 
 WPLicense It sells nothing itself in 2.0. WooCommerce takes the payment, and the adapter turns paid
-orders into licenses. It loads only when WooCommerce is active, and works with the classic and the
+orders into licenses. WooCommerce is the only store supported: on a site without it, licenses are issued by hand
+(**Add license**) and nothing can be sold or renewed through the site (see decision 19 in `DECISIONS.md`). It loads only when WooCommerce is active, and works with the classic and the
 high-performance (HPOS) order storage.
 
 ## Plans (the recommended way)
