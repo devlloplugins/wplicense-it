@@ -162,8 +162,8 @@ check( ! is_dir( (string) $dirs['delta'] ), 'and its package folder (' . $dirs['
 
 echo "\nUninstalling the plugin from the network\n";
 $sql( "DROP TABLE IF EXISTS {$prefix}wplit_product_licenses, {$prefix}wplit_orders" );
-$sites  = array_map( 'intval', explode( "\n", $sql( 'SELECT blog_id FROM wp_blogs' ) ) );
-$count  = static function () use ( $tables_of, $sites ): int {
+$sites     = array_map( 'intval', explode( "\n", $sql( 'SELECT blog_id FROM wp_blogs' ) ) );
+$count     = static function () use ( $tables_of, $sites ): int {
 	return array_sum( array_map( $tables_of, $sites ) );
 };
 $before    = $count();
