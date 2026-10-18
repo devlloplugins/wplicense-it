@@ -19,3 +19,5 @@
 /screenshot-*.png
 /sdk/phpcs.xml.dist
 .phpunit.result.cache
+/build
+/bin

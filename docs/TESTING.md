@@ -21,6 +21,9 @@ measures it on a big one (100,000 licenses by default, which takes about two min
 PHP memory limit, a third for the number of rows that cannot be migrated, and `stop` to leave it waiting for the
 owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 
+`bin/build-release.sh --check` builds the release zip, checks what is in it and that two builds are identical (see `RELEASE.md`). It runs in CI.
+The browser suite was also run once against the plugin unpacked from that zip, with all 19 files passing.
+
 `tests/e2e/19-order-problems.cjs` (25 checks) pays an order for a product whose license period is nonsense and checks: no license is made, the order
 remembers the problem, the administrator gets one email with the order's address (WooCommerce's own new-order email is not
 counted), the order screen shows an alert with a Try again button, the Overview lists the order with a link, trying again while
