@@ -31,7 +31,8 @@ use Devllo\WPLicenseIt\WooCommerce\WooRenewalOrderCreator;
  */
 final class Maintenance {
 
-	public const HOOK = 'wplit_daily_maintenance';
+	public const HOOK            = 'wplit_daily_maintenance';
+	public const LAST_RUN_OPTION = 'wplit_last_maintenance';
 
 	/**
 	 * Registers the schedule and the callback.
@@ -67,6 +68,9 @@ final class Maintenance {
 		if ( RenewalSettings::enabled() && class_exists( 'WooCommerce' ) ) {
 			( new RenewalInvoiceService( new WpdbLicenseRepository( $wpdb ), new WpdbEventLog( $wpdb ), new WooRenewalOrderCreator( new OrderReader() ) ) )->create_due( RenewalSettings::days() );
 		}
+
+		// Written down for the Overview screen, which warns when the daily job has stopped running.
+		update_option( self::LAST_RUN_OPTION, time(), false );
 
 		// Two years by default, changeable in Licensing Settings and with the filter.
 		$years = (int) apply_filters( 'wplicense_it_event_retention_years', (int) get_option( 'wplit_event_retention_years', 2 ) );

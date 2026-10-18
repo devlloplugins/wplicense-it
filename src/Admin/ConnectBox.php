@@ -39,7 +39,8 @@ final class ConnectBox {
 	 */
 	private $catalog;
 
-	public const ACTION = 'wplit_download_sdk';
+	public const ACTION            = 'wplit_download_sdk';
+	public const DOWNLOADED_OPTION = 'wplit_sdk_downloaded';
 
 	/**
 	 * Constructor.
@@ -80,6 +81,9 @@ final class ConnectBox {
 		}
 
 		check_admin_referer( self::ACTION );
+
+		// For the setup checklist on the Overview screen.
+		update_option( self::DOWNLOADED_OPTION, 1, false );
 
 		try {
 			$path = SdkZip::build( WPLICENSE_IT_DIR . 'sdk' );

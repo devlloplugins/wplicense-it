@@ -21,6 +21,15 @@ measures it on a big one (100,000 licenses by default, which takes about two min
 PHP memory limit, a third for the number of rows that cannot be migrated, and `stop` to leave it waiting for the
 owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 
+`tests/e2e/18-overview.cjs` (41 checks) starts from a site with no products and no licenses and builds it up: Overview is second in the
+menu, every required step is still to do, making a product ticks its step and a missing release is a warning with a link,
+uploading a release ticks that and clears the warning, twelve licenses in different states give the right four numbers, the two
+that expire within 30 days are listed soonest first with the days left, the newest eight are listed newest first and a key opens
+that license, a number opens the list in that state, downloading the SDK and turning on reminders tick their steps, the
+WP-Cron warning replaces the late-job warning, and a subscriber is refused. The rules behind the checklist and the problems are
+unit tested too (`OverviewReportTest`); the stale-job and migration warnings cannot be made to appear on the test site, so
+only the unit tests cover them.
+
 `tests/e2e/17-renewal-invoices.cjs` (37 checks) covers renewal invoices with real WooCommerce: off by default and the days setting, the
 daily job run through a real `wp-cron.php` request, an unpaid order made for each license inside the window and none for
 one outside it (with the renewal mark, the customer or a guest, the price), WooCommerce's invoice email and its pay link, the

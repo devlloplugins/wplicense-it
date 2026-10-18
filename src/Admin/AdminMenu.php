@@ -12,7 +12,7 @@ namespace Devllo\WPLicenseIt\Admin;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 
 /**
- * Adds Licenses, Add license and Licensing settings under the License Products menu.
+ * Adds Overview, Licenses, Add license and Licensing settings under the License Products menu.
  */
 final class AdminMenu {
 
@@ -50,6 +50,9 @@ final class AdminMenu {
 	public function add_pages(): void {
 		$licenses = new LicensesScreen( $this->licenses );
 
+		$overview = new OverviewScreen( $this->licenses );
+		$home     = add_submenu_page( Urls::PARENT, __( 'Overview', 'wplicense-it' ), __( 'Overview', 'wplicense-it' ), Capabilities::MANAGE, Urls::PAGE_OVERVIEW, array( $overview, 'render' ), 1 );
+
 		$list = add_submenu_page( Urls::PARENT, __( 'Licenses', 'wplicense-it' ), __( 'Licenses', 'wplicense-it' ), Capabilities::MANAGE, Urls::PAGE_LICENSES, array( $licenses, 'render' ) );
 		add_action( 'load-' . $list, array( $licenses, 'load' ) );
 
@@ -57,7 +60,7 @@ final class AdminMenu {
 
 		$settings = add_submenu_page( Urls::PARENT, __( 'Licensing settings', 'wplicense-it' ), __( 'Licensing settings', 'wplicense-it' ), Capabilities::MANAGE, Urls::PAGE_SETTINGS, array( new SettingsScreen(), 'render' ) );
 
-		$this->hooks = array_filter( array( $list, $add, $settings ) );
+		$this->hooks = array_filter( array( $home, $list, $add, $settings ) );
 	}
 
 	/**

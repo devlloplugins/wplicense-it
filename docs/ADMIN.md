@@ -4,6 +4,27 @@ Built with native WordPress components (the Settings API, `WP_List_Table` and st
 They live under **License Products** in the admin menu and need the `manage_wplicense_it` capability,
 which administrators get automatically. Add roles with the `wplicense_it_manage_roles` filter.
 
+## Overview
+
+**License Products > Overview** (second in the menu, after All Products) is the screen to start from. Only people who may manage
+licenses can open it. It shows:
+
+- **Problems**, when there are any: the 1.x data migration needs attention; the packages folder cannot be written to;
+  published products with no release uploaded (customers cannot download or update them); WP-Cron switched off
+  (`DISABLE_WP_CRON`), which stops marking expired licenses, reminders and renewal invoices unless a real cron job calls
+  `wp-cron.php`; and the daily job not running (not for two days, or never although it was due more than a day ago).
+  When WP-Cron is switched off only that warning is shown, not also that the job is late.
+- **Getting started**, a checklist: make a product, upload a release, issue a license, then the optional steps (add a plan with a
+  price so customers can buy, or install WooCommerce; download the client SDK; turn on expiry reminders; turn on renewal
+  invoices). Done steps are ticked. Once the three required steps are done the heading becomes **Setup**, and only the optional
+  steps still to do are listed.
+- **Licenses**: how many are active, expired, revoked and refunded, each a link to the list filtered by that status.
+- **Expiring in the next 30 days**: the ten that expire soonest, with the days left.
+- **Newest licenses**: the last eight issued. A license key opens that license.
+
+The daily job writes down when it last ran (`wplit_last_maintenance`), and downloading the SDK is remembered
+(`wplit_sdk_downloaded`), for the warnings and the checklist.
+
 ## Licenses
 
 A searchable, filterable, sortable list of every license.

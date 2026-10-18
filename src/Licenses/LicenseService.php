@@ -561,6 +561,19 @@ final class LicenseService {
 	}
 
 	/**
+	 * Active licenses that expire within a number of days, soonest first.
+	 *
+	 * @param int $days  Days ahead.
+	 * @param int $limit Most licenses to return.
+	 * @return License[]
+	 */
+	public function expiring_soon( int $days, int $limit ): array {
+		$now = $this->now();
+
+		return $this->licenses->find_expiring( $now, $now->modify( '+' . max( 1, $days ) . ' days' ), null, max( 1, $limit ) );
+	}
+
+	/**
 	 * How many local or staging sites are active on a license.
 	 *
 	 * @param License $license License.

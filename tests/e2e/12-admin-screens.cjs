@@ -272,6 +272,8 @@ async function go( page, url ) {
 		check( 403 === status || /not allowed|permission/i.test( await text( page ) ), 'the ' + user + ' cannot open the licenses list (' + status + ')' );
 		const status2 = await go( page, BASE + '/wp-admin/edit.php?post_type=wplit_product&page=wplit-licensing-settings' );
 		check( 403 === status2 || /not allowed|permission/i.test( await text( page ) ), 'nor the settings (' + status2 + ')' );
+		const status3 = await go( page, BASE + '/wp-admin/edit.php?post_type=wplit_product&page=wplit-overview' );
+		check( 403 === status3 || /not allowed|permission/i.test( await text( page ) ), 'nor the overview (' + status3 + ')' );
 		const post = await page.request.post( BASE + '/wp-admin/admin-post.php', { form: { action: 'wplit_license_action', do: 'revoke', license: String( L.id ) }, maxRedirects: 0 } );
 		check( /^active/.test( license( L.id ) ), 'nor revoke a license by sending the request by hand (' + user + ', ' + post.status() + ')' );
 	}

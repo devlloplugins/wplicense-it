@@ -53,6 +53,7 @@ async function focusVisible( page ) {
 
 	// An automated scan of every screen.
 	const screens = {
+		'the overview': ADMIN + 'wplit-overview',
 		'the licenses list': ADMIN + 'wplit-licenses',
 		'the licenses list with a search': ADMIN + 'wplit-licenses&s=cust1',
 		'a license': ADMIN + 'wplit-licenses&license=' + seed.keys[ 21 ].id,
