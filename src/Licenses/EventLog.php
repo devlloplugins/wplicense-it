@@ -23,6 +23,7 @@ interface EventLog {
 	public const REFUNDED    = 'refunded';
 	public const REINSTATED  = 'reinstated';
 	public const UPDATED     = 'updated';
+	public const REMINDER    = 'reminder_sent';
 
 	/**
 	 * Records an event.
@@ -41,4 +42,14 @@ interface EventLog {
 	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:\DateTimeImmutable}>
 	 */
 	public function for_license( int $license_id, int $limit = 50 ): array;
+
+	/**
+	 * Recent events of one type for a license, newest first. Unlike for_license() it is not crowded out by busy activity.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $type       One of the constants above.
+	 * @param int    $limit      Maximum events.
+	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:\DateTimeImmutable}>
+	 */
+	public function of_type( int $license_id, string $type, int $limit = 20 ): array;
 }

@@ -146,4 +146,27 @@ final class MemoryLicenseRepository implements LicenseRepository {
 
 		return array_slice( $due, 0, $limit );
 	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit ): array {
+		$found = array();
+
+		foreach ( $this->rows as $row ) {
+			if ( Status::ACTIVE !== $row->status || null === $row->expires_at || $row->expires_at <= $from || $row->expires_at > $to ) {
+				continue;
+			}
+
+			if ( null !== $after && null !== $after->expires_at && ( $row->expires_at < $after->expires_at || ( $row->expires_at == $after->expires_at && $row->id <= $after->id ) ) ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- Dates are compared by value.
+				continue;
+			}
+
+			$found[] = clone $row;
+		}
+
+		usort( $found, static fn( License $a, License $b ): int => array( $a->expires_at, $a->id ) <=> array( $b->expires_at, $b->id ) );
+
+		return array_slice( $found, 0, $limit );
+	}
 }

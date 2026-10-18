@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Privacy;
 
+use Devllo\WPLicenseIt\Reminders\ReminderSettings;
+
 /**
  * Plugs WPLicense It into the "Export Personal Data" and "Erase Personal Data" tools (Tools menu), and
  * suggests text for the site's privacy policy.
@@ -96,6 +98,9 @@ final class PrivacyHooks {
 				/* translators: %d: number of years. */
 				: sprintf( _n( 'The history of each license (activations, renewals and changes) is deleted after %d year.', 'The history of each license (activations, renewals and changes) is deleted after %d years.', $years, 'wplicense-it' ), $years )
 		) . '</p>';
+		if ( ReminderSettings::enabled() ) {
+			$text .= '<p>' . esc_html__( 'Before a license expires we email the address it was issued to, with a link to renew it.', 'wplicense-it' ) . '</p>';
+		}
 		$text .= '<p>' . esc_html__( 'On request we remove your name, email address and account from the licenses and orders. The license key, product, dates, activated site addresses and order totals are kept because they are needed to support the license and for accounting.', 'wplicense-it' ) . '</p>';
 
 		wp_add_privacy_policy_content( 'WPLicense It', wp_kses_post( $text ) );

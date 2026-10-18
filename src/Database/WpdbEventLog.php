@@ -67,6 +67,33 @@ final class WpdbEventLog implements EventLog {
 			ARRAY_A
 		);
 
+		return $this->events_from_rows( $rows );
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $type       Event type.
+	 * @param int    $limit      Maximum events.
+	 */
+	public function of_type( int $license_id, string $type, int $limit = 20 ): array {
+		$rows = $this->db->get_results(
+			$this->db->prepare( "SELECT type, data, created_at FROM {$this->table} WHERE license_id = %d AND type = %s ORDER BY id DESC LIMIT %d", $license_id, $type, max( 1, $limit ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+			ARRAY_A
+		);
+
+		return $this->events_from_rows( $rows );
+	}
+
+	/**
+	 * Turns database rows into events.
+	 *
+	 * @param mixed $rows Rows from get_results().
+	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:DateTimeImmutable}>
+	 */
+	private function events_from_rows( $rows ): array {
+
 		$events = array();
 
 		foreach ( is_array( $rows ) ? $rows : array() as $row ) {

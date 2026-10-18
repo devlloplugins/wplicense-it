@@ -120,16 +120,36 @@ The seller still has to copy the `sdk` folder from the WPLicense It plugin into 
 | Setting | Meaning |
 |---|---|
 | Issue licenses when an order is | WooCommerce: Completed (default) or Processing. |
+| Expiry reminders | Email customers before their license expires (off by default), on which days (default `30, 7`), and the renewal address the email links to. See below. |
 | Failed lookups allowed / time window | How many wrong keys a client may send before it is blocked, and for how long. |
 | Keep license history for | Years of audit history kept. `0` keeps it forever. |
 | Billing details from 1.x orders | Whether the migration keeps address and phone numbers. |
 
 The page also shows the API address and the state of the 1.x data migration.
 
+## Expiry reminders
+
+Off until the site owner turns it on in **Licensing settings > Expiry reminders**, so upgrading never emails customers by surprise.
+Once a day (with the daily maintenance below) every active license that expires within the largest number of days gets one
+email for the smallest window it has reached: with `30, 7`, a license gets one email within 30 days of its expiry and another
+within 7 days, and a license first seen at 5 days gets only the 7 day email. The email is plain text, names the product and the
+expiry date, says what expiry means (no more updates) and links to the renewal address. It does not contain the license key.
+
+- **Where the link goes:** the address set in the settings; otherwise, for a license with a customer account and WooCommerce
+  active, **My Account > Licenses** (the customer logs in and presses Renew); otherwise the home page.
+- **Nothing is sent twice.** Each reminder is recorded in the license history ("Expiry reminder emailed", with the window and the
+  expiry date, not the customer's address). A renewal changes the expiry date and starts a new cycle.
+- **Skipped:** licenses that never expire, are revoked, refunded or expired, have no valid address, or were erased with the
+  WordPress privacy tool.
+- **Limits:** at most 500 emails per run; the rest go out the next day. If WordPress cannot send an email it is tried again the
+  next day (nothing is recorded).
+- **Filters:** `wplicense_it_send_reminder` (return `false` to skip a license), `wplicense_it_reminder_email` (change the
+  recipient, subject, message or headers) and `wplicense_it_reminder_renew_url`.
+
 ## Daily maintenance
 
 A daily WP-Cron job marks licenses past their expiry as expired (in batches, so a large backlog cannot slow
-a request) and deletes history older than the retention setting. Licenses are checked against their expiry date
+a request), sends expiry reminders when they are on, and deletes history older than the retention setting. Licenses are checked against their expiry date
 every time they are used, so this only keeps the stored status and the list accurate.
 
 ## Accessibility

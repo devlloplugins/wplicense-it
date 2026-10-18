@@ -218,6 +218,7 @@ final class LicenseView {
 			EventLog::REFUNDED    => __( 'Refunded', 'wplicense-it' ),
 			EventLog::REINSTATED  => __( 'Reinstated', 'wplicense-it' ),
 			EventLog::UPDATED     => __( 'Edited', 'wplicense-it' ),
+			EventLog::REMINDER    => __( 'Expiry reminder emailed', 'wplicense-it' ),
 		);
 
 		return $labels[ $type ] ?? $type;

@@ -12,6 +12,7 @@ namespace Devllo\WPLicenseIt\Admin;
 use Devllo\WPLicenseIt\Api\RestController;
 use Devllo\WPLicenseIt\Migration\MigrationState;
 use Devllo\WPLicenseIt\Migration\OptionStateStore;
+use Devllo\WPLicenseIt\Reminders\ReminderSettings;
 use Devllo\WPLicenseIt\WooCommerce\WooAdapter;
 
 /**
@@ -83,8 +84,41 @@ final class SettingsScreen {
 			)
 		);
 
+		register_setting(
+			self::GROUP,
+			ReminderSettings::OPTION_ENABLED,
+			array(
+				'type'              => 'boolean',
+				'default'           => false,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			)
+		);
+		register_setting(
+			self::GROUP,
+			ReminderSettings::OPTION_DAYS,
+			array(
+				'type'              => 'string',
+				'default'           => ReminderSettings::DEFAULT_DAYS,
+				'sanitize_callback' => array( ReminderSettings::class, 'sanitize_days' ),
+			)
+		);
+		register_setting(
+			self::GROUP,
+			ReminderSettings::OPTION_URL,
+			array(
+				'type'              => 'string',
+				'default'           => '',
+				'sanitize_callback' => 'esc_url_raw',
+			)
+		);
+
 		add_settings_section( 'wplit_sales', __( 'Selling with WooCommerce', 'wplicense-it' ), '__return_false', self::PAGE );
 		add_settings_field( WooAdapter::OPTION_ISSUE_ON, __( 'Issue licenses when an order is', 'wplicense-it' ), array( $this, 'field_issue_on' ), self::PAGE, 'wplit_sales', array( 'label_for' => WooAdapter::OPTION_ISSUE_ON ) );
+
+		add_settings_section( 'wplit_reminders', __( 'Expiry reminders', 'wplicense-it' ), array( $this, 'section_reminders' ), self::PAGE );
+		add_settings_field( ReminderSettings::OPTION_ENABLED, __( 'Email customers', 'wplicense-it' ), array( $this, 'field_reminders_enabled' ), self::PAGE, 'wplit_reminders' );
+		add_settings_field( ReminderSettings::OPTION_DAYS, __( 'Days before expiry', 'wplicense-it' ), array( $this, 'field_reminder_days' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_DAYS ) );
+		add_settings_field( ReminderSettings::OPTION_URL, __( 'Renewal address', 'wplicense-it' ), array( $this, 'field_reminder_url' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_URL ) );
 
 		add_settings_section( 'wplit_api', __( 'API protection', 'wplicense-it' ), array( $this, 'section_api' ), self::PAGE );
 		add_settings_field( self::OPTION_FAILURES, __( 'Failed lookups allowed', 'wplicense-it' ), array( $this, 'field_failures' ), self::PAGE, 'wplit_api', array( 'label_for' => self::OPTION_FAILURES ) );
@@ -151,6 +185,37 @@ final class SettingsScreen {
 		echo '<option value="processing"' . selected( $value, 'processing', false ) . '>' . esc_html__( 'Processing (as soon as payment is received)', 'wplicense-it' ) . '</option>';
 		echo '</select>';
 		echo '<p class="description">' . esc_html__( 'Virtual and downloadable products are completed automatically, so "Completed" is right for most stores.', 'wplicense-it' ) . '</p>';
+	}
+
+	/**
+	 * Reminders section text.
+	 */
+	public function section_reminders(): void {
+		echo '<p>' . esc_html__( 'Email a customer before their license expires, with a link to renew. The check runs once a day. Each reminder is sent once per expiry date, and a renewal starts over. It is recorded in the license history.', 'wplicense-it' ) . '</p>';
+	}
+
+	/**
+	 * Reminders on or off.
+	 */
+	public function field_reminders_enabled(): void {
+		echo '<label><input type="checkbox" name="' . esc_attr( ReminderSettings::OPTION_ENABLED ) . '" value="1"' . checked( ReminderSettings::enabled(), true, false ) . '> ' . esc_html__( 'Send expiry reminders', 'wplicense-it' ) . '</label>';
+		echo '<p class="description">' . esc_html__( 'Off until you turn it on, so nobody is emailed by surprise. Licenses that never expire, and revoked or refunded licenses, get nothing.', 'wplicense-it' ) . '</p>';
+	}
+
+	/**
+	 * Reminder days field.
+	 */
+	public function field_reminder_days(): void {
+		echo '<input type="text" class="regular-text" id="' . esc_attr( ReminderSettings::OPTION_DAYS ) . '" name="' . esc_attr( ReminderSettings::OPTION_DAYS ) . '" value="' . esc_attr( implode( ', ', ReminderSettings::days() ) ) . '">';
+		echo '<p class="description">' . esc_html__( 'Up to five numbers of days, separated by commas. 30, 7 sends one email within 30 days of expiry and another within 7 days.', 'wplicense-it' ) . '</p>';
+	}
+
+	/**
+	 * Renewal address field.
+	 */
+	public function field_reminder_url(): void {
+		echo '<input type="url" class="regular-text" id="' . esc_attr( ReminderSettings::OPTION_URL ) . '" name="' . esc_attr( ReminderSettings::OPTION_URL ) . '" value="' . esc_attr( ReminderSettings::custom_url() ) . '" placeholder="https://">';
+		echo '<p class="description">' . esc_html__( 'Where the email sends customers. Leave empty to use the Licenses page of My Account in your store (the customer logs in and presses Renew), or your home page when there is no store.', 'wplicense-it' ) . '</p>';
 	}
 
 	/**

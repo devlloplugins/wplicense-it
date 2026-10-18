@@ -12,6 +12,7 @@ finds licenses linked to the WordPress account that uses that address.
 | Activations | The addresses of the sites the license is activated on, the plugin version they reported, the dates | To enforce the site limit and let customers move a license |
 | License history | What happened to the license (issued, activated, renewed, edited, revoked) with dates | Support, and answering "why does my license not work" |
 | License orders | Order number, total, currency, status, date, and the account | Accounting |
+| Expiry reminders | The license email address is used to send the reminder; the license history records that it was sent, the window and the expiry date, not the address | To remind customers to renew (off by default) |
 | Orders migrated from 1.x | Also the name, company, address, phone number and email from the checkout (can be switched off before migrating, **Licensing settings**) | Keeping the seller's existing records |
 | The 1.x tables | The same data as above, kept after the migration until you remove them | A way back to 1.x |
 | Rate limiting | Client IP addresses, only as a hash in a temporary record, for a few minutes, and only after wrong license keys | Stopping key guessing |

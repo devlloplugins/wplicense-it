@@ -21,6 +21,12 @@ measures it on a big one (100,000 licenses by default, which takes about two min
 PHP memory limit, a third for the number of rows that cannot be migrated, and `stop` to leave it waiting for the
 owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 
+`tests/e2e/16-reminders.cjs` (43 checks) covers expiry reminder emails: off by default, junk cleaned from the days setting, the
+daily job run through a real `wp-cron.php` request, who is mailed and who is not (far away, lifetime, revoked), the subject, no
+license key in the email, the link (a customer logs in and sees the license, a guest license goes to the home page), the history
+entry, no second email, a changed or renewed expiry starting a new cycle, and a custom renewal address (a `javascript:` address
+is dropped). Mail is kept by the site's mail capture, so nothing is sent.
+
 `tests/e2e/15-api-fuzz.cjs` (about 790 checks, no browser) sends a hostile or broken client's requests to the REST API and the
 1.x endpoints: every field of every route with the wrong type, huge values (up to 8 MB), unicode and invalid bytes, repeated
 and array parameters, malformed and mistyped bodies, wrong methods and routes, key variants that must not match (case, wildcards,

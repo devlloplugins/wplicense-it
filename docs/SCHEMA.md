@@ -187,6 +187,8 @@ Goals: no customer loses access, running the migration twice does nothing, and t
 | Admin search, second try (only if nothing starts with it): the text is *anywhere* in the key or email | none (reads every row) |
 | Event retention: `created_at < ?`, in slices | `created_at` |
 | Daily expiry sweep: `status = 'active' AND expires_at < NOW()` | `status, expires_at` |
+| Expiry reminders: active licenses expiring in the next N days, soonest first, 200 at a time | `status, expires_at` |
+| Expiry reminders: what was already sent for a license (`type = 'reminder_sent'`) | `license_id, created_at` |
 | Count active sites for a license | `UNIQUE (license_id, site)` |
 | Order lookup from WooCommerce: `source = 'woocommerce' AND external_id = ?` | `UNIQUE (source, external_id)` |
 
@@ -205,6 +207,7 @@ plugin's own code, then prints the time and EXPLAIN of every query. On the test 
 | Sorting the list by email, expiry or created date | 0.7 to 1 second |
 | A very deep page (page 20,000) | 0.5 seconds |
 | Daily sweep for licenses past their date (100 at a time) | about 180 ms |
+| Reminders: 200 licenses expiring in the next 30 days / what was sent for one license | about 13 ms / under 1 ms |
 | Event retention (slices of 5,000, up to 20 a run) | about 70 ms per slice |
 
 A site with a tenth of that is ten times quicker or more. Not indexed on purpose: searching inside a key or email, and

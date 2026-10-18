@@ -52,6 +52,18 @@ final class MemoryEventLog implements EventLog {
 	}
 
 	/**
+	 * {@inheritdoc}
+	 */
+	public function of_type( int $license_id, string $type, int $limit = 20 ): array {
+		return array_values(
+			array_filter(
+				$this->for_license( $license_id, PHP_INT_MAX ),
+				static fn( array $event ): bool => $event['type'] === $type
+			)
+		);
+	}
+
+	/**
 	 * Event types in the order they were recorded.
 	 *
 	 * @return string[]

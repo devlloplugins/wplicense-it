@@ -123,6 +123,8 @@ $scenarios = array(
 	'A customer\'s licenses by user (My Account)'       => static fn() => $service->licenses_for_user( 1234 ),
 	'A customer\'s licenses by email or user (privacy)' => static fn() => ( new WpdbLicenseRepository( $wpdb ) )->for_person( $mid_mail, 1234, 50, 0 ),
 	'Daily sweep: find 100 licenses past their date'    => static fn() => $service->expire_due_licenses( 100 ),
+	'Reminders: expiring in the next 30 days (200 at a time)' => static fn() => ( new WpdbLicenseRepository( $wpdb ) )->find_expiring( new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) ), new DateTimeImmutable( '+30 days', new DateTimeZone( 'UTC' ) ), null, 200 ),
+	'Reminders: what was sent for one license'          => static fn() => $events->of_type( 777, 'reminder_sent', 50 ),
 	'Events of one license'                             => static fn() => $service->events( $service->find( 777 ), 50 ),
 	'Daily prune of events older than 2 years'          => static fn() => $events->prune( new DateTimeImmutable( '-2 years', new DateTimeZone( 'UTC' ) ) ),
 );

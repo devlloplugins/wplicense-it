@@ -82,4 +82,15 @@ interface LicenseRepository {
 	 * @return License[]
 	 */
 	public function find_due_for_expiry( DateTimeImmutable $now, int $limit ): array;
+
+	/**
+	 * Active licenses that expire after $from and up to $to, soonest first, for expiry reminders.
+	 *
+	 * @param DateTimeImmutable $from  Expiring after this time.
+	 * @param DateTimeImmutable $to    Expiring at or before this time.
+	 * @param License|null      $after The last license of the previous page, to continue after it (null for the first page).
+	 * @param int               $limit Maximum number to return.
+	 * @return License[]
+	 */
+	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit ): array;
 }

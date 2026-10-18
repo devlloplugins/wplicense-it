@@ -11,11 +11,17 @@ namespace Devllo\WPLicenseIt\Admin;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Devllo\WPLicenseIt\Api\WpProductCatalog;
 use Devllo\WPLicenseIt\Database\WpdbEventLog;
+use Devllo\WPLicenseIt\Database\WpdbLicenseRepository;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
+use Devllo\WPLicenseIt\Reminders\ReminderService;
+use Devllo\WPLicenseIt\Reminders\ReminderSettings;
+use Devllo\WPLicenseIt\Reminders\WpReminderMailer;
 
 /**
- * Once a day: marks licenses past their expiry as expired, and deletes old audit events.
+ * Once a day: marks licenses past their expiry as expired, sends expiry reminders (when the site owner turned them on), and
+ * deletes old audit events.
  * Licenses are valid or not at the moment of each check regardless, so this only keeps the
  * stored status and the admin list accurate.
  */
@@ -49,6 +55,10 @@ final class Maintenance {
 		$plugin = \Devllo\WPLicenseIt\Plugin::instance();
 
 		self::expire_all( $plugin->licenses() );
+
+		if ( ReminderSettings::enabled() ) {
+			( new ReminderService( new WpdbLicenseRepository( $wpdb ), new WpdbEventLog( $wpdb ), new WpReminderMailer( new WpProductCatalog() ) ) )->send_due( ReminderSettings::days() );
+		}
 
 		// Two years by default, changeable in Licensing Settings and with the filter.
 		$years = (int) apply_filters( 'wplicense_it_event_retention_years', (int) get_option( 'wplit_event_retention_years', 2 ) );
