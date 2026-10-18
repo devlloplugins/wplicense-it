@@ -97,9 +97,11 @@ final class PrivacyService {
 	 *
 	 * @param string   $email   Email address of the person.
 	 * @param int|null $user_id WordPress user ID, if they have an account.
+	 * @param int      $page    Which call this is (WordPress repeats the call until done). The explanation is only given on the
+	 *                          first one, so a person with many licenses does not see it once per batch.
 	 * @return array{items_removed:bool,items_retained:bool,messages:string[],done:bool}
 	 */
-	public function erase( string $email, ?int $user_id ): array {
+	public function erase( string $email, ?int $user_id, int $page = 1 ): array {
 		$email    = strtolower( trim( $email ) );
 		$licenses = $this->repository->licenses( $email, $user_id, 1, self::PER_PAGE );
 		$ids      = array();
@@ -117,7 +119,7 @@ final class PrivacyService {
 		return array(
 			'items_removed'  => $removed,
 			'items_retained' => array() !== $ids,
-			'messages'       => array() === $ids ? array() : array(
+			'messages'       => array() === $ids || $page > 1 ? array() : array(
 				__( 'WPLicense It: the name, email address and account were removed from the licenses and orders. The license keys, products, dates, activated site addresses and order totals were kept, because they are needed to support the licenses and for accounting.', 'wplicense-it' ),
 			),
 			'done'           => count( $licenses ) < self::PER_PAGE,

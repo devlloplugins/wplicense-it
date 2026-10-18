@@ -221,6 +221,23 @@ final class PrivacyTest extends TestCase {
 		$this->assertSame( array( 1, 2 ), $this->data->events[ $license->id ][0]['data']['activation_limit'] );
 	}
 
+	public function test_the_explanation_is_given_once_even_when_erasing_takes_several_calls(): void {
+		// WordPress repeats the call while "done" is false. More licenses than one batch means several calls, and the person
+		// at the screen should read the explanation once, not once per call.
+		for ( $i = 0; $i < PrivacyService::PER_PAGE + 5; $i++ ) {
+			$this->licenses->issue_license( 7, 'ada@example.com', 5 );
+		}
+
+		$first  = $this->privacy->erase( 'ada@example.com', 5, 1 );
+		$second = $this->privacy->erase( 'ada@example.com', 5, 2 );
+
+		$this->assertFalse( $first['done'], 'a full batch means there may be more' );
+		$this->assertCount( 1, $first['messages'] );
+		$this->assertTrue( $second['done'] );
+		$this->assertTrue( $second['items_removed'], 'the second call still erases' );
+		$this->assertSame( array(), $second['messages'], 'but does not repeat the explanation' );
+	}
+
 	public function test_erasing_leaves_other_people_alone_and_finds_nothing_the_second_time(): void {
 		$this->licenses->issue_license( 7, 'ada@example.com', 5 );
 		$other = $this->licenses->issue_license( 7, 'grace@example.com', 6 );

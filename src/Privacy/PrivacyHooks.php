@@ -73,7 +73,7 @@ final class PrivacyHooks {
 	 * @return array{items_removed:bool,items_retained:bool,messages:string[],done:bool}
 	 */
 	public function erase( $email, $page = 1 ): array {
-		return $this->service()->erase( (string) $email, $this->user_id( (string) $email ) );
+		return $this->service()->erase( (string) $email, $this->user_id( (string) $email ), (int) $page );
 	}
 
 	/**
