@@ -26,6 +26,25 @@ if ( 'run' === $op ) {
 	exit( 0 );
 }
 
+// The hooks of every cron event that is due now, other than the daily maintenance.
+$overdue_hooks = static function (): array {
+	$hooks = array();
+
+	foreach ( (array) _get_cron_array() as $timestamp => $events ) {
+		if ( $timestamp > time() ) {
+			continue;
+		}
+
+		foreach ( array_keys( (array) $events ) as $hook ) {
+			if ( \Devllo\WPLicenseIt\Admin\Maintenance::HOOK !== $hook ) {
+				$hooks[] = $hook . '@' . ( time() - $timestamp ) . 's';
+			}
+		}
+	}
+
+	return $hooks;
+};
+
 if ( 'state' === $op ) {
 	echo wp_json_encode(
 		array(
@@ -36,6 +55,7 @@ if ( 'state' === $op ) {
 			'doing_cron'  => get_transient( 'doing_cron' ),
 			'expiring'    => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}wplit_licenses WHERE status='active' AND expires_at > UTC_TIMESTAMP() AND expires_at <= DATE_ADD(UTC_TIMESTAMP(), INTERVAL 30 DAY)" ),
 			'db_now'      => $wpdb->get_var( 'SELECT UTC_TIMESTAMP()' ),
+			'overdue'     => $overdue_hooks(),
 			'sent_events' => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}wplit_license_events WHERE type='reminder_sent'" ),
 		)
 	);
@@ -43,6 +63,19 @@ if ( 'state' === $op ) {
 }
 
 if ( 'due' === $op ) {
+	// Only the daily maintenance is due, so the request below does not depend on what else WordPress or WooCommerce left waiting.
+	$cron = (array) _get_cron_array();
+
+	foreach ( $cron as $timestamp => $events ) {
+		if ( $timestamp <= time() ) {
+			foreach ( array_keys( (array) $events ) as $hook ) {
+				if ( \Devllo\WPLicenseIt\Admin\Maintenance::HOOK !== $hook ) {
+					wp_clear_scheduled_hook( $hook );
+				}
+			}
+		}
+	}
+
 	wp_clear_scheduled_hook( \Devllo\WPLicenseIt\Admin\Maintenance::HOOK );
 	wp_schedule_event( time() - 60, 'daily', \Devllo\WPLicenseIt\Admin\Maintenance::HOOK );
 	echo wp_json_encode( array( 'ok' => true ) );
