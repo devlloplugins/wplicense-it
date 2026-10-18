@@ -28,7 +28,8 @@ It stops with an error if:
   two legacy files);
 - a development file is in the zip (tests, docs, tools, hidden files, caches, logs);
 - any PHP file in the zip does not parse;
-- the plugin header's `Version`, the `WPLICENSE_IT_VERSION` constant and the readme's `Stable tag` differ.
+- the plugin header's `Version`, the `WPLICENSE_IT_VERSION` constant and the readme's `Stable tag` differ;
+- the readme's `Tested up to` is not the WordPress version the browser tests run on (`tests/env/setup.sh`, as major.minor).
 
 With `--check` it also builds the zip a second time and compares: the files are written in a fixed order, with fixed permissions and
 the time of the commit, so the same commit always gives the same zip (same sha256). That makes a release zip something anyone can
@@ -41,8 +42,9 @@ all 19 test files passed, so nothing the plugin needs was left out.
 
 1. Change `Version` in `wplicense-it.php`, `WPLICENSE_IT_VERSION` in the same file, and `Stable tag` in `readme.txt` to the release
    number (for example `2.0.0`). The script fails if they differ.
-2. Add the changelog entry to `readme.txt`.
-3. Run `bin/build-release.sh --check` and `tests/env/plugin-check.sh`.
-4. Tag the commit and publish the zip. Rebuilding from the tag gives the same bytes.
+2. If the browser tests now run on a newer WordPress (`WPLIT_WP_TAG` in `tests/env/setup.sh`), raise `Tested up to` in `readme.txt` to match. Do not raise it without testing.
+3. Add the changelog entry to `readme.txt`.
+4. Run `bin/build-release.sh --check` and `tests/env/plugin-check.sh`.
+5. Tag the commit and publish the zip. Rebuilding from the tag gives the same bytes.
 
 See `WORDPRESS-ORG.md` for the Plugin Check results and why 2.0 is not hosted on wordpress.org.

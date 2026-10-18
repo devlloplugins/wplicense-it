@@ -8,7 +8,7 @@ free 1.x listing is not decided here.
 
 `tests/env/plugin-check.sh` runs WordPress.org's own **Plugin Check** tool on the plugin as it would be released (the files that
 `.distignore` does not exclude). It runs in CI on every push. `WPLIT_PC_IGNORE=code1,code2` sets the accepted error codes
-(default: `plugin_updater_detected`; an empty value accepts nothing).
+(default: `plugin_updater_detected` and `outdated_tested_upto_header`; an empty value accepts nothing).
 
 ## State at the compliance pass (2.0.0-dev)
 
@@ -26,6 +26,7 @@ Still reported:
 | Finding | Why it is there | Options |
 |---|---|---|
 | **Error: plugin updater detected** in `sdk/src/Updater.php` (plus two warnings about update routines) | The client SDK that sellers copy into their own plugins and themes contains an updater. wordpress.org does not allow updater code in any plugin it hosts, even when it is not active on the site | **Decided: not hosted on wordpress.org**, so accepted. Had it been hosted: release a build without the `sdk` folder and hand the SDK out from the own site |
+| Error: `Tested up to` is older than the newest WordPress | The tool compares with the WordPress version that is current on the day it runs, so this appears by itself as new versions come out. The readme may only claim what the browser tests run on (6.7), and `bin/build-release.sh` checks that, so the error is accepted. Raise both together when the tests move to a newer WordPress | Accepted while 2.0 is not hosted on wordpress.org. If it ever is hosted, test on the newest WordPress first |
 | Warning: the name and slug contain the restricted term "wp" | The name is "WPLicense It" | The plugin already has this slug in the directory, so it was accepted before. Rename only if the review team asks |
 
 ## What was checked by hand

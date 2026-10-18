@@ -66,6 +66,13 @@ CONST="$(sed -n "s/^define( 'WPLICENSE_IT_VERSION', '\(.*\)' );/\1/p" "$TMP/$SLU
 [ "$STABLE" = "$VERSION" ] || fail "readme.txt Stable tag ($STABLE) is not the plugin version ($VERSION)"
 [ "$CONST" = "$VERSION" ] || fail "WPLICENSE_IT_VERSION ($CONST) is not the plugin version ($VERSION)"
 
+# "Tested up to" may only claim the WordPress version the browser tests run on (tests/env/setup.sh), as major.minor.
+TESTED="$(sed -n 's/^Tested up to:[[:space:]]*//p' "$TMP/$SLUG/readme.txt" | head -1 | tr -d '\r')"
+WP_TAG="$(sed -n 's/^WP_TAG="${WPLIT_WP_TAG:-\(.*\)}"$/\1/p' "$DIR/tests/env/setup.sh" | head -1)"
+if [ -n "$WP_TAG" ]; then
+	[ "$TESTED" = "$(echo "$WP_TAG" | cut -d. -f1,2)" ] || fail "readme.txt says Tested up to $TESTED, but the browser tests run on WordPress $WP_TAG"
+fi
+
 FILES="$(echo "$LIST" | grep -vc '/$' || true)"
 echo "Built $ZIP"
 echo "  version $VERSION, $FILES files, $(du -h "$ZIP" | cut -f1), sha256 $(sha256sum "$ZIP" | cut -c1-16)"
