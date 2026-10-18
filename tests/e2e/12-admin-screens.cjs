@@ -26,6 +26,9 @@ async function go( page, url ) {
 	const { keys } = seed;
 	const env = await start();
 	const page = env.page;
+	// Every dialog is accepted (the Revoke buttons ask), and written down, so a script that runs an alert would show.
+	const dialogs = [];
+	page.on( 'dialog', ( dialog ) => { dialogs.push( dialog.message() ); dialog.accept(); } );
 	await login( page );
 
 	// The menu.
@@ -73,7 +76,14 @@ async function go( page, url ) {
 	check( /No licenses found|no items/i.test( await text( page ) ), 'a search with no match says so' );
 	check( ! PHP_MESSAGE.test( await text( page ) ), 'and shows no PHP message' );
 	await go( page, LIST + '&s=' + encodeURIComponent( "o'brien\"<script>alert(1)</script>_%" ) );
-	check( 200 === ( await page.evaluate( () => 200 ) ) && ! /<script>alert/.test( await page.content() ), 'a hostile search is shown as text, not run' );
+	// The text must not become a script. (Not a search of the page source for "<script>": some browsers write a safely escaped
+	// attribute value, such as the one in the search box, with the angle brackets unescaped.)
+	const scripts = await page.locator( 'script' ).evaluateAll( ( els ) => els.filter( ( e ) => /alert\(1\)/.test( e.textContent ) ).length );
+	const injected = await page.locator( 'body *' ).evaluateAll( ( els ) => els.filter( ( e ) => e.tagName === 'SCRIPT' && /alert\(1\)/.test( e.textContent ) ).length );
+	const where = ( ( await page.content() ).match( /.{0,60}<script>alert.{0,40}/s ) || [ 'not in the page at all' ] )[ 0 ].replace( /\s+/g, ' ' );
+	const raw = await ( await page.request.get( LIST + '&s=' + encodeURIComponent( "o'brien\"<script>alert(1)</script>_%" ) ) ).text();
+	check( ! raw.includes( '<script>alert(1)' ) && ! raw.includes( '</script>_%' ), 'and the HTML the server sends has the text escaped, not as a tag' );
+	check( 0 === scripts && 0 === injected && ! dialogs.some( ( m ) => '1' === m ), 'a hostile search is shown as text, not run (' + where + ')' );
 
 	// Sorting.
 	await go( page, LIST + '&orderby=email&order=asc' );
@@ -160,7 +170,6 @@ async function go( page, url ) {
 	check( /\|7\|/.test( license( L.id ) ), 'a negative number of sites is refused: ' + license( L.id ) );
 
 	// Revoke, reinstate, refund.
-	page.on( 'dialog', ( dialog ) => dialog.accept() );
 	await go( page, LIST + '&license=' + L.id );
 	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( 'a:has-text("Revoke")' ) ] );
 	check( /^revoked/.test( license( L.id ) ), 'Revoke ends the license' );
