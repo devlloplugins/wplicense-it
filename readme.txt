@@ -78,7 +78,7 @@ Please post it in the [WordPress support forum](https://wordpress.org/support/pl
 * Works with the WordPress personal data export and erase tools.
 * Safer package storage: files are kept in random folders, so they stay out of reach on servers that ignore .htaccess.
 * Your 1.x licenses and orders are migrated automatically and keep working.
-* Removed: the built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes. Sell licenses with WooCommerce instead.
+* Removed: the built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes. Sell licenses with WooCommerce instead. Your stored Stripe keys are kept until you delete them, with the button in the notice shown after the upgrade.
 * Requires PHP 8.0 and WordPress 6.2.
 
 = 1.0.2 =
@@ -105,4 +105,4 @@ Initial release.
 == Upgrade Notice ==
 
 = 2.0.0 =
-A large update. Your 1.x licenses and orders are moved to new tables in the background. Back up your database before updating.
+A large update. Your 1.x licenses and orders are moved to new tables in the background. Back up your database before updating. The built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes are gone: sell with WooCommerce instead.
