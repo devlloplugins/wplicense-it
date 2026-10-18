@@ -147,6 +147,7 @@ The seller still has to copy the `sdk` folder from the WPLicense It plugin into 
 | Failed lookups allowed / time window | How many wrong keys a client may send before it is blocked, and for how long. |
 | Keep license history for | Years of audit history kept. `0` keeps it forever. |
 | Billing details from 1.x orders | Whether the migration keeps address and phone numbers. |
+| When the plugin is deleted | **Delete all license data when the plugin is deleted.** Off by default: deleting the plugin from the Plugins page keeps every license, activation, order record and setting, so installing it again picks up where you left off. Turned on, deleting the plugin drops its tables (including the 1.x ones) and settings for good. Products and uploaded release files are WordPress content and stay either way. On a network each site chooses for itself. |
 
 The page also shows the API address and the state of the 1.x data migration.
 

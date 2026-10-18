@@ -24,9 +24,10 @@ final class SettingsScreen {
 	private const GROUP = 'wplit_licensing';
 	private const PAGE  = 'wplit-licensing';
 
-	public const OPTION_FAILURES  = 'wplit_rate_limit_failures';
-	public const OPTION_WINDOW    = 'wplit_rate_limit_minutes';
-	public const OPTION_RETENTION = 'wplit_event_retention_years';
+	public const OPTION_FAILURES            = 'wplit_rate_limit_failures';
+	public const OPTION_WINDOW              = 'wplit_rate_limit_minutes';
+	public const OPTION_RETENTION           = 'wplit_event_retention_years';
+	public const OPTION_DELETE_ON_UNINSTALL = 'wplit_delete_data_on_uninstall';
 
 	/**
 	 * Registers the settings.
@@ -132,6 +133,16 @@ final class SettingsScreen {
 			)
 		);
 
+		register_setting(
+			self::GROUP,
+			self::OPTION_DELETE_ON_UNINSTALL,
+			array(
+				'type'              => 'boolean',
+				'default'           => false,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			)
+		);
+
 		add_settings_section( 'wplit_sales', __( 'Selling with WooCommerce', 'wplicense-it' ), '__return_false', self::PAGE );
 		add_settings_field( WooAdapter::OPTION_ISSUE_ON, __( 'Issue licenses when an order is', 'wplicense-it' ), array( $this, 'field_issue_on' ), self::PAGE, 'wplit_sales', array( 'label_for' => WooAdapter::OPTION_ISSUE_ON ) );
 
@@ -151,6 +162,7 @@ final class SettingsScreen {
 		add_settings_section( 'wplit_data', __( 'Data', 'wplicense-it' ), '__return_false', self::PAGE );
 		add_settings_field( self::OPTION_RETENTION, __( 'Keep license history for (years)', 'wplicense-it' ), array( $this, 'field_retention' ), self::PAGE, 'wplit_data', array( 'label_for' => self::OPTION_RETENTION ) );
 		add_settings_field( 'wplit_keep_legacy_billing', __( 'Billing details from 1.x orders', 'wplicense-it' ), array( $this, 'field_billing' ), self::PAGE, 'wplit_data' );
+		add_settings_field( self::OPTION_DELETE_ON_UNINSTALL, __( 'When the plugin is deleted', 'wplicense-it' ), array( $this, 'field_delete_on_uninstall' ), self::PAGE, 'wplit_data' );
 	}
 
 	/**
@@ -291,6 +303,14 @@ final class SettingsScreen {
 	 */
 	public function field_retention(): void {
 		echo '<input type="number" min="0" max="20" class="small-text" id="' . esc_attr( self::OPTION_RETENTION ) . '" name="' . esc_attr( self::OPTION_RETENTION ) . '" value="' . esc_attr( (string) get_option( self::OPTION_RETENTION, 2 ) ) . '"> <span class="description">' . esc_html__( '0 keeps it forever.', 'wplicense-it' ) . '</span>';
+	}
+
+	/**
+	 * Whether deleting the plugin deletes its data.
+	 */
+	public function field_delete_on_uninstall(): void {
+		echo '<label><input type="checkbox" name="' . esc_attr( self::OPTION_DELETE_ON_UNINSTALL ) . '" value="1"' . checked( (bool) get_option( self::OPTION_DELETE_ON_UNINSTALL, false ), true, false ) . '> ' . esc_html__( 'Delete all license data when the plugin is deleted', 'wplicense-it' ) . '</label>';
+		echo '<p class="description">' . esc_html__( 'Off by default: deleting the plugin from the Plugins page keeps every license, activation, order record and setting, so installing it again picks up where you left off. Turn this on only if you want them gone for good; this cannot be undone. Products and uploaded release files are WordPress content and stay either way.', 'wplicense-it' ) . '</p>';
 	}
 
 	/**

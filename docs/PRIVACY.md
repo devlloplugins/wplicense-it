@@ -42,6 +42,12 @@ person asks for the license itself to stop, **revoke** it too (Licenses > Manage
 After erasing, the license still validates (its key is the credential), but 1.x clients that also send an email address no
 longer match, because the email is gone.
 
+## When the plugin is deleted
+
+Deleting the plugin keeps its data by default (licenses, customer emails, order records), so it stays on the site, and in
+its backups, until the owner removes it. The setting **Delete all license data when the plugin is deleted** (Licensing
+settings > Data) drops the tables and settings on deletion. Use the erase tool to remove one customer's data.
+
 ## History retention
 
 License history older than the retention period (default 2 years, **Licensing settings**) is deleted by a daily job.

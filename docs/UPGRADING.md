@@ -3,6 +3,9 @@
 2.0 is a rewrite. Your licenses and orders are migrated automatically (see `docs/MIGRATION.md`) and customers'
 licenses keep working throughout. **The built-in checkout is gone**, so the way you take payments changes.
 
+One more difference: 1.x deleted its tables when the plugin was deleted. 2.0 keeps all data by default, and only deletes
+it if you turn on **Delete all license data when the plugin is deleted** (Licensing settings > Data).
+
 ## What was removed
 
 | 1.x | 2.0 |

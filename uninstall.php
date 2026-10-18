@@ -6,10 +6,18 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 }
 
 /**
- * Removes this plugin's tables and settings from the current site.
+ * Removes this plugin's tables and settings from the current site, but only when the site owner asked for it
+ * (Licensing settings > Data > Delete all license data when the plugin is deleted). By default everything is kept,
+ * so deleting the plugin by accident, or to reinstall it, never loses licenses.
+ *
+ * The option name is written out because the plugin's own classes are not loaded here.
  */
 function wplit_uninstall_site() {
     global $wpdb;
+
+    if ( ! get_option( 'wplit_delete_data_on_uninstall' ) ) {
+        return;
+    }
 
     $table_name = $wpdb->prefix . 'wplit_product_licenses';
     $order_table_name = $wpdb->prefix . 'wplit_orders';
@@ -36,6 +44,7 @@ function wplit_uninstall_site() {
     delete_option('wplit_legacy_rewrite_version');
 
     delete_option("wplit_db_version");
+    delete_option( 'wplit_delete_data_on_uninstall' );
 }
 
 // On a network the plugin has tables and settings in every site, not only in the one that is current now.

@@ -250,6 +250,21 @@ async function go( page, url ) {
 	await page.check( 'input[name="wplit_keep_legacy_billing"]' ).catch( () => {} );
 	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit, input[type="submit"][value="Save Changes"]' ) ] );
 
+	// Deleting the plugin keeps the data unless the owner turns this on.
+	const DELETE = 'input[name="wplit_delete_data_on_uninstall"]';
+	await go( page, BASE + '/wp-admin/edit.php?post_type=wplit_product&page=wplit-licensing-settings' );
+	check( 1 === await page.locator( DELETE ).count(), 'the settings have the "delete all license data when the plugin is deleted" choice' );
+	check( false === await page.locator( DELETE ).isChecked(), 'and it is off by default (deleting the plugin keeps the data)' );
+	check( '' === sql( 'SELECT option_value FROM wp_options WHERE option_name="wplit_delete_data_on_uninstall"' ) || '0' === sql( 'SELECT option_value FROM wp_options WHERE option_name="wplit_delete_data_on_uninstall"' ), 'nothing is stored for it until it is turned on' );
+	await page.check( DELETE );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit, input[type="submit"][value="Save Changes"]' ) ] );
+	check( '1' === sql( 'SELECT option_value FROM wp_options WHERE option_name="wplit_delete_data_on_uninstall"' ), 'turning it on stores it' );
+	await go( page, BASE + '/wp-admin/edit.php?post_type=wplit_product&page=wplit-licensing-settings' );
+	check( true === await page.locator( DELETE ).isChecked(), 'and it shows as on after saving' );
+	await page.uncheck( DELETE );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit, input[type="submit"][value="Save Changes"]' ) ] );
+	check( [ '', '0' ].includes( sql( 'SELECT option_value FROM wp_options WHERE option_name="wplit_delete_data_on_uninstall"' ) ), 'turning it off again stores nothing that deletes data' );
+
 	// The products list and the product screen.
 	check( 200 === await go( page, BASE + '/wp-admin/edit.php?post_type=wplit_product' ), 'the products list opens' );
 	check( /Admin Test Alpha/.test( await text( page ) ), 'and lists the products' );

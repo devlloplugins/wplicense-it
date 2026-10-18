@@ -166,10 +166,28 @@ $sites  = array_map( 'intval', explode( "\n", $sql( 'SELECT blog_id FROM wp_blog
 $count  = static function () use ( $tables_of, $sites ): int {
 	return array_sum( array_map( $tables_of, $sites ) );
 };
-$before = $count();
-site( '/', 'define( "WP_UNINSTALL_PLUGIN", "wplicense-it/wplicense-it.php" ); include WP_PLUGIN_DIR . "/wplicense-it/uninstall.php"; return true;' );
+$before    = $count();
+$uninstall = 'define( "WP_UNINSTALL_PLUGIN", "wplicense-it/wplicense-it.php" ); include WP_PLUGIN_DIR . "/wplicense-it/uninstall.php"; return true;';
+
+// By default deleting the plugin keeps everything.
+site( '/', $uninstall );
+$kept = $count();
+check( $before >= 8 && $before === $kept, "by default uninstall keeps every table of every site ({$before} before, {$kept} after)" );
+check( '2.0.0' === site( '/alpha/', 'return get_option( "wplit_db_version" );' ), 'and keeps the settings and the database version' );
+
+// Each site decides for itself: the main site opts in, the others do not.
+site( '/', 'update_option( "wplit_delete_data_on_uninstall", 1 ); return true;' );
+site( '/', $uninstall );
+$main_left  = $tables_of( 1 );
+$alpha_left = $tables_of( $alpha );
+check( 0 === $main_left && 4 === $alpha_left, "a site that opted in loses its tables and the others keep theirs (main {$main_left}, alpha {$alpha_left})" );
+
+foreach ( explode( "\n", $sql( 'SELECT path FROM wp_blogs' ) ) as $path ) {
+	site( $path, 'update_option( "wplit_delete_data_on_uninstall", 1 ); return true;' );
+}
+site( '/', $uninstall );
 $left = $count();
-check( $before >= 8 && 0 === $left, "uninstall removed the plugin's tables from every site ({$before} before, {$left} after)" );
+check( 0 === $left, "with every site opted in, uninstall removes the plugin's tables from every site ({$before} before, {$left} after)" );
 $again = site( '/alpha/', 'return get_option( "wplit_db_version" );' );
 check( '2.0.0' === $again && 4 === $tables_of( $alpha ), 'the plugin starts again on the next visit and makes alpha\'s tables anew' );
 

@@ -64,6 +64,9 @@ Not through this plugin. Licenses can be issued by hand (**License Products > Ad
 = What happens to my 1.x data? =
 It is moved to the new tables automatically in the background, with a notice if anything could not be moved. The old API addresses keep working.
 
+= What happens to my data if I delete the plugin? =
+Nothing, unless you ask for it. Deleting the plugin keeps all licenses, activations, orders and settings, so installing it again picks up where you left off. To remove everything when the plugin is deleted, turn on **Delete all license data when the plugin is deleted** in Licensing settings first. This cannot be undone.
+
 = I found a bug in the plugin. =
 Please post it in the [WordPress support forum](https://wordpress.org/support/plugin/wplicense-it/) and we will look into it as soon as possible.
 
@@ -78,6 +81,7 @@ Please post it in the [WordPress support forum](https://wordpress.org/support/pl
 * Works with the WordPress personal data export and erase tools.
 * Safer package storage: files are kept in random folders, so they stay out of reach on servers that ignore .htaccess.
 * Your 1.x licenses and orders are migrated automatically and keep working.
+* Deleting the plugin now keeps your data unless you turn on "Delete all license data when the plugin is deleted" in Licensing settings (1.x deleted it).
 * Removed: the built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes. Sell licenses with WooCommerce instead. Your stored Stripe keys are kept until you delete them, with the button in the notice shown after the upgrade.
 * Requires PHP 8.0 and WordPress 6.2.
 

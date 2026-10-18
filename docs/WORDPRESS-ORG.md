@@ -34,7 +34,7 @@ Still reported:
 - **No calls to third parties.** The only request the plugin itself makes is the test purchase asking this site's own REST address
   (a loopback). The SDK contacts the seller's own license server from customers' sites, and the readme says so.
 - **No obfuscated or minified code, no bundled libraries, no `eval`.** The plugin has no third-party code at runtime.
-- **Uninstall** removes the plugin's tables and settings (see `uninstall.php`).
+- **Uninstall** keeps the plugin's data unless the site owner turned on **Delete all license data when the plugin is deleted** (Licensing settings); then it removes the tables and settings (see `uninstall.php`).
 - **Privacy:** personal data export and erase tools, and suggested policy text (`PRIVACY.md`).
 - Escaping, nonces and capability checks are enforced by the project's PHPCS rules (`composer lint`) on every change.
 
