@@ -102,6 +102,25 @@ async function save( page ) {
 	await page.goto( CLIENT + '/wp-admin/' );
 	check( /license is\s+active/.test( await page.locator( 'body' ).innerText() ), 'step 23: the dashboard notice says the license is active' );
 
+	// The daily check: WordPress cron asks the license server again and the customer site learns what changed.
+	const hook = 'wplit_client_refresh_wplit-sample';
+	const onClient = ( code ) => execFileSync( 'php', [ '-r', 'require "' + path.join( CLIENT_ROOT, 'wp-load.php' ) + '"; ' + code ], { encoding: 'utf8' } ).trim();
+	const licenseStatus = () => onClient( '$s = get_option( "wplit_client_wplit-sample" ); echo is_array( $s ) ? ( $s["status"] ?? "?" ) : "none";' );
+	const runCron = async () => {
+		onClient( 'wp_clear_scheduled_hook( "' + hook + '" ); wp_schedule_event( time() - 60, "daily", "' + hook + '" );' );
+		const response = await page.request.get( CLIENT + '/wp-cron.php' );
+		check( response.status() === 200, 'wp-cron.php runs on the customer site, got ' + response.status() );
+	};
+	check( Number( onClient( 'echo (int) wp_next_scheduled( "' + hook + '" );' ) ) > 0, 'the daily license check is scheduled once the site has a key' );
+	check( licenseStatus() === 'active', 'before the daily check the license is active here, got ' + licenseStatus() );
+	sql( "UPDATE wp_wplit_licenses SET status='revoked' WHERE license_key='" + key + "'" );
+	await runCron();
+	check( licenseStatus() === 'revoked', 'the daily check learns that the seller revoked the license, got ' + licenseStatus() );
+	check( Number( onClient( 'echo (int) wp_next_scheduled( "' + hook + '" );' ) ) > Date.now() / 1000, 'the daily check is scheduled again for later' );
+	sql( "UPDATE wp_wplit_licenses SET status='active' WHERE license_key='" + key + "'" );
+	await runCron();
+	check( licenseStatus() === 'active', 'the daily check picks the license up again once it is active, got ' + licenseStatus() );
+
 	// Step 26: release 1.1.0 with a changelog.
 	await page.goto( BASE + '/wp-admin/post.php?post=' + productId + '&action=edit' );
 	await page.click( '#wplit-tabs [data-tab="releases"]' );
@@ -151,7 +170,7 @@ async function save( page ) {
 	const after = fs.readFileSync( file, 'utf8' );
 	check( ! /no license code yet/.test( after ) || true, 'note: the update replaced the plugin files, including the pasted code (the seller ships the code in each release)' );
 
-	const noise = [ /PHP Deprecated:.*(wp-includes|wp-admin)\//, /(wp_version_check|wp_update_plugins|wp_update_themes)\(\): An unexpected error/ ];
+	const noise = [ /PHP Deprecated:.*(wp-includes|wp-admin)\//, /get_core_checksums\(\): An unexpected error/, /(wp_version_check|wp_update_plugins|wp_update_themes)\(\): An unexpected error/ ];
 	const clientLines = logSince( clientLogStart ).filter( () => false ).concat( ( () => { try { return fs.readFileSync( CLIENT_LOG ).slice( clientLogStart ).toString( 'utf8' ).split( '\n' ).filter( Boolean ); } catch ( e ) { return []; } } )().filter( ( line ) => ! noise.some( ( pattern ) => pattern.test( line ) ) ) );
 	check( 0 === clientLines.length, 'the customer site debug.log has new lines:\n  ' + clientLines.slice( 0, 10 ).join( '\n  ' ) );
 
