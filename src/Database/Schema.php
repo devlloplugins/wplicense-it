@@ -118,7 +118,8 @@ final class Schema {
   data longtext DEFAULT NULL,
   created_at datetime NOT NULL,
   PRIMARY KEY  (id),
-  KEY license_created (license_id,created_at)
+  KEY license_created (license_id,created_at),
+  KEY created_at (created_at)
 ) {$charset_collate};",
 		);
 	}

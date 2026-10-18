@@ -84,14 +84,29 @@ final class WpdbEventLog implements EventLog {
 	/**
 	 * Deletes events older than the given date. Meant for a daily job.
 	 *
+	 * It deletes in slices, so a first run on a big table does not hold one huge delete open. A backlog that is larger than the
+	 * slices of one run continues the next day.
+	 *
 	 * @param DateTimeImmutable $before Delete events created before this time.
+	 * @param int               $slice  Rows per delete.
+	 * @param int               $slices Most deletes in one run.
 	 * @return int Number of rows deleted.
 	 */
-	public function prune( DateTimeImmutable $before ): int {
-		$deleted = $this->db->query(
-			$this->db->prepare( "DELETE FROM {$this->table} WHERE created_at < %s", Dates::to_db( $before ) ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
-		);
+	public function prune( DateTimeImmutable $before, int $slice = 5000, int $slices = 20 ): int {
+		$total = 0;
 
-		return is_int( $deleted ) ? $deleted : 0;
+		for ( $i = 0; $i < $slices; $i++ ) {
+			$deleted = $this->db->query(
+				$this->db->prepare( "DELETE FROM {$this->table} WHERE created_at < %s LIMIT %d", Dates::to_db( $before ), $slice ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+			);
+			$deleted = is_int( $deleted ) ? $deleted : 0;
+			$total  += $deleted;
+
+			if ( $deleted < $slice ) {
+				break;
+			}
+		}
+
+		return $total;
 	}
 }

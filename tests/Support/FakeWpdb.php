@@ -107,10 +107,17 @@ final class FakeWpdb extends \wpdb {
 		return 1;
 	}
 
+	/**
+	 * What query() returns, one entry per call, in order. When it runs out, query() returns 0.
+	 *
+	 * @var int[]
+	 */
+	public array $query_results = array();
+
 	public function query( $query ) {
 		$this->queries[] = $query;
 
-		return 0;
+		return array() === $this->query_results ? 0 : array_shift( $this->query_results );
 	}
 
 	/**

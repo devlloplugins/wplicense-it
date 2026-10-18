@@ -183,10 +183,33 @@ Goals: no customer loses access, running the migration twice does nothing, and t
 |---|---|
 | Validate a key: `license_key = ?` then check product, email, status and expiry | `UNIQUE license_key` |
 | A customer's licenses: `user_id = ?` | `user_id` |
-| Admin search by email | `email` |
+| Admin search, first try: the key or email *starts with* the text | `UNIQUE license_key`, `email` |
+| Admin search, second try (only if nothing starts with it): the text is *anywhere* in the key or email | none (reads every row) |
+| Event retention: `created_at < ?`, in slices | `created_at` |
 | Daily expiry sweep: `status = 'active' AND expires_at < NOW()` | `status, expires_at` |
 | Count active sites for a license | `UNIQUE (license_id, site)` |
 | Order lookup from WooCommerce: `source = 'woocommerce' AND external_id = ?` | `UNIQUE (source, external_id)` |
+
+### Measured on a million licenses
+
+`php tests/env/query-check.php` builds 1,000,000 licenses, 333,000 activations and 1,000,000 events on the test site and runs the
+plugin's own code, then prints the time and EXPLAIN of every query. On the test machine (4 cores, database on the same machine):
+
+| What | Time at 1,000,000 licenses |
+|---|---|
+| Validate a key (every API call), a customer's licenses, events of one license | under 3 ms |
+| List filtered by status, product, or both | 15 to 55 ms |
+| Search for a whole key or email address, or the start of one | 1 to 8 ms (it was 1.6 to 2.7 seconds when search always looked anywhere inside) |
+| Search for text that is nowhere in any key or email | 1.4 seconds (it has to read every row) |
+| First page of the list, with the count above it | about 190 ms for the count, 0.2 to 0.5 seconds for the status counts |
+| Sorting the list by email, expiry or created date | 0.7 to 1 second |
+| A very deep page (page 20,000) | 0.5 seconds |
+| Daily sweep for licenses past their date (100 at a time) | about 180 ms |
+| Event retention (slices of 5,000, up to 20 a run) | about 70 ms per slice |
+
+A site with a tenth of that is ten times quicker or more. Not indexed on purpose: searching inside a key or email, and
+sorting by email, expiry or created date, because an index for each would slow every write to save a second on a list nobody
+opens that way at this size.
 
 ## Resolved questions
 

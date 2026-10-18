@@ -274,8 +274,10 @@ final class LicenseAdminTest extends TestCase {
 		$this->assertSame( 42, $page->total );
 		$this->assertStringContainsString( "status = 'active'", $count_sql );
 		$this->assertStringContainsString( 'product_id = 7', $count_sql );
-		// The quote is escaped for the string, and the LIKE wildcards (_ and %) are escaped for the pattern.
-		$this->assertStringContainsString( 'LIKE \'%o\\\'brien\\\\_100\\\\%%\'', $count_sql );
+		// The quote is escaped for the string, and the LIKE wildcards (_ and %) are escaped for the pattern. The first try matches
+		// the start only, which is what lets the database use its indexes.
+		$this->assertStringContainsString( 'LIKE \'o\\\'brien\\\\_100\\\\%%\'', $count_sql );
+		$this->assertStringNotContainsString( 'LIKE \'%', $count_sql );
 		$this->assertStringContainsString( 'ORDER BY expires_at ASC, id DESC LIMIT 25 OFFSET 25', $rows_sql );
 	}
 
@@ -283,10 +285,43 @@ final class LicenseAdminTest extends TestCase {
 		$db   = new FakeWpdb();
 		$repo = new WpdbLicenseRepository( $db );
 
+		$db->var = '5';
 		$repo->search( new LicenseQuery() );
 
 		$this->assertStringContainsString( 'WHERE 1=1 ORDER BY id DESC, id DESC LIMIT 20 OFFSET 0', $db->queries[1] );
 		$this->assertStringNotContainsString( 'LIKE', $db->queries[0] );
+	}
+
+	public function test_a_search_tries_the_start_first_and_stops_when_it_finds_something(): void {
+		$db      = new FakeWpdb();
+		$db->var = '3';
+
+		( new WpdbLicenseRepository( $db ) )->search( LicenseQuery::from_input( array( 'search' => 'KEY-0050' ) ) );
+
+		$this->assertCount( 2, $db->queries, 'one count and one page of rows, no second search' );
+		$this->assertStringContainsString( "LIKE 'KEY-0050%'", $db->queries[0] );
+		$this->assertStringNotContainsString( "LIKE '%", $db->queries[0] );
+	}
+
+	public function test_a_search_that_finds_nothing_at_the_start_looks_anywhere_inside(): void {
+		$db      = new FakeWpdb();
+		$db->var = '0';
+
+		$page = ( new WpdbLicenseRepository( $db ) )->search( LicenseQuery::from_input( array( 'search' => 'example.com' ) ) );
+
+		$this->assertSame( 0, $page->total );
+		$this->assertCount( 2, $db->queries, 'two counts, and no rows query for a count of zero' );
+		$this->assertStringContainsString( "LIKE 'example.com%'", $db->queries[0] );
+		$this->assertStringContainsString( "LIKE '%example.com%'", $db->queries[1] );
+	}
+
+	public function test_a_search_without_text_does_not_try_twice(): void {
+		$db      = new FakeWpdb();
+		$db->var = '0';
+
+		( new WpdbLicenseRepository( $db ) )->search( new LicenseQuery() );
+
+		$this->assertCount( 1, $db->queries, 'a count of zero ends it' );
 	}
 
 	public function test_a_hostile_orderby_can_never_reach_the_sql(): void {
@@ -296,6 +331,7 @@ final class LicenseAdminTest extends TestCase {
 		$query          = new LicenseQuery();
 		$query->orderby = 'id; DROP TABLE wp_users --'; // Bypasses from_input on purpose.
 		$query->order   = 'DESC; DROP';
+		$db->var        = '5';
 		$repo->search( $query );
 
 		$this->assertStringNotContainsString( 'DROP', $db->queries[1] );

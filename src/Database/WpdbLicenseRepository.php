@@ -142,6 +142,25 @@ final class WpdbLicenseRepository implements LicenseRepository {
 	 * @param LicenseQuery $query Filters, sort order and page.
 	 */
 	public function search( LicenseQuery $query ): LicensePage {
+		if ( '' === $query->search ) {
+			return $this->run_search( $query, '' );
+		}
+
+		// What starts with the words typed (a whole key or email address, or its first characters) is found through the indexes
+		// of the key and the email column, in milliseconds. Only when nothing starts with them does the search look anywhere
+		// inside, which has to read every row (about two seconds at a million licenses).
+		$page = $this->run_search( $query, 'start' );
+
+		return 0 === $page->total ? $this->run_search( $query, 'anywhere' ) : $page;
+	}
+
+	/**
+	 * Runs the search once.
+	 *
+	 * @param LicenseQuery $query Filters, sorting and page.
+	 * @param string       $match "" for no text search, "start" to match the beginning of the key or email, "anywhere" to match inside.
+	 */
+	private function run_search( LicenseQuery $query, string $match ): LicensePage {
 		$where = array( '1=1' );
 		$args  = array();
 
@@ -155,8 +174,9 @@ final class WpdbLicenseRepository implements LicenseRepository {
 			$args[]  = $query->product_id;
 		}
 
-		if ( '' !== $query->search ) {
-			$like    = '%' . $this->db->esc_like( $query->search ) . '%';
+		if ( '' !== $match ) {
+			$escaped = $this->db->esc_like( $query->search );
+			$like    = 'start' === $match ? $escaped . '%' : '%' . $escaped . '%';
 			$where[] = '(license_key LIKE %s OR email LIKE %s)';
 			$args[]  = $like;
 			$args[]  = $like;
@@ -170,6 +190,10 @@ final class WpdbLicenseRepository implements LicenseRepository {
 
 		$count_sql = "SELECT COUNT(*) FROM {$this->table} WHERE {$clause}";
 		$total     = (int) $this->db->get_var( array() === $args ? $count_sql : $this->db->prepare( $count_sql, $args ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Clause is built from fixed fragments, values are prepared.
+
+		if ( 0 === $total ) {
+			return new LicensePage( array(), 0 );
+		}
 
 		$rows_sql = "SELECT * FROM {$this->table} WHERE {$clause} ORDER BY {$orderby} {$order}, id DESC LIMIT %d OFFSET %d";
 		$rows     = $this->db->get_results( $this->db->prepare( $rows_sql, array_merge( $args, array( $query->per_page, $query->offset() ) ) ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Clause is built from fixed fragments, values are prepared.

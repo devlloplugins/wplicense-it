@@ -27,6 +27,9 @@ manage licenses where, that one site's licenses are invisible to another, migrat
 uninstalling. The network is not served over HTTP, because WordPress refuses to run a network on a port other than 80 or
 443, so each site is loaded from the command line with its own host and path.
 
+`php tests/env/query-check.php` builds a million licenses and prints the time and EXPLAIN of the plugin's queries (see the
+last section of `docs/SCHEMA.md`). It empties the test site's licenses when it is done.
+
 The plugin that updates itself must run on a different site from the license server. WordPress puts a site into
 maintenance mode while it updates a plugin, and a license server in maintenance mode cannot hand out the download:
 the update then fails with "The license server had a problem".
