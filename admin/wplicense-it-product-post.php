@@ -1,5 +1,10 @@
 <?php
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class WP_License_It_Product_Post {
 
     public function __construct(){

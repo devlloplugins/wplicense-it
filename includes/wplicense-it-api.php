@@ -1,5 +1,10 @@
 <?php
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
     /**
      * The API handler for handling API requests from themes and plugins using
      * the license manager.
@@ -344,4 +349,4 @@
 
     }
 
-    new Wp_License_It_API();
+    new Wp_License_It_API();

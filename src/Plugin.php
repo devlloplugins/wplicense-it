@@ -116,7 +116,6 @@ final class Plugin {
 		$this->load_product_screens();
 
 		add_action( 'init', array( $this, 'register_legacy_shortcodes' ) );
-		add_action( 'init', array( $this, 'load_textdomain' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 
 		( new MigrationRunner() )->register();
@@ -289,12 +288,5 @@ final class Plugin {
 		}
 
 		return $this->licenses;
-	}
-
-	/**
-	 * Loads translations.
-	 */
-	public function load_textdomain(): void {
-		load_plugin_textdomain( 'wplicense-it', false, dirname( plugin_basename( WPLICENSE_IT_FILE ) ) . '/languages' );
 	}
 }

@@ -1,76 +1,85 @@
 === WPLicense It ===
 Contributors: devlloplugins, femiyb
-Tags: key, license, license key, serial key, software license, digital store, woocommerce
-Requires at least: 5.0
-Tested up to: 6.0
-Requires PHP: 7.0
-Stable tag: 1.0.2
+Tags: license, license key, software license, woocommerce, updates
+Requires at least: 6.2
+Tested up to: 6.7
+Requires PHP: 8.0
+Stable tag: 2.0.0-dev
 License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Sell and manage license keys for WordPress Applications (Plugins and Themes)
+Sell and manage license keys, activations, renewals and updates for your WordPress plugins and themes, with WooCommerce.
 
 == Description ==
-The best number-one software license management solution for your WordPress applications, for developers to properly and securely manage their application software licenses. You can also push updates for your WordPress applications from the WordPress dashboard.
+WPLicense It is for developers who sell WordPress plugins and themes. It issues license keys, limits how many sites each key may be used on, renews and ends licenses, and lets your customers' sites check their license and receive updates from your own site.
 
-= FEATURES =
+= What it does =
 
-- Sell licenses for WordPress plugins and themes with WooCommerce
-- Activation limits per license, renewals and refunds handled automatically
-- Check License Status with the API
-- Push New updates for your Plugins and Themes from your dashboard
-- One click update from WordPress Dashboard.
+* **Licenses**: issue, renew, revoke, refund and reinstate licenses, with an activation limit per license, local and staging sites that do not use a slot, and a history of what happened to each license.
+* **Selling with WooCommerce**: add plans (price, sites, duration) to a product and WPLicense It creates the WooCommerce products. Paid orders become licenses, refunds and cancellations end them.
+* **Renewals**: a Renew button in My Account, expiry reminder emails, and optional renewal invoices (an unpaid renewal order with a pay link, paid with any payment method your store offers).
+* **Updates**: upload releases (zip files) to a product. Customers' sites receive updates through a drop-in PHP client (SDK) that you add to your plugin or theme. Download links are signed and expire after 15 minutes, and the license is checked again when one is used.
+* **REST API**: validate, activate and deactivate licenses and check for updates at `/wp-json/wplicense-it/v1/`.
+* **Overview screen**: what needs attention (for example a paid order that could not get its license), the setup steps that are left, how many licenses are in each state, and the ones about to expire.
+* **Privacy**: works with the WordPress personal data export and erase tools, and adds suggested text for your privacy policy.
+* **Upgrading from 1.x**: licenses and orders are moved to the new tables in the background, and the old API addresses keep working.
+
+= Links =
+
+[Documentation](https://wplicenseit.com/docs/) and [website](https://wplicenseit.com/).
+
+= Requirements =
+
+PHP 8.0 or newer and WordPress 6.2 or newer. WooCommerce is needed to sell licenses from your store; without it you can still issue licenses by hand. The client SDK in the `sdk` folder runs on PHP 7.4 and newer, because it is added to your customers' sites.
 
 == Installation ==
-= MANUAL INSTALLATION =
+1. Upload the plugin files to the `/wp-content/plugins/wplicense-it` directory, or install the plugin through the WordPress Plugins page.
+2. Activate the plugin through the Plugins page.
+3. Open **License Products > Overview** and follow the steps: create a product, upload a release, then issue a license to try it.
+4. To sell with WooCommerce, add a plan to the product. To let your plugin or theme check licenses and update itself, download the SDK from the product's **Connect** box and add it to your code.
 
-Upload the plugin files to the /wp-content/plugins/wplicense-it directory, or install the plugin through the WordPress Plugins page directly.
-Activate the plugin through the Plugins page in WordPress.
+== External services ==
+WPLicense It does not send any data to the plugin authors or to any third party.
 
-= INSTALLATION THROUGH WORDPRESS =
-
-Open up your WordPress Dashboard and navigate to the Plugins page.
-Click on Add new
-In the search bar type “WPLicense It”
-Select this plugin and click on Install now
+* When you press **Test this plan** in the product's Plans box, the plugin requests this site's own license API address (a request from the site to itself) to check that it answers. Nothing leaves your site.
+* The client SDK that you can download is for **your** plugin or theme. When it runs on a customer's site it contacts **your** license server, which is the site where WPLicense It is installed: it sends the license key, the product, the customer's site address and the installed version, so that the license can be checked and updates found. The SDK is not active on the site where WPLicense It is installed.
 
 == Screenshots ==
-1. Add New License Product
+1. Add a license product
 
 == Frequently Asked Questions ==
 
 = Who can use WPLicense It? =
-WPLicense It is for developers who have developed themes and plugins and would like to sell and manage Licenses for their products.
+Developers and companies that sell WordPress plugins or themes and want to manage licenses and updates for them.
 
-= What can I do with a software license? =
-A license is an important tool for developers and companies to explicitly set out the end-user’s rights. This includes protection of the developer’s intellectual property (source code, applications) from activities like redistribution, reuse or modification.
+= Does it work with themes as well as plugins? =
+Yes. The same product can be a plugin or a theme.
 
-= Does WPLicense It work for custom-built apps? =
-WPLicense It is built for WordPress Themes and Plugins, if you would like, you can use this to sell Licenses for another product, but this would require more custom development, and you probably wouldn’t be able to push automatic updates.
+= Do I need to write code? =
+Selling and managing licenses needs no code. To let your plugin or theme check its license and update itself you add the client SDK to it, which needs a few lines of PHP. See the Connect box on the product screen.
 
-= Do I need to code for this product? =
-WPLicense It is built for developers, so setting this up with your Plugin or Theme will require some coding knowledge. You can reach out to us for assistance setting up your product with WPLicense It.
+= Can I sell without WooCommerce? =
+Not through this plugin. Licenses can be issued by hand (**License Products > Add license**), but selling and renewals use WooCommerce.
 
-= Do you only use the WPLicense It WordPress plugins?
-No, you can use WPLicense with both WordPress plugins and themes.
+= What happens to my 1.x data? =
+It is moved to the new tables automatically in the background, with a notice if anything could not be moved. The old API addresses keep working.
 
 = I found a bug in the plugin. =
-Please post it in the [WordPress support forum](https://wordpress.org/support/plugin/wplicense-it/) and we'll look into it as soosn as possible.
-
-
-## Other links
-* [Documentation](https://wplicenseit.com/docs/):
-* [Website](https://wplicenseit.com/):
-
+Please post it in the [WordPress support forum](https://wordpress.org/support/plugin/wplicense-it/) and we will look into it as soon as possible.
 
 == Changelog ==
-= 0.9 =
-Initial release.
 
-= 1.0 =
-Fix issue with Checkout and Stripe Tokens
-
-= 1.0.1 =
-Bug fix: Activation Functions.
+= 2.0.0 =
+* New licensing core with activation limits, renewals, refunds, and a history for each license.
+* New REST API and a drop-in client SDK for plugins and themes.
+* WooCommerce plans, renewal button, expiry reminder emails and renewal invoices.
+* New admin screens: Overview, Licenses, Add license and Licensing settings.
+* Paid orders that could not get their license are shown on the order and on the Overview, with a Try again button.
+* Works with the WordPress personal data export and erase tools.
+* Safer package storage: files are kept in random folders, so they stay out of reach on servers that ignore .htaccess.
+* Your 1.x licenses and orders are migrated automatically and keep working.
+* Removed: the built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes. Sell licenses with WooCommerce instead.
+* Requires PHP 8.0 and WordPress 6.2.
 
 = 1.0.2 =
 Security and stability release.
@@ -84,9 +93,16 @@ Security and stability release.
 * Fix: emails no longer change the content type of other emails sent by the site.
 * Fix: .htaccess protection for product files and database version check.
 
+= 1.0.1 =
+Bug fix: Activation Functions.
+
+= 1.0 =
+Fix issue with Checkout and Stripe Tokens
+
+= 0.9 =
+Initial release.
+
+== Upgrade Notice ==
+
 = 2.0.0 =
-Major release (unreleased). See docs/UPGRADING.md.
-* New: licensing core with activation limits, REST API, native admin screens, WooCommerce integration and a client SDK for plugins and themes.
-* Your 1.x licenses and orders are migrated automatically and keep working.
-* Removed: the built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes. Sell licenses with WooCommerce instead.
-* Requires PHP 8.0 and WordPress 6.2.
+A large update. Your 1.x licenses and orders are moved to new tables in the background. Back up your database before updating.
