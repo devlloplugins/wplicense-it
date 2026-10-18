@@ -21,6 +21,13 @@ measures it on a big one (100,000 licenses by default, which takes about two min
 PHP memory limit, a third for the number of rows that cannot be migrated, and `stop` to leave it waiting for the
 owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 
+`tests/env/nginx-check.sh` checks package protection on nginx, which ignores the `.htaccess` file that protects packages
+on Apache. It puts a 1.x package at the old predictable address, serves the site's files with a real nginx and PHP-FPM
+(the usual WordPress configuration, with nothing about the packages folder), and checks that the old address serves the
+zip before the upgrade and not after, that the product then points at a random folder, that the file is unchanged, and
+that the folders above the package list nothing and give no token away. It needs `apt install nginx php-fpm` and uses
+port 8082. It was also run with the move broken on purpose, and failed as it should.
+
 `tests/env/setup-multisite.sh` builds a multisite network (subdirectory type, three sites) in its own database, and
 `php tests/env/multisite-check.php` checks the plugin on it: network activation, per-site tables and files, who may
 manage licenses where, that one site's licenses are invisible to another, migrating a subsite, deleting a site, and
