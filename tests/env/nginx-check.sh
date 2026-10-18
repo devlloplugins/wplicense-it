@@ -121,7 +121,14 @@ UPLOADS="/wp-content/uploads"
 echo "  product $ID, 1.x address $UPLOADS/$OLD"
 
 echo "== Before the upgrade"
-check "nginx serves the 1.x address (so the check below is meaningful)" "$([ "$(code "$BASE$UPLOADS/$OLD")" = 200 ] && echo yes || echo no)"
+# A fresh nginx can answer the first requests slowly or with an error, so give it a few seconds to serve the file.
+for _ in $(seq 1 20); do [ "$(code "$BASE$UPLOADS/$OLD")" = 200 ] && break; sleep 0.5; done
+STATUS_BEFORE="$(code "$BASE$UPLOADS/$OLD")"
+check "nginx serves the 1.x address (so the check below is meaningful; got HTTP $STATUS_BEFORE)" "$([ "$STATUS_BEFORE" = 200 ] && echo yes || echo no)"
+if [ "$STATUS_BEFORE" != 200 ]; then
+	echo "  file on disk: $(ls -l "$SITE/wp-content/uploads/$OLD" 2>&1)"
+	echo "  nginx error log:"; tail -n 8 "$WORK/error.log" | sed 's/^/    /'
+fi
 
 echo "== Run the upgrade step"
 php -d memory_limit=512M -r '
