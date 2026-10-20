@@ -50,6 +50,7 @@ use Devllo\WPLicenseIt\WooCommerce\AccountPage;
 use Devllo\WPLicenseIt\WooCommerce\CartRenewal;
 use Devllo\WPLicenseIt\WooCommerce\IssueProblems;
 use Devllo\WPLicenseIt\WooCommerce\LicenseDisplay;
+use Devllo\WPLicenseIt\WooCommerce\OrderLicensesBox;
 use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
 use Devllo\WPLicenseIt\WooCommerce\OrderReader;
 use Devllo\WPLicenseIt\WooCommerce\ProductFields;
@@ -201,6 +202,7 @@ final class Plugin {
 		( new PlansBox( new PostMetaPlanRepository(), $gateway, $tester, $catalog ) )->register();
 		( new CartRenewal( $this->licenses(), $reader ) )->register();
 		( new LicenseDisplay( $this->licenses() ) )->register();
+		( new OrderLicensesBox( $this->licenses(), $reader ) )->register();
 		( new AccountPage( $this->licenses(), new WpProductCatalog(), $this->signer() ) )->register();
 	}
 

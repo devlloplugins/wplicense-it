@@ -115,6 +115,11 @@ jobs:
           sudo -E env "PATH=$PATH" bash tests/env/setup-woocommerce.sh
       - name: Run the browser tests
         run: sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh
+      - name: Run the order tests again on classic order storage
+        run: |
+          sudo -E env "PATH=$PATH" bash tests/env/order-storage.sh classic
+          sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh 06 17 19 21
+          sudo -E env "PATH=$PATH" bash tests/env/order-storage.sh hpos
       - name: Check package protection on nginx
         run: |
           sudo apt-get install -y -qq nginx php-fpm php-mysql php-zip

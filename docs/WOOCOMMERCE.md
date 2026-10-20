@@ -98,6 +98,23 @@ product, and `0` when the order has lines for several, so that no one of them is
 read from the licenses: every license points back to its order, and `OrderProducts` returns the distinct products of an
 order's licenses. A line that got no license (for example a period that could not be used) is not in that list.
 
+## The order screen
+
+An order that has licensed lines, or already has licenses, gets a **WPLicense It licenses** box on its own WooCommerce screen
+(with either order storage). It lists each license with its product line, the full key, status, sites in use of the sites
+allowed, expiry and a **View** link to the license screen. A revoked or refunded license stays in the list with its status, so
+a cancelled order still shows what it had. An order that is licensed but has not issued yet (for example it is still
+processing) says that no license has been issued. Orders for ordinary products get no box, and people who may see orders but
+not manage licenses (for example a shop manager) see neither the box nor the keys.
+
+## Order storage
+
+WooCommerce can keep orders in its own tables (high-performance order storage, the default for new stores) or as posts
+(classic storage, which many existing stores still use). The plugin works with both. It never searches orders by meta
+fields, because classic storage ignores such a search and answers with every order: the renewal invoices it made are found
+by their "created via" value and checked one by one, and the orders that could not get a license are kept in the
+`wplit_problem_orders` option.
+
 ## When an order could not get its license
 
 If a paid order reaches the status that issues licenses and a license cannot be made (for example the product's license period

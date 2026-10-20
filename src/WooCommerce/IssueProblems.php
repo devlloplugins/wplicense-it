@@ -23,6 +23,13 @@ final class IssueProblems {
 	public const ACTION = 'wplit_retry_order';
 
 	/**
+	 * Option that lists the flagged orders. Orders cannot be searched by meta on classic order storage, so the list is kept here.
+	 */
+	public const INDEX = 'wplit_problem_orders';
+
+	private const INDEX_MAX = 200;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param WooAdapter $adapter Processes an order again on Try again.
@@ -51,6 +58,7 @@ final class IssueProblems {
 
 		$order->update_meta_data( self::META, $text );
 		$order->save();
+		self::index_add( (int) $order->get_id() );
 
 		return $new;
 	}
@@ -65,6 +73,45 @@ final class IssueProblems {
 			$order->delete_meta_data( self::META );
 			$order->save();
 		}
+
+		self::index_remove( (int) $order->get_id() );
+	}
+
+	/**
+	 * Adds an order to the list of flagged orders.
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	private static function index_add( int $order_id ): void {
+		$ids = array_values( array_diff( self::index(), array( $order_id ) ) );
+
+		$ids[] = $order_id;
+
+		update_option( self::INDEX, array_slice( $ids, -self::INDEX_MAX ), false );
+	}
+
+	/**
+	 * Takes an order off the list of flagged orders.
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	private static function index_remove( int $order_id ): void {
+		$ids = self::index();
+
+		if ( in_array( $order_id, $ids, true ) ) {
+			update_option( self::INDEX, array_values( array_diff( $ids, array( $order_id ) ) ), false );
+		}
+	}
+
+	/**
+	 * The flagged orders' IDs, oldest first.
+	 *
+	 * @return int[]
+	 */
+	private static function index(): array {
+		$ids = get_option( self::INDEX, array() );
+
+		return is_array( $ids ) ? array_values( array_map( 'intval', $ids ) ) : array();
 	}
 
 	/**
@@ -118,27 +165,22 @@ final class IssueProblems {
 	 * @return array{total:int, orders:list<array{id:int,number:string,problem:string,url:string}>}
 	 */
 	public static function recent( int $limit ): array {
-		$found = wc_get_orders(
-			array(
-				'limit'      => $limit,
-				'paginate'   => true,
-				'orderby'    => 'date',
-				'order'      => 'DESC',
-				'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Few orders carry the flag, and it is shown on an admin screen.
-					array(
-						'key'     => self::META,
-						'compare' => 'EXISTS',
-					),
-				),
-			)
-		);
-
 		$orders = array();
+		$keep   = array();
 
-		foreach ( $found->orders as $order ) {
-			if ( $order instanceof WC_Order && '' !== self::problem_of( $order ) ) {
+		// Newest flagged order first. An order that was deleted, or no longer has the flag, drops off the list.
+		foreach ( array_reverse( self::index() ) as $order_id ) {
+			$order = wc_get_order( $order_id );
+
+			if ( ! $order instanceof WC_Order || '' === self::problem_of( $order ) ) {
+				continue;
+			}
+
+			$keep[] = $order_id;
+
+			if ( count( $orders ) < $limit ) {
 				$orders[] = array(
-					'id'      => (int) $order->get_id(),
+					'id'      => $order_id,
 					'number'  => (string) $order->get_order_number(),
 					'problem' => self::problem_of( $order ),
 					'url'     => (string) $order->get_edit_order_url(),
@@ -146,8 +188,14 @@ final class IssueProblems {
 			}
 		}
 
+		$keep = array_reverse( $keep );
+
+		if ( self::index() !== $keep ) {
+			update_option( self::INDEX, $keep, false );
+		}
+
 		return array(
-			'total'  => (int) $found->total,
+			'total'  => count( $keep ),
 			'orders' => $orders,
 		);
 	}

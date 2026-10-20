@@ -100,10 +100,12 @@ if ( ! class_exists( 'WC_Order_Item' ) ) {
 if ( ! function_exists( 'wc_get_order' ) ) {
 	function wc_get_order( $id ) { return $GLOBALS['wplit_test_orders'][ $id ] ?? false; }
 	function wp_mail( $to, $subject, $message ) { $GLOBALS['wplit_test_mail'][] = compact( 'to', 'subject', 'message' ); return true; }
-	function wc_get_orders( $args ) { return $GLOBALS['wplit_test_open_invoices'][ (int) ( $args['meta_query'][0]['value'] ?? 0 ) ] ?? array(); }
+	// Answers like the "created via" query of the plugin: every order set up as open, whatever license it is for.
+	function wc_get_orders( $args ) { return array_merge( array(), ...array_values( $GLOBALS['wplit_test_open_invoices'] ?? array() ) ); }
 	function wc_get_product( $id ) { return $GLOBALS['wplit_test_products'][ $id ] ?? false; }
 	function get_post_meta( $id, $key = '', $single = false ) { return $GLOBALS['wplit_test_post_meta'][ $id ][ $key ] ?? ''; }
 	function get_option( $name, $default = false ) { return $GLOBALS['wplit_test_options'][ $name ] ?? $default; }
+	function update_option( $name, $value, $autoload = null ) { $GLOBALS['wplit_test_options'][ $name ] = $value; return true; }
 	function apply_filters( $hook, $value ) { return $value; }
 	function __( $text ) { return $text; }
 	function _n( $single, $plural, $number ) { return 1 === $number ? $single : $plural; }

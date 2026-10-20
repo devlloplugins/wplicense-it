@@ -67,6 +67,15 @@ switch ( $op ) {
 		$out = array( 'user_id' => (int) $id );
 		break;
 
+	case 'create_simple_product':
+		// A WooCommerce product that has nothing to do with licensing.
+		$plain = new WC_Product_Simple();
+		$plain->set_name( $in['name'] );
+		$plain->set_regular_price( (string) ( $in['price'] ?? '10' ) );
+		$plain->set_status( 'publish' );
+		$out = array( 'product_id' => (int) $plain->save() );
+		break;
+
 	case 'create_order':
 		$order = wc_create_order(
 			array(
@@ -148,21 +157,21 @@ switch ( $op ) {
 
 	case 'find_invoices':
 		// The renewal invoice orders made for a license, newest first.
-		$ids = wc_get_orders(
+		// Not a meta query: classic order storage ignores one and would return every order.
+		$ids = array();
+		foreach ( wc_get_orders(
 			array(
-				'limit'      => 20,
-				'orderby'    => 'ID',
-				'order'      => 'DESC',
-				'return'     => 'ids',
-				'status'     => array_keys( wc_get_order_statuses() ),
-				'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- A test helper.
-					array(
-						'key'   => '_wplit_invoice_license_id',
-						'value' => (int) $in['license_id'],
-					),
-				),
+				'limit'       => 100,
+				'orderby'     => 'ID',
+				'order'       => 'DESC',
+				'status'      => array_keys( wc_get_order_statuses() ),
+				'created_via' => 'wplicense_renewal',
 			)
-		);
+		) as $found ) {
+			if ( (int) $found->get_meta( '_wplit_invoice_license_id', true ) === (int) $in['license_id'] ) {
+				$ids[] = $found->get_id();
+			}
+		}
 		$min = (int) ( $in['min_id'] ?? 0 );
 		$out = array( 'orders' => array_values( array_filter( array_map( 'intval', $ids ), static fn( int $id ): bool => $id > $min ) ) );
 		break;

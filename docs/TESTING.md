@@ -24,6 +24,15 @@ owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 `bin/build-release.sh --check` builds the release zip, checks what is in it and that two builds are identical (see `RELEASE.md`). It runs in CI.
 The browser suite was also run once against the plugin unpacked from that zip, with all 19 files passing.
 
+`tests/e2e/21-order-licenses-box.cjs` (14 checks) opens the order screen of an order for two products and checks the licenses box: both licenses
+with full keys, product lines, Active, sites used of allowed, a working View link; after a cancellation both are listed as Revoked; a
+licensed order that has not issued says so; an order for an ordinary product has no box; a shop manager sees neither box nor keys.
+
+**Two order storages.** `tests/env/order-storage.sh classic` (and `hpos` to go back) switches the test store between WooCommerce's
+high-performance order storage and classic post storage. Tests 06, 17, 19 and 21 are run on both (CI does it after the main run).
+Running on classic storage found a real bug: WooCommerce ignores a meta query on orders there and answers with every order, so
+completing a renewal order cancelled every unpaid order of the shop. Test 17 now checks that an unrelated unpaid order is left alone.
+
 `tests/e2e/20-several-products-order.cjs` (10 checks) makes two products with plans and one order with lines for both: each line gets its
 licenses, all linked to the one order record, the record names no single product (0), the products are read back from the licenses, and an
 order for one product still records that product. It fails with the old behaviour (the first product).

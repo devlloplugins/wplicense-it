@@ -156,11 +156,14 @@ const save = async ( page, selector ) => Promise.all( [ page.waitForNavigation( 
 	const done = woo( { op: 'order_info', order_id: a[ 0 ] } );
 	check( done.lines[ 0 ].ids.includes( A ), 'the order records the renewed license: ' + JSON.stringify( done.lines[ 0 ].ids ) );
 
-	// 9. The guest license is renewed another way (a different order): the unpaid invoice is cancelled.
+	// 9. The guest license is renewed another way (a different order): the unpaid invoice is cancelled, and nothing else is.
+	const mug = woo( { op: 'create_simple_product', name: 'Invoice Test Mug' } );
+	const unrelated = woo( { op: 'create_order', product_id: mug.product_id, qty: 1, email: 'unrelated' + Date.now() + '@example.com', user_id: 0, status: 'pending' } );
 	woo( { op: 'create_order', product_id: wooId, qty: 1, email: guestEmail, user_id: 0, status: 'completed', renew_license_id: B } );
 	const stale = woo( { op: 'order_info', order_id: b[ 0 ] } );
 	check( stale.status === 'cancelled', 'the guest\'s unpaid invoice is cancelled once the license is renewed by another order, got ' + stale.status );
 	check( woo( { op: 'order_notes', order_id: b[ 0 ] } ).notes.some( ( n ) => /renewed by order/.test( n ) ), 'and the order says why' );
+	check( woo( { op: 'order_info', order_id: unrelated.order_id } ).status === 'pending', 'an unrelated unpaid order is left alone (it is still pending)' );
 	check( sql( 'SELECT COUNT(*) FROM wp_wplit_licenses' ) === licensesBefore, 'still no second license' );
 	helper( 'run' );
 	check( invoices( B ).length === 1, 'the cancelled invoice is not made again for the same expiry date (and the renewal moved the date anyway)' );

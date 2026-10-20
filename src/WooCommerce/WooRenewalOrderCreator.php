@@ -141,22 +141,19 @@ final class WooRenewalOrderCreator implements RenewalOrderCreator {
 	public static function cancel_open_invoices( WC_Order $order ): void {
 		foreach ( $order->get_items() as $item ) {
 			foreach ( WooItemLicenseStore::ids( $item ) as $license_id ) {
+				// Not a meta query: WooCommerce's classic order storage ignores one, which would return every pending order.
+				// The orders this plugin made carry its own "created via" value; the license is checked on each.
 				$open = wc_get_orders(
 					array(
-						'status'     => array( 'pending' ),
-						'limit'      => 10,
-						'exclude'    => array( $order->get_id() ),
-						'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Only unpaid orders of one license.
-							array(
-								'key'   => self::META_LICENSE,
-								'value' => $license_id,
-							),
-						),
+						'status'      => array( 'pending' ),
+						'limit'       => 50,
+						'exclude'     => array( $order->get_id() ),
+						'created_via' => self::CREATED_VIA,
 					)
 				);
 
 				foreach ( $open as $invoice ) {
-					if ( $invoice instanceof WC_Order ) {
+					if ( $invoice instanceof WC_Order && $license_id === (int) $invoice->get_meta( self::META_LICENSE, true ) ) {
 						/* translators: %s: order number. */
 						$invoice->update_status( 'cancelled', sprintf( __( 'Cancelled: the license was renewed by order %s.', 'wplicense-it' ), $order->get_order_number() ) );
 					}

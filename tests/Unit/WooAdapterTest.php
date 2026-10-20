@@ -111,14 +111,51 @@ final class WooAdapterTest extends TestCase {
 		$this->complete();
 		$license_id = WooItemLicenseStore::ids( $this->item )[0];
 
-		$invoice     = new \WC_Order();
-		$invoice->id = 900;
-		$GLOBALS['wplit_test_open_invoices'][ $license_id ] = array( $invoice );
+		$invoice                   = new \WC_Order();
+		$invoice->id               = 900;
+		$invoice->order_meta       = array( \Devllo\WPLicenseIt\WooCommerce\WooRenewalOrderCreator::META_LICENSE => $license_id );
+		$other_license             = new \WC_Order();
+		$other_license->id         = 901;
+		$other_license->order_meta = array( \Devllo\WPLicenseIt\WooCommerce\WooRenewalOrderCreator::META_LICENSE => $license_id + 1 );
+		$unrelated                 = new \WC_Order();
+		$unrelated->id             = 902;
+
+		// The query cannot be trusted to filter (classic order storage ignores a meta query and returns every pending order),
+		// so every order it returns is checked.
+		$GLOBALS['wplit_test_open_invoices'] = array( array( $invoice, $other_license, $unrelated ) );
 
 		\Devllo\WPLicenseIt\WooCommerce\WooRenewalOrderCreator::cancel_open_invoices( $this->order );
 
 		$this->assertSame( 'cancelled', $invoice->status );
 		$this->assertStringContainsString( 'renewed by order', $invoice->notes[0] );
+		$this->assertSame( 'pending', $other_license->status, 'the invoice of another license is left alone' );
+		$this->assertSame( 'pending', $unrelated->status, 'and so is an order that is not an invoice' );
+	}
+
+	public function test_flagged_orders_are_listed_newest_first_and_drop_off_when_cleared_or_gone(): void {
+		$first                            = new \WC_Order();
+		$first->id                        = 31;
+		$second                           = new \WC_Order();
+		$second->id                       = 32;
+		$GLOBALS['wplit_test_orders'][31] = $first;
+		$GLOBALS['wplit_test_orders'][32] = $second;
+
+		IssueProblems::flag( $first, array( 'one' ) );
+		IssueProblems::flag( $second, array( 'two' ) );
+		IssueProblems::flag( $first, array( 'one again' ) );
+
+		$list = IssueProblems::recent( 5 );
+		$this->assertSame( 2, $list['total'] );
+		$this->assertSame( array( 31, 32 ), array_column( $list['orders'], 'id' ), 'flagged again, so it is the newest' );
+		$this->assertCount( 1, IssueProblems::recent( 1 )['orders'], 'the list can be cut short, the total stays' );
+		$this->assertSame( 2, IssueProblems::recent( 1 )['total'] );
+
+		IssueProblems::clear( $first );
+		$this->assertSame( array( 32 ), array_column( IssueProblems::recent( 5 )['orders'], 'id' ) );
+
+		unset( $GLOBALS['wplit_test_orders'][32] );
+		$this->assertSame( array(), IssueProblems::recent( 5 )['orders'], 'an order that was deleted is dropped' );
+		$this->assertSame( array(), get_option( IssueProblems::INDEX ), 'and forgotten' );
 	}
 
 	public function test_an_order_that_cannot_get_its_license_is_flagged_and_the_administrator_told_once(): void {
