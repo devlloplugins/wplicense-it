@@ -9,9 +9,9 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T17:13:55+00:00\n"
+"POT-Creation-Date: 2026-10-20T17:23:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.11.0\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
 
 #. Plugin Name of the plugin
@@ -319,6 +319,7 @@ msgstr ""
 
 #. translators: %s: link text "Download the SDK".
 #: src/Admin/ConnectBox.php:204
+#, php-format
 msgid "%s and unzip it into your plugin or theme, so you have vendor/wplicense-it-client."
 msgstr ""
 
@@ -340,6 +341,7 @@ msgstr ""
 
 #. translators: 1: product ID, 2: settings page name.
 #: src/Admin/ConnectBox.php:218
+#, php-format
 msgid "Product ID: %1$s. Customers then find the license page under Settings, %2$s."
 msgstr ""
 
@@ -352,6 +354,7 @@ msgstr ""
 
 #. translators: %s: link text "Download an example plugin".
 #: src/Admin/ConnectBox.php:226
+#, php-format
 msgid "Or start from a working example: %s for this product, with the SDK and this code already in it. Install it on a test site to try activation and updates, then copy what you need."
 msgstr ""
 
@@ -404,6 +407,7 @@ msgstr ""
 
 #. translators: 1: product name, 2: license key, 3: expiry date.
 #: src/Admin/LicenseActions.php:328
+#, php-format
 msgid ""
 "Thank you. Your license for %1$s is ready.\n"
 "\n"
@@ -414,6 +418,7 @@ msgstr ""
 
 #. translators: %s: product name.
 #: src/Admin/LicenseActions.php:335
+#, php-format
 msgid "Your license for %s"
 msgstr ""
 
@@ -533,6 +538,7 @@ msgstr ""
 
 #. translators: %s: license key.
 #: src/Admin/LicensesTable.php:196
+#, php-format
 msgid "Select %s"
 msgstr ""
 
@@ -755,6 +761,7 @@ msgstr ""
 
 #. translators: %d: number of licenses.
 #: src/Admin/Notices.php:68
+#, php-format
 msgid "%d license updated."
 msgid_plural "%d licenses updated."
 msgstr[0] ""
@@ -766,6 +773,7 @@ msgstr ""
 
 #. translators: %d: number of days.
 #: src/Admin/OverviewScreen.php:82
+#, php-format
 msgid "Expiring in the next %d day"
 msgid_plural "Expiring in the next %d days"
 msgstr[0] ""
@@ -793,11 +801,13 @@ msgstr ""
 
 #. translators: %s: order number.
 #: src/Admin/OverviewScreen.php:194
+#, php-format
 msgid "Order %s"
 msgstr ""
 
 #. translators: %d: number of orders.
 #: src/Admin/OverviewScreen.php:216
+#, php-format
 msgid "%d paid order could not be given its license, so the customer is waiting. Open it, fix the cause and press Try again."
 msgid_plural "%d paid orders could not be given their licenses, so the customers are waiting. Open each one, fix the cause and press Try again."
 msgstr[0] ""
@@ -813,6 +823,7 @@ msgstr ""
 
 #. translators: %d: number of products.
 #: src/Admin/OverviewScreen.php:226
+#, php-format
 msgid "%d published product has no release uploaded, so customers cannot download or update it."
 msgid_plural "%d published products have no release uploaded, so customers cannot download or update them."
 msgstr[0] ""
@@ -894,6 +905,7 @@ msgstr ""
 
 #. translators: %d: number of days.
 #: src/Admin/OverviewScreen.php:376
+#, php-format
 msgid "%d day"
 msgid_plural "%d days"
 msgstr[0] ""
@@ -910,6 +922,7 @@ msgstr ""
 
 #. translators: %s: currency code.
 #: src/Admin/PlansBox.php:119
+#, php-format
 msgid "Price (%s)"
 msgstr ""
 
@@ -938,6 +951,7 @@ msgstr ""
 
 #. translators: 1: row number, 2: column name such as Price.
 #: src/Admin/PlansBox.php:145
+#, php-format
 msgid "Plan %1$d: %2$s"
 msgstr ""
 
@@ -983,6 +997,7 @@ msgstr ""
 
 #. translators: 1: price in WooCommerce, 2: price in the plan.
 #: src/Admin/PlansBox.php:201
+#, php-format
 msgid "WooCommerce price is %1$s, plan price is %2$s."
 msgstr ""
 
@@ -1068,11 +1083,13 @@ msgstr ""
 
 #. translators: %s: plan name.
 #: src/Admin/PlansBox.php:403
+#, php-format
 msgid "Test of \"%s\": passed. Nothing was saved or sent."
 msgstr ""
 
 #. translators: %s: plan name.
 #: src/Admin/PlansBox.php:405
+#, php-format
 msgid "Test of \"%s\": did not pass. Fix the items below and test again."
 msgstr ""
 
@@ -1268,6 +1285,7 @@ msgstr ""
 
 #. translators: 1: number of releases, 2: total size or empty.
 #: src/Admin/ReleasesBox.php:89
+#, php-format
 msgid "%1$d release%2$s. Customers get the one marked Current."
 msgid_plural "%1$d releases%2$s. Customers get the one marked Current."
 msgstr[0] ""
@@ -1331,11 +1349,13 @@ msgstr ""
 
 #. translators: %s: version.
 #: src/Admin/ReleasesBox.php:248
+#, php-format
 msgid "Version %s is now the release customers get."
 msgstr ""
 
 #. translators: %s: version.
 #: src/Admin/ReleasesBox.php:252
+#, php-format
 msgid "Version %s was removed from the history."
 msgstr ""
 
@@ -1491,6 +1511,7 @@ msgstr ""
 
 #. translators: 1: the address the request came from, 2: the address counted for it.
 #: src/Admin/SettingsScreen.php:364
+#, php-format
 msgid "This page was requested from %1$s, and the plugin counts it as %2$s. If the second is not your own address, the choice above is not right for this site."
 msgstr ""
 
@@ -1512,11 +1533,13 @@ msgstr ""
 
 #. translators: %d: number of days.
 #: src/Admin/SettingsScreen.php:391
+#, php-format
 msgid "No calls in the last %d days."
 msgstr ""
 
 #. translators: 1: number of calls, 2: number of days, 3: date of the last call, 4: product names.
 #: src/Admin/SettingsScreen.php:405
+#, php-format
 msgid "%1$s call in the last %2$d days, the last on %3$s (%4$s)."
 msgid_plural "%1$s calls in the last %2$d days, the last on %3$s (%4$s)."
 msgstr[0] ""
@@ -1548,6 +1571,7 @@ msgstr ""
 
 #. translators: 1: licenses, 2: orders.
 #: src/Admin/SettingsScreen.php:451
+#, php-format
 msgid "Finished. %1$d licenses and %2$d orders migrated."
 msgstr ""
 
@@ -1557,6 +1581,7 @@ msgstr ""
 
 #. translators: 1: licenses, 2: orders.
 #: src/Admin/SettingsScreen.php:458
+#, php-format
 msgid "In progress. %1$d licenses and %2$d orders so far."
 msgstr ""
 
@@ -1596,6 +1621,7 @@ msgstr ""
 
 #. translators: %s: shortcode name.
 #: src/Compat/LegacyShortcodes.php:100
+#, php-format
 msgid "The [%s] shortcode was removed in 2.0, because the built-in checkout is gone. Sell licenses with WooCommerce instead. Only administrators see this message."
 msgstr ""
 
@@ -1659,6 +1685,7 @@ msgstr ""
 #. translators: %d: the highest activation limit.
 #: src/Licenses/LicenseService.php:95
 #: src/Licenses/LicenseService.php:269
+#, php-format
 msgid "The activation limit must be between 0 and %d."
 msgstr ""
 
@@ -1680,26 +1707,31 @@ msgstr ""
 
 #. translators: %d: 1.x license ID.
 #: src/Migration/LegacyConverter.php:84
+#, php-format
 msgid "License %d: the license key is empty or longer than 64 characters."
 msgstr ""
 
 #. translators: %d: 1.x license ID.
 #: src/Migration/LegacyConverter.php:95
+#, php-format
 msgid "License %d: it has no product."
 msgstr ""
 
 #. translators: %d: 1.x license ID.
 #: src/Migration/LegacyConverter.php:106
+#, php-format
 msgid "License %d: it has no email."
 msgstr ""
 
 #. translators: 1: 1.x license ID, 2: its status.
 #: src/Migration/LegacyConverter.php:120
+#, php-format
 msgid "License %1$d: unknown status '%2$s', migrated as revoked."
 msgstr ""
 
 #. translators: %d: 1.x order ID.
 #: src/Migration/LegacyConverter.php:168
+#, php-format
 msgid "Order %d: it has no product."
 msgstr ""
 
@@ -1709,11 +1741,13 @@ msgstr ""
 
 #. translators: 1: number of licenses, 2: number of orders.
 #: src/Migration/MigrationRunner.php:156
+#, php-format
 msgid "Migrated so far: %1$d licenses, %2$d orders. Your customers' licenses keep working during the move."
 msgstr ""
 
 #. translators: 1: number of licenses, 2: number of orders.
 #: src/Migration/MigrationRunner.php:169
+#, php-format
 msgid "Left behind so far: %1$d licenses, %2$d orders."
 msgstr ""
 
@@ -1731,26 +1765,31 @@ msgstr ""
 
 #. translators: 1: licenses in 1.x, 2: licenses migrated.
 #: src/Migration/Migrator.php:197
+#, php-format
 msgid "1.x has %1$d licenses but %2$d were migrated."
 msgstr ""
 
 #. translators: 1: orders in 1.x, 2: orders migrated.
 #: src/Migration/Migrator.php:208
+#, php-format
 msgid "1.x has %1$d orders but %2$d were migrated."
 msgstr ""
 
 #. translators: 1: 1.x license ID, 2: the answer code.
 #: src/Migration/Migrator.php:224
+#, php-format
 msgid "License %1$d worked in 1.x but does not validate now (%2$s)."
 msgstr ""
 
 #. translators: %d: 1.x license ID.
 #: src/Migration/Migrator.php:295
+#, php-format
 msgid "License %d: its key is already used by another license."
 msgstr ""
 
 #. translators: %d: 1.x license ID.
 #: src/Migration/Migrator.php:369
+#, php-format
 msgid "License %d has an old product API key. 1.x clients using it will stop validating."
 msgstr ""
 
@@ -1784,6 +1823,7 @@ msgstr ""
 
 #. translators: %s: the version found in the file.
 #: src/Packages/PackageReader.php:118
+#, php-format
 msgid "The version \"%s\" is not a valid version number. Use something like 1.4.2."
 msgstr ""
 
@@ -1797,6 +1837,7 @@ msgstr ""
 
 #. translators: %s: folder names.
 #: src/Packages/PackageReader.php:170
+#, php-format
 msgid "This zip has more than one folder at the top (%s). A plugin or theme zip should contain just one folder."
 msgstr ""
 
@@ -1806,6 +1847,7 @@ msgstr ""
 
 #. translators: 1: stable tag in readme.txt, 2: version in the file header.
 #: src/Packages/PackageReader.php:287
+#, php-format
 msgid "readme.txt says Stable tag %1$s but the file header says version %2$s. Update one so they match."
 msgstr ""
 
@@ -1823,6 +1865,7 @@ msgstr ""
 
 #. translators: %d: the most plans a product can have.
 #: src/Plans/PlanInput.php:69
+#, php-format
 msgid "There can be at most %d plans."
 msgstr ""
 
@@ -1898,6 +1941,7 @@ msgstr ""
 
 #. translators: %d: number of years.
 #: src/Privacy/PrivacyHooks.php:99
+#, php-format
 msgid "The history of each license (activations, renewals and changes) is deleted after %d year."
 msgid_plural "The history of each license (activations, renewals and changes) is deleted after %d years."
 msgstr[0] ""
@@ -2000,11 +2044,13 @@ msgstr ""
 
 #. translators: 1: software name, 2: version, 3: plugin or theme.
 #: src/Products/ProductSaver.php:384
+#, php-format
 msgid "Release saved. Read from the zip: %1$s %2$s (%3$s)."
 msgstr ""
 
 #. translators: %s: the largest upload the server allows, or "the upload limit".
 #: src/Products/UploadError.php:32
+#, php-format
 msgid "The file is bigger than this server allows (%s). Ask your host to raise upload_max_filesize and post_max_size, or upload a smaller zip."
 msgstr ""
 
@@ -2030,6 +2076,7 @@ msgstr ""
 
 #. translators: %d: PHP upload error code.
 #: src/Products/UploadError.php:48
+#, php-format
 msgid "The upload failed (error %d)."
 msgstr ""
 
@@ -2063,6 +2110,7 @@ msgstr ""
 
 #. translators: %s: file path.
 #: src/Products/WpFileStore.php:162
+#, php-format
 msgid "A file could not be deleted: %s"
 msgstr ""
 
@@ -2076,6 +2124,7 @@ msgstr ""
 
 #. translators: 1: version of this release, 2: version customers had.
 #: src/Releases/ReleaseService.php:122
+#, php-format
 msgid "This release (%1$s) is older than the one customers had (%2$s). Sites already on %2$s will not be offered it."
 msgstr ""
 
@@ -2093,6 +2142,7 @@ msgstr ""
 
 #. translators: 1: product name, 2: number of days.
 #: src/Reminders/WpReminderMailer.php:57
+#, php-format
 msgid "Your %1$s license expires in %2$d day"
 msgid_plural "Your %1$s license expires in %2$d days"
 msgstr[0] ""
@@ -2100,6 +2150,7 @@ msgstr[1] ""
 
 #. translators: 1: product name, 2: expiry date, 3: renewal address, 4: site name.
 #: src/Reminders/WpReminderMailer.php:64
+#, php-format
 msgid ""
 "Hello,\n"
 "\n"
@@ -2115,21 +2166,25 @@ msgstr ""
 
 #. translators: 1: the error, 2: the license API address.
 #: src/TestPurchase/RestLoopbackProbe.php:39
+#, php-format
 msgid "This server could not reach its own license API (%1$s). Some hosts block requests from the server to itself. If customers can open %2$s in a browser, this is only a warning."
 msgstr ""
 
 #. translators: 1: HTTP status code, 2: the license API address.
 #: src/TestPurchase/RestLoopbackProbe.php:52
+#, php-format
 msgid "The license API address answered with HTTP %1$d. A firewall, a security plugin or the host may be blocking it. Check %2$s in a browser."
 msgstr ""
 
 #. translators: %s: the license API address.
 #: src/TestPurchase/RestLoopbackProbe.php:65
+#, php-format
 msgid "The license API address answered, but not with the license API (it may be a login page or a security check). Check %s in a browser."
 msgstr ""
 
 #. translators: %s: the license API address.
 #: src/TestPurchase/RestLoopbackProbe.php:75
+#, php-format
 msgid "The license API answers at %s."
 msgstr ""
 
@@ -2167,6 +2222,7 @@ msgstr ""
 
 #. translators: %s: WooCommerce product type, such as variable.
 #: src/TestPurchase/TestPurchase.php:142
+#, php-format
 msgid "The WooCommerce product is a %s product. Plans are sold as simple products. Change its type back to Simple product."
 msgstr ""
 
@@ -2180,6 +2236,7 @@ msgstr ""
 
 #. translators: %d: WooCommerce product ID.
 #: src/TestPurchase/TestPurchase.php:158
+#, php-format
 msgid "WooCommerce product #%d exists and is linked to this software."
 msgstr ""
 
@@ -2189,11 +2246,13 @@ msgstr ""
 
 #. translators: 1: sites in the plan, 2: period in the plan, 3: sites an order would carry, 4: period an order would carry.
 #: src/TestPurchase/TestPurchase.php:196
+#, php-format
 msgid "The plan says %1$s for %2$s, but an order would carry %3$s for %4$s. Save the plans again to correct WooCommerce."
 msgstr ""
 
 #. translators: 1: number of sites, 2: license period.
 #: src/TestPurchase/TestPurchase.php:211
+#, php-format
 msgid "An order would carry %1$s for %2$s, as the plan says."
 msgstr ""
 
@@ -2223,6 +2282,7 @@ msgstr ""
 
 #. translators: 1: software name, 2: version.
 #: src/TestPurchase/TestPurchase.php:256
+#, php-format
 msgid "%1$s %2$s is published and its zip opens."
 msgstr ""
 
@@ -2232,6 +2292,7 @@ msgstr ""
 
 #. translators: %d: number of licenses issued.
 #: src/TestPurchase/TestPurchase.php:294
+#, php-format
 msgid "An order for one unit issued %d licenses instead of 1."
 msgstr ""
 
@@ -2241,6 +2302,7 @@ msgstr ""
 
 #. translators: 1: date the license expires (or never), 2: date the plan gives (or never).
 #: src/TestPurchase/TestPurchase.php:314
+#, php-format
 msgid "The license expires on %1$s but the plan says %2$s."
 msgstr ""
 
@@ -2251,26 +2313,31 @@ msgstr ""
 
 #. translators: %s: number of sites.
 #: src/TestPurchase/TestPurchase.php:330
+#, php-format
 msgid "One license was issued for %s, never expiring."
 msgstr ""
 
 #. translators: 1: number of sites, 2: expiry date.
 #: src/TestPurchase/TestPurchase.php:335
+#, php-format
 msgid "One license was issued for %1$s, expiring %2$s."
 msgstr ""
 
 #. translators: %s: what the API answered.
 #: src/TestPurchase/TestPurchase.php:365
+#, php-format
 msgid "A new license did not validate (%s)."
 msgstr ""
 
 #. translators: 1: site number, 2: number of sites, 3: what the API answered.
 #: src/TestPurchase/TestPurchase.php:383
+#, php-format
 msgid "Site %1$d of %2$d could not be activated (%3$s)."
 msgstr ""
 
 #. translators: %s: what the API answered.
 #: src/TestPurchase/TestPurchase.php:401
+#, php-format
 msgid "Deactivating a site failed (%s)."
 msgstr ""
 
@@ -2280,21 +2347,25 @@ msgstr ""
 
 #. translators: %d: the most sites the test tries.
 #: src/TestPurchase/TestPurchase.php:415
+#, php-format
 msgid "It activated on one site and deactivated again. The site limit was not tried (more than %d sites)."
 msgstr ""
 
 #. translators: 1: site number, 2: sites the license allows, 3: what the API answered.
 #: src/TestPurchase/TestPurchase.php:429
+#, php-format
 msgid "Site %1$d was allowed on a %2$d-site license (%3$s). The site limit is not being enforced."
 msgstr ""
 
 #. translators: %s: what the API answered.
 #: src/TestPurchase/TestPurchase.php:446
+#, php-format
 msgid "Freeing a site did not make room for another (%s)."
 msgstr ""
 
 #. translators: %d: number of sites.
 #: src/TestPurchase/TestPurchase.php:458
+#, php-format
 msgid "It activated on %d site, the next site was refused, and freeing one made room."
 msgid_plural "It activated on %d sites, the next site was refused, and freeing one made room."
 msgstr[0] ""
@@ -2302,11 +2373,13 @@ msgstr[1] ""
 
 #. translators: %s: what the API answered.
 #: src/TestPurchase/TestPurchase.php:488
+#, php-format
 msgid "The update check gave no download link (%s)."
 msgstr ""
 
 #. translators: %s: what the API answered.
 #: src/TestPurchase/TestPurchase.php:505
+#, php-format
 msgid "The download link did not lead to the stored zip (%s)."
 msgstr ""
 
@@ -2316,6 +2389,7 @@ msgstr ""
 
 #. translators: %s: zip file name.
 #: src/TestPurchase/TestPurchase.php:522
+#, php-format
 msgid "The update check gave a signed link that downloads %s, and a changed link is refused."
 msgstr ""
 
@@ -2333,6 +2407,7 @@ msgstr ""
 
 #. translators: %d: number of sites.
 #: src/TestPurchase/TestPurchase.php:558
+#, php-format
 msgid "%d site"
 msgid_plural "%d sites"
 msgstr[0] ""
@@ -2360,6 +2435,7 @@ msgstr ""
 
 #. translators: 1: sites in use, 2: sites allowed.
 #: src/WooCommerce/AccountPage.php:144
+#, php-format
 msgid "%1$d of %2$s in use"
 msgstr ""
 
@@ -2369,11 +2445,13 @@ msgstr ""
 
 #. translators: %s: order number.
 #: src/WooCommerce/IssueProblems.php:147
+#, php-format
 msgid "Order %s was paid but its license could not be issued"
 msgstr ""
 
 #. translators: 1: order number, 2: what went wrong, 3: address of the order.
 #: src/WooCommerce/IssueProblems.php:152
+#, php-format
 msgid ""
 "Order %1$s could not be given its license, so the customer has not received it.\n"
 "\n"
@@ -2429,57 +2507,68 @@ msgstr ""
 
 #. translators: %d: sites in use.
 #: src/WooCommerce/OrderLicensesBox.php:160
+#, php-format
 msgid "%d (no limit)"
 msgstr ""
 
 #. translators: 1: sites in use, 2: sites allowed.
 #: src/WooCommerce/OrderLicensesBox.php:165
+#, php-format
 msgid "%1$d of %2$d"
 msgstr ""
 
 #. translators: 1: order line name, 2: what is wrong.
 #: src/WooCommerce/OrderProcessor.php:82
+#, php-format
 msgid "%1$s: %2$s No license was issued."
 msgstr ""
 
 #. translators: 1: order line name, 2: license key.
 #: src/WooCommerce/OrderProcessor.php:105
+#, php-format
 msgid "%1$s: renewed license %2$s."
 msgstr ""
 
 #. translators: 1: order line name, 2: license key, 3: new expiry date.
 #: src/WooCommerce/OrderProcessor.php:111
+#, php-format
 msgid "%1$s: renewed license %2$s until %3$s."
 msgstr ""
 
 #. translators: 1: order line name, 2: license ID, 3: why.
 #: src/WooCommerce/OrderProcessor.php:119
+#, php-format
 msgid "%1$s: could not renew license %2$d (%3$s). A new license is issued instead."
 msgstr ""
 
 #. translators: 1: order line name, 2: why.
 #: src/WooCommerce/OrderProcessor.php:137
+#, php-format
 msgid "%1$s: could not issue a license (%2$s)."
 msgstr ""
 
 #. translators: 1: license ID, 2: what went wrong.
 #: src/WooCommerce/OrderProcessor.php:238
+#, php-format
 msgid "License %1$d: %2$s"
 msgstr ""
 
 #. translators: %s: order line name.
 #: src/WooCommerce/OrderProcessor.php:272
+#, php-format
 msgid "%s: the license chosen for renewal does not belong to this customer or product. A new license is issued instead."
 msgstr ""
 
 #. translators: 1: order line name, 2: license key.
 #: src/WooCommerce/OrderProcessor.php:282
+#, php-format
 msgid "%1$s: license %2$s was revoked or refunded and cannot be renewed. A new license is issued instead."
 msgstr ""
 
 #. translators: %s: the license period setting.
 #: src/WooCommerce/PeriodParser.php:40
 #: src/WooCommerce/PeriodParser.php:54
+#, php-format
 msgid "Invalid license period '%s'."
 msgstr ""
 
@@ -2509,16 +2598,19 @@ msgstr ""
 
 #. translators: %s: what went wrong.
 #: src/WooCommerce/WooAdapter.php:164
+#, php-format
 msgid "WPLicense It error: %s Change the order status again to retry."
 msgstr ""
 
 #. translators: %s: what went wrong.
 #: src/WooCommerce/WooAdapter.php:166
+#, php-format
 msgid "WPLicense It error: %s"
 msgstr ""
 
 #. translators: %d: number of licenses.
 #: src/WooCommerce/WooAdapter.php:192
+#, php-format
 msgid "issued %d license"
 msgid_plural "issued %d licenses"
 msgstr[0] ""
@@ -2526,6 +2618,7 @@ msgstr[1] ""
 
 #. translators: %d: number of licenses.
 #: src/WooCommerce/WooAdapter.php:196
+#, php-format
 msgid "renewed %d license"
 msgid_plural "renewed %d licenses"
 msgstr[0] ""
@@ -2533,6 +2626,7 @@ msgstr[1] ""
 
 #. translators: %d: number of licenses.
 #: src/WooCommerce/WooAdapter.php:200
+#, php-format
 msgid "ended %d license"
 msgid_plural "ended %d licenses"
 msgstr[0] ""
@@ -2540,6 +2634,7 @@ msgstr[1] ""
 
 #. translators: 1: license ID, 2: expiry date.
 #: src/WooCommerce/WooRenewalOrderCreator.php:104
+#, php-format
 msgid "Renewal invoice for license #%1$d, which expires on %2$s. When this order is paid and completed, the license is renewed."
 msgstr ""
 
@@ -2549,6 +2644,7 @@ msgstr ""
 
 #. translators: %s: order number.
 #: src/WooCommerce/WooRenewalOrderCreator.php:158
+#, php-format
 msgid "Cancelled: the license was renewed by order %s."
 msgstr ""
 

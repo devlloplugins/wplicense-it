@@ -6,18 +6,21 @@
 #   bin/make-pot.sh --check   # fail if the file is not up to date (CI runs this)
 #
 # The SDK is left out: it runs inside sellers' plugins, under their text domain. Tests, tools and docs are left out too.
-# WP-CLI is downloaded to $WPLIT_ENV_ROOT (default /opt/wp-test) if it is not there yet.
+# A fixed version of WP-CLI is used (versions write the file slightly differently, for example whether strings with
+# placeholders are flagged php-format), and downloaded to $WPLIT_ENV_ROOT (default /opt/wp-test) if it is not there yet.
 
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 ROOT="${WPLIT_ENV_ROOT:-/opt/wp-test}"
-WPCLI="$ROOT/wp-cli.phar"
+WPCLI_VERSION="2.12.0"
+WPCLI="$ROOT/wp-cli-$WPCLI_VERSION.phar"
 POT="$DIR/languages/wplicense-it.pot"
 
 if [ ! -f "$WPCLI" ]; then
 	mkdir -p "$ROOT"
-	curl -fsSL -o "$WPCLI" https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+	curl -fsSL -o "$WPCLI.part" "https://github.com/wp-cli/wp-cli/releases/download/v$WPCLI_VERSION/wp-cli-$WPCLI_VERSION.phar"
+	mv "$WPCLI.part" "$WPCLI"
 fi
 
 make() {

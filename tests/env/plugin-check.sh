@@ -21,8 +21,9 @@ mkdir -p "$ROOT"
 
 [ -d "$ROOT/plugin-check/includes" ] || git clone -q --depth 1 https://github.com/WordPress/plugin-check "$ROOT/plugin-check" || exit 2
 [ -f "$ROOT/plugin-check/vendor/autoload.php" ] || (cd "$ROOT/plugin-check" && composer install --no-dev --no-interaction --quiet) || exit 2
-if [ ! -f "$ROOT/wp-cli.phar" ]; then
-	curl -sL -o "$ROOT/wp-cli.phar" https://github.com/wp-cli/wp-cli/releases/download/v2.11.0/wp-cli-2.11.0.phar || exit 2
+WPCLI="$ROOT/wp-cli-2.12.0.phar"
+if [ ! -f "$WPCLI" ]; then
+	curl -sL -o "$WPCLI" https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar || exit 2
 fi
 
 rm -rf "$ROOT/dist" && mkdir -p "$DIST"
@@ -30,10 +31,10 @@ rsync -a --exclude-from="$PLUGIN_DIR/.distignore" "$PLUGIN_DIR"/ "$DIST"/
 
 ln -sfn "$ROOT/plugin-check" "$SITE/wp-content/plugins/plugin-check"
 cd "$SITE" || exit 2
-php "$ROOT/wp-cli.phar" --allow-root plugin activate plugin-check >/dev/null 2>&1
-php "$ROOT/wp-cli.phar" --allow-root plugin check "$DIST" --format=json > "$ROOT/plugin-check.out" 2> "$ROOT/plugin-check.err"
+php "$WPCLI" --allow-root plugin activate plugin-check >/dev/null 2>&1
+php "$WPCLI" --allow-root plugin check "$DIST" --format=json > "$ROOT/plugin-check.out" 2> "$ROOT/plugin-check.err"
 STATUS=$?
-php "$ROOT/wp-cli.phar" --allow-root plugin deactivate plugin-check >/dev/null 2>&1
+php "$WPCLI" --allow-root plugin deactivate plugin-check >/dev/null 2>&1
 
 if [ "$STATUS" -ne 0 ] && [ ! -s "$ROOT/plugin-check.out" ]; then
 	echo "Plugin Check did not run:"; head -c 600 "$ROOT/plugin-check.err"

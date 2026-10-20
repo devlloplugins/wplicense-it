@@ -15,6 +15,7 @@ set -euo pipefail
 
 ROOT="${WPLIT_ENV_ROOT:-/opt/wp-test}"
 WP_TAG="${WPLIT_WP_TAG:-6.7.1}"
+WPCLI_VERSION="2.12.0"
 PORT="${WPLIT_PORT:-8080}"
 PLUGIN_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 SITE="$ROOT/wordpress"
@@ -133,6 +134,13 @@ PHP
 		for _ in $(seq 1 20); do curl -s -o /dev/null -m 2 "http://127.0.0.1:${port}/wp-login.php" && break; sleep 1; done
 	fi
 }
+
+say "WP-CLI ${WPCLI_VERSION}"
+# One fixed version for the tests, Plugin Check and bin/make-pot.sh (versions write translation files differently).
+if [ ! -f "$ROOT/wp-cli-${WPCLI_VERSION}.phar" ]; then
+	curl -fsSL -o "$ROOT/wp-cli-${WPCLI_VERSION}.phar.part" "https://github.com/wp-cli/wp-cli/releases/download/v${WPCLI_VERSION}/wp-cli-${WPCLI_VERSION}.phar"
+	mv "$ROOT/wp-cli-${WPCLI_VERSION}.phar.part" "$ROOT/wp-cli-${WPCLI_VERSION}.phar"
+fi
 
 say "wp-config.php and install (license server)"
 write_config "$SITE" wp_test "$URL"

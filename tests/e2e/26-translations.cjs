@@ -34,7 +34,7 @@ function cleanUp() {
 	// A small German translation, compiled the way a translator's .po is.
 	const header = 'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n"Language: de_DE\\n"\n"Plural-Forms: nplurals=2; plural=(n != 1);\\n"\n\n';
 	fs.writeFileSync( PO, header + Object.entries( WORDS ).map( ( [ en, de ] ) => 'msgid "' + en + '"\nmsgstr "' + de + '"\n' ).join( '\n' ) );
-	execFileSync( 'php', [ path.join( ROOT, 'wp-cli.phar' ), '--allow-root', 'i18n', 'make-mo', PO, LANG ] );
+	execFileSync( 'php', [ path.join( ROOT, 'wp-cli-2.12.0.phar' ), '--allow-root', 'i18n', 'make-mo', PO, LANG ] );
 	check( fs.existsSync( MO ), 'the translation compiles to ' + path.basename( MO ) );
 
 	sql( "DELETE FROM wp_usermeta WHERE user_id=1 AND meta_key='locale'" );
