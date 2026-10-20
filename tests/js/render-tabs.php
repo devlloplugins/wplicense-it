@@ -11,6 +11,7 @@ declare( strict_types=1 );
 
 require_once dirname( __DIR__, 2 ) . '/src/Autoloader.php';
 \Devllo\WPLicenseIt\Autoloader::register( dirname( __DIR__, 2 ) . '/src/' );
+require_once dirname( __DIR__ ) . '/Support/i18n-stubs.php';
 require_once dirname( __DIR__ ) . '/Support/woocommerce-stubs.php';
 require_once dirname( __DIR__ ) . '/Support/connect-stubs.php';
 
