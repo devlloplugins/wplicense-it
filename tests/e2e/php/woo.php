@@ -112,6 +112,13 @@ switch ( $op ) {
 		$out = array( 'ids' => ( new \Devllo\WPLicenseIt\WooCommerce\OrderProducts( new \Devllo\WPLicenseIt\Database\WpdbLicenseRepository( $wpdb ) ) )->ids( (int) $in['order_row_id'] ) );
 		break;
 
+	case 'pay_order':
+		// What a payment service that takes the money online (Stripe, PayPal) does when the payment goes through.
+		$order = wc_get_order( (int) $in['order_id'] );
+		$order->payment_complete( 'test-' . $order->get_id() );
+		$out = array( 'status' => wc_get_order( (int) $in['order_id'] )->get_status() );
+		break;
+
 	case 'set_order_status':
 		$order = wc_get_order( (int) $in['order_id'] );
 		$order->update_status( $in['status'], 'Test' );

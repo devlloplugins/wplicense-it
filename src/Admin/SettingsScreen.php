@@ -252,7 +252,7 @@ final class SettingsScreen {
 		echo '<option value="completed"' . selected( $value, 'completed', false ) . '>' . esc_html__( 'Completed (after you or WooCommerce complete it)', 'wplicense-it' ) . '</option>';
 		echo '<option value="processing"' . selected( $value, 'processing', false ) . '>' . esc_html__( 'Processing (as soon as payment is received)', 'wplicense-it' ) . '</option>';
 		echo '</select>';
-		echo '<p class="description">' . esc_html__( 'Virtual and downloadable products are completed automatically, so "Completed" is right for most stores.', 'wplicense-it' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Orders paid online (by card or PayPal, for example) that hold only licenses and other virtual and downloadable products are completed automatically, so "Completed" is right for most stores. Orders paid by bank transfer, check or cash on delivery wait until you complete them, and so do orders with something to ship.', 'wplicense-it' ) . '</p>';
 	}
 
 	/**

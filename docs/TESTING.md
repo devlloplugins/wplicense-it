@@ -29,6 +29,9 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/06-purchase.cjs` also pays an order the way an online payment service does (`payment_complete()`): a plan
+product alone completes at once and gets its license; with a physical item in the same order it waits in Processing.
+
 `tests/e2e/27-import-export.cjs` (22 checks) exports a product's licenses from the Licenses list link and by status from
 Import and export, checks the columns and that a formula-looking email is written as text, then imports the export with
 new lines added (one by product name, one with a bad email, one with a bad status): the check lists skipped and wrong
@@ -175,7 +178,9 @@ thing of all.
 ## C. A customer buys
 
 16. **Buy.** As a customer (a test account), buy a published plan with a test payment method (cheque, cash on
-    delivery or a 100% coupon). Complete the order (or mark it **Completed** as an admin).
+    delivery or a 100% coupon). With a 100% coupon, or a card payment in Stripe's test mode, the order should
+    complete on its own and the license be issued at once. With cheque or cash on delivery it waits: mark it
+    **Completed** as an admin.
 17. **License issued.** The order notes should say a license was issued. **My Account, Licenses** should show the
     key, status, expiry and sites. The customer's order email should show the key.
 18. **Licenses list.** The admin licenses screen lists it. Open it: history, sites, actions.

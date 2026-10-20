@@ -57,8 +57,13 @@ if ( ! class_exists( 'WC_Order_Item' ) ) {
 		public int $id = 55;
 		public string $name = 'Great Plugin';
 		public string $type = 'simple';
+		public bool $virtual = true;
+		public int $parent_id = 0;
 
 		public function get_id() { return $this->id; }
+		public function is_virtual() { return $this->virtual; }
+		public function is_type( $type ) { return $this->type === $type; }
+		public function get_parent_id() { return $this->parent_id; }
 		public function get_name() { return $this->name; }
 		public function get_type() { return $this->type; }
 		public function get_meta( $key, $single = true ) { return $this->meta[ $key ] ?? ''; }

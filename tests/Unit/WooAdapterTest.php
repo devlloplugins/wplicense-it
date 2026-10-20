@@ -83,6 +83,30 @@ final class WooAdapterTest extends TestCase {
 		$this->adapter->on_status_changed( 100, 'processing', 'completed', $this->order );
 	}
 
+	public function test_a_virtual_licensed_product_needs_no_processing_so_a_paid_order_completes(): void {
+		$this->assertFalse( $this->adapter->item_needs_processing( true, $this->product ) );
+	}
+
+	public function test_a_licensed_product_that_is_shipped_or_an_unlicensed_one_still_needs_processing(): void {
+		$this->product->virtual = false;
+		$this->assertTrue( $this->adapter->item_needs_processing( true, $this->product ) );
+
+		$plain = new \WC_Product();
+		$this->assertTrue( $this->adapter->item_needs_processing( true, $plain ) );
+		$this->assertTrue( $this->adapter->item_needs_processing( true, null ) );
+	}
+
+	public function test_a_variation_of_a_licensed_product_needs_no_processing_and_a_no_stays_no(): void {
+		$variation            = new \WC_Product();
+		$variation->id        = 56;
+		$variation->type      = 'variation';
+		$variation->parent_id = 55;
+		$this->assertFalse( $this->adapter->item_needs_processing( true, $variation ) );
+
+		$plain = new \WC_Product();
+		$this->assertFalse( $this->adapter->item_needs_processing( false, $plain ) );
+	}
+
 	public function test_completing_an_order_issues_a_license_from_the_product_settings(): void {
 		$this->complete();
 

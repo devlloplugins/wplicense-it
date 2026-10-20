@@ -54,6 +54,26 @@ final class WooAdapter {
 		add_action( 'woocommerce_order_status_completed', array( $this, 'on_status_reached' ), 5, 2 );
 		add_action( 'woocommerce_order_status_processing', array( $this, 'on_status_reached' ), 5, 2 );
 		add_action( 'woocommerce_order_refunded', array( $this, 'on_refunded' ), 10, 2 );
+		add_filter( 'woocommerce_order_item_needs_processing', array( $this, 'item_needs_processing' ), 10, 2 );
+	}
+
+	/**
+	 * A virtual licensed product needs no processing, like a virtual downloadable one: an order paid online with only such
+	 * items (and other items that need none) is completed by WooCommerce at once, so the license is issued with the
+	 * default "completed" setting. Plan products are virtual but not downloadable, and would otherwise wait in
+	 * Processing until someone completes the order. Payment methods that do not take the money online (cash on
+	 * delivery, bank transfer) never complete an order on their own, so those still wait.
+	 *
+	 * @param mixed $needs   Whether WooCommerce thinks the item needs processing.
+	 * @param mixed $product The item's product or variation.
+	 * @return mixed
+	 */
+	public function item_needs_processing( $needs, $product ) {
+		if ( ! $needs || ! $product instanceof \WC_Product || ! $product->is_virtual() ) {
+			return $needs;
+		}
+
+		return $this->reader->current_terms( $product, $product->is_type( 'variation' ) ? (int) $product->get_parent_id() : 0 )['product'] > 0 ? false : $needs;
 	}
 
 	/**

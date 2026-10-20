@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T17:40:37+00:00\n"
+"POT-Creation-Date: 2026-10-20T18:40:25+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -1468,7 +1468,7 @@ msgid "Processing (as soon as payment is received)"
 msgstr ""
 
 #: src/Admin/SettingsScreen.php:255
-msgid "Virtual and downloadable products are completed automatically, so \"Completed\" is right for most stores."
+msgid "Orders paid online (by card or PayPal, for example) that hold only licenses and other virtual and downloadable products are completed automatically, so \"Completed\" is right for most stores. Orders paid by bank transfer, check or cash on delivery wait until you complete them, and so do orders with something to ship."
 msgstr ""
 
 #: src/Admin/SettingsScreen.php:262
@@ -2805,19 +2805,19 @@ msgid "Empty uses the product setting. 0 is unlimited."
 msgstr ""
 
 #. translators: %s: what went wrong.
-#: src/WooCommerce/WooAdapter.php:164
+#: src/WooCommerce/WooAdapter.php:184
 #, php-format
 msgid "WPLicense It error: %s Change the order status again to retry."
 msgstr ""
 
 #. translators: %s: what went wrong.
-#: src/WooCommerce/WooAdapter.php:166
+#: src/WooCommerce/WooAdapter.php:186
 #, php-format
 msgid "WPLicense It error: %s"
 msgstr ""
 
 #. translators: %d: number of licenses.
-#: src/WooCommerce/WooAdapter.php:192
+#: src/WooCommerce/WooAdapter.php:212
 #, php-format
 msgid "issued %d license"
 msgid_plural "issued %d licenses"
@@ -2825,7 +2825,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of licenses.
-#: src/WooCommerce/WooAdapter.php:196
+#: src/WooCommerce/WooAdapter.php:216
 #, php-format
 msgid "renewed %d license"
 msgid_plural "renewed %d licenses"
@@ -2833,7 +2833,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of licenses.
-#: src/WooCommerce/WooAdapter.php:200
+#: src/WooCommerce/WooAdapter.php:220
 #, php-format
 msgid "ended %d license"
 msgid_plural "ended %d licenses"

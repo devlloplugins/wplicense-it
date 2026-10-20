@@ -53,6 +53,12 @@ changes what earlier customers were sold.
 
 ## What happens to an order
 
+A licensed product that is virtual (plan products always are) needs no processing, like a virtual downloadable
+product: when a payment service that takes the money online (Stripe, PayPal) reports the payment, WooCommerce
+completes the order at once and the license is issued with the default **Completed** setting. Bank transfer, check
+and cash on delivery orders wait in **On hold** or **Processing** until you complete them, because the money is not
+in yet. So does an order that also holds something to ship.
+
 | Order event | Result |
 |---|---|
 | Reaches **Completed** (or **Processing** if the `wplit_woo_issue_on` option is `processing`) | One license per unit bought. Keys appear on the order page, in the customer's email, and in My Account. |

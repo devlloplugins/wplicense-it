@@ -126,6 +126,18 @@ function licenses( orderId ) {
 	check( sql( 'SELECT expires_at FROM wp_wplit_licenses WHERE id=' + original.id ) === before, 'another customer cannot extend someone else\'s license' );
 	check( licenses( hijack.order_id ).length === 1, 'the crafted renewal falls back to a new license for the stranger' );
 
+	// Paid online. A plan product is virtual but not downloadable, which WooCommerce would leave in Processing; licensed
+	// products need no processing, so the paid order completes at once and the license is issued with the default setting.
+	const online = woo( { op: 'create_order', product_id: wooId, qty: 1, email: 'online' + Date.now() + '@example.com', user_id: 0 } );
+	const onlinePaid = woo( { op: 'pay_order', order_id: online.order_id } );
+	check( 'completed' === onlinePaid.status && 1 === licenses( online.order_id ).length, 'an order paid online completes on its own and issues the license: ' + onlinePaid.status );
+	// Something to ship in the same order: WooCommerce keeps it in Processing, and the license waits for completion.
+	const mug = woo( { op: 'create_simple_product', name: 'Purchase Test Mug ' + Date.now() } );
+	const mixed = woo( { op: 'create_order', product_id: wooId, qty: 1, email: 'mixed' + Date.now() + '@example.com', user_id: 0, more_product_ids: [ mug.product_id ] } );
+	const mixedPaid = woo( { op: 'pay_order', order_id: mixed.order_id } );
+	check( 'processing' === mixedPaid.status && 0 === licenses( mixed.order_id ).length, 'with a physical item too, the paid order waits in Processing: ' + mixedPaid.status );
+	woo( { op: 'trash_product', product_id: mug.product_id } );
+
 	// A product that is not linked to a license product issues nothing.
 	const plainId = woo( { op: 'create_order', product_id: wooId, qty: 1, email, status: 'pending' } );
 	check( plainId.order_id > 0, 'an order can be made' );
