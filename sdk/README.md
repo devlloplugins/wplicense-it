@@ -67,13 +67,24 @@ $client->render_license_form();
 
 ## Cleaning up
 
-In your plugin's `uninstall.php`, remove what the SDK stored:
+When a customer deletes your plugin, the SDK removes what it stored on their site: the license, the cached update data and
+the daily license check (on every site of a network).
+
+- **Your plugin has no `uninstall.php`:** nothing to do. The SDK registers WordPress's uninstall hook for your plugin.
+- **Your plugin has its own `uninstall.php`:** WordPress then runs only that file, so add one call to it:
 
 ```php
-// The option and cached data are named after your plugin's folder.
-delete_option( 'wplit_client_my-plugin' );
-delete_transient( 'wplit_c_my-plugin_update' );
+require_once __DIR__ . '/vendor/wplicense-it-client/wplicense-it-client.php';
+wplicense_it_client_forget( 'my-plugin' ); // Your plugin's folder name, or the 'slug' you passed.
 ```
+
+- **Themes:** WordPress has no uninstall step for themes, so nothing runs when a theme is deleted. What stays behind is one
+  small option (`wplit_client_<slug>`), a cache entry that expires by itself, and a scheduled daily check that does nothing
+  once the theme is gone. A theme can call `wplicense_it_client_forget( 'my-theme' )` itself, for example from a
+  "remove my data" button.
+
+Deleting the plugin does not free the site's slot on your server, because the plugin may not reach it at that moment. The
+customer frees it by deactivating the license first, from their account, or you do.
 
 ## Rules the SDK follows
 

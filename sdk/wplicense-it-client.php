@@ -116,6 +116,75 @@ if ( ! function_exists( 'wplicense_it_client' ) ) {
 	if ( did_action( 'after_setup_theme' ) ) {
 		wplicense_it_client_load();
 	}
+}//end if
+
+// Defined on their own, so that they exist even when an older copy of the SDK was included first.
+if ( ! function_exists( 'wplicense_it_client_forget' ) ) {
+
+	/**
+	 * Removes everything the client stored for a product: the license, the cached update data and the daily check, on this
+	 * site or, on a network, on every site. Plugins without an uninstall.php get this automatically when they are deleted.
+	 *
+	 * A plugin with its own uninstall.php, or a theme, calls it there after including this file (see the README).
+	 * It does not deactivate the site on your server, because the plugin is being deleted and may not reach it; the slot
+	 * is freed from the customer's account or by you.
+	 *
+	 * @param string $slug Plugin folder name, or the slug passed to wplicense_it_client().
+	 */
+	function wplicense_it_client_forget( $slug ) {
+		$slug = trim( (string) preg_replace( '/[^a-z0-9_-]+/', '-', strtolower( (string) $slug ) ), '-' );
+
+		if ( '' === $slug ) {
+			return;
+		}
+
+		$clean = static function () use ( $slug ) {
+			delete_option( 'wplit_client_' . $slug );
+			delete_transient( substr( 'wplit_c_' . $slug . '_update', 0, 160 ) );
+			wp_clear_scheduled_hook( 'wplit_client_refresh_' . $slug );
+
+			$map = get_option( 'wplit_cu_map', array() );
+			if ( is_array( $map ) && in_array( $slug, $map, true ) ) {
+				$map = array_diff( $map, array( $slug ) );
+				array() === $map ? delete_option( 'wplit_cu_map' ) : update_option( 'wplit_cu_map', $map, false );
+			}
+		};
+
+		if ( is_multisite() && function_exists( 'get_sites' ) ) {
+			foreach ( get_sites(
+				array(
+					'fields' => 'ids',
+					'number' => 0,
+				)
+			) as $site_id ) {
+				switch_to_blog( (int) $site_id );
+				$clean();
+				restore_current_blog();
+			}
+		} else {
+			$clean();
+		}
+	}
+}//end if
+
+if ( ! function_exists( 'wplicense_it_client_uninstall_hook' ) ) {
+
+	/**
+	 * WordPress calls this when a plugin that registered it (and has no uninstall.php) is deleted. It runs while WordPress
+	 * deletes the plugin, so it uses no SDK classes: they may not be loaded then.
+	 */
+	function wplicense_it_client_uninstall_hook() {
+		$file = substr( (string) current_action(), strlen( 'uninstall_' ) );
+		$map  = get_option( 'wplit_cu_map', array() );
+
+		if ( is_array( $map ) && isset( $map[ $file ] ) ) {
+			$slug = (string) $map[ $file ];
+		} else {
+			$slug = false !== strpos( $file, '/' ) ? dirname( $file ) : basename( $file, '.php' );
+		}
+
+		wplicense_it_client_forget( $slug );
+	}
 }
 
 wplicense_it_client_register_version( '1.0.0', __DIR__ . '/src' );

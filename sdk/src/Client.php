@@ -136,10 +136,45 @@ final class Client {
 	}
 
 	/**
-	 * Forgets the license and cached data. Call it from your plugin's uninstall.php.
+	 * Forgets the license, the cached data and the daily check (on every site of a network). See wplicense_it_client_forget().
 	 */
 	public function forget(): void {
+		if ( function_exists( 'wplicense_it_client_forget' ) ) {
+			wplicense_it_client_forget( $this->config->slug );
+
+			return;
+		}
+
 		( new OptionStore( $this->config ) )->clear();
+		$this->unschedule_check();
+	}
+
+	/**
+	 * Has WordPress clean up when the plugin is deleted, for plugins that have no uninstall.php of their own (WordPress
+	 * runs that file instead, so such a plugin calls wplicense_it_client_forget() there). Only on admin requests, where
+	 * plugins are deleted; WordPress writes the setting only when it changes.
+	 */
+	public function register_cleanup(): void {
+		$file = $this->config->file;
+
+		if ( 'plugin' !== $this->config->type || '' === $file || '' === $this->config->basename || ! is_admin() || ! function_exists( 'register_uninstall_hook' ) || ! function_exists( 'wplicense_it_client_uninstall_hook' ) ) {
+			return;
+		}
+
+		if ( file_exists( dirname( $file ) . '/uninstall.php' ) ) {
+			return;
+		}
+
+		register_uninstall_hook( $file, 'wplicense_it_client_uninstall_hook' );
+
+		// The slug can differ from the folder name, so remember which slug belongs to the plugin file.
+		$map = get_option( 'wplit_cu_map', array() );
+		$map = is_array( $map ) ? $map : array();
+
+		if ( ( $map[ $this->config->basename ] ?? null ) !== $this->config->slug ) {
+			$map[ $this->config->basename ] = $this->config->slug;
+			update_option( 'wplit_cu_map', $map, false );
+		}
 	}
 
 	/**
@@ -162,6 +197,7 @@ final class Client {
 
 		add_action( $hook, array( $this, 'daily_check' ) );
 		add_action( 'init', array( $this, 'schedule_check' ) );
+		add_action( 'admin_init', array( $this, 'register_cleanup' ) );
 
 		if ( 'plugin' === $this->config->type && '' !== $this->config->file ) {
 			register_deactivation_hook( $this->config->file, array( $this, 'unschedule_check' ) );
