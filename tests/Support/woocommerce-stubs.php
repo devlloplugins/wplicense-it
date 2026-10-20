@@ -107,8 +107,6 @@ if ( ! function_exists( 'wc_get_order' ) ) {
 	function get_option( $name, $default = false ) { return $GLOBALS['wplit_test_options'][ $name ] ?? $default; }
 	function update_option( $name, $value, $autoload = null ) { $GLOBALS['wplit_test_options'][ $name ] = $value; return true; }
 	function apply_filters( $hook, $value ) { return $value; }
-	function __( $text ) { return $text; }
-	function _n( $single, $plural, $number ) { return 1 === $number ? $single : $plural; }
 	function delete_transient( $name ) { $store = &wplit_test_transients(); unset( $store[ $name ] ); return true; }
 }
 

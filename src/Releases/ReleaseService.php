@@ -117,7 +117,12 @@ final class ReleaseService {
 		}
 
 		if ( null !== $previous && '' !== $previous->version && version_compare( $release->version, $previous->version, '<' ) ) {
-			$warnings[] = 'This release (' . $release->version . ') is older than the one customers had (' . $previous->version . '). Sites already on ' . $previous->version . ' will not be offered it.';
+			$warnings[] = sprintf(
+				/* translators: 1: version of this release, 2: version customers had. */
+				__( 'This release (%1$s) is older than the one customers had (%2$s). Sites already on %2$s will not be offered it.', 'wplicense-it' ),
+				$release->version,
+				$previous->version
+			);
 		}
 
 		$releases[] = $release;
@@ -201,7 +206,7 @@ final class ReleaseService {
 		$current  = $this->current( $product_id );
 
 		if ( null !== $current && $current->id === $release->id ) {
-			throw new ReleaseException( 'This is the release customers get now. Make another release current before deleting it.' );
+			throw new ReleaseException( __( 'This is the release customers get now. Make another release current before deleting it.', 'wplicense-it' ) );
 		}
 
 		$this->repo->save(
@@ -334,7 +339,7 @@ final class ReleaseService {
 			}
 		}
 
-		throw new ReleaseException( 'That release no longer exists.' );
+		throw new ReleaseException( __( 'That release no longer exists.', 'wplicense-it' ) );
 	}
 
 	/**

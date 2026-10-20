@@ -192,13 +192,23 @@ final class Migrator {
 		$legacy_licenses   = $this->source->count_licenses();
 		$migrated_licenses = $this->target->count_migrated_licenses();
 		if ( $legacy_licenses !== $migrated_licenses ) {
-			$problems[] = "1.x has {$legacy_licenses} licenses but {$migrated_licenses} were migrated.";
+			$problems[] = sprintf(
+				/* translators: 1: licenses in 1.x, 2: licenses migrated. */
+				__( '1.x has %1$d licenses but %2$d were migrated.', 'wplicense-it' ),
+				$legacy_licenses,
+				$migrated_licenses
+			);
 		}
 
 		$legacy_orders   = $this->source->count_orders();
 		$migrated_orders = $this->target->count_migrated_orders();
 		if ( $legacy_orders !== $migrated_orders ) {
-			$problems[] = "1.x has {$legacy_orders} orders but {$migrated_orders} were migrated.";
+			$problems[] = sprintf(
+				/* translators: 1: orders in 1.x, 2: orders migrated. */
+				__( '1.x has %1$d orders but %2$d were migrated.', 'wplicense-it' ),
+				$legacy_orders,
+				$migrated_orders
+			);
 		}
 
 		foreach ( $this->source->sample_usable_licenses( self::SAMPLE_SIZE ) as $row ) {
@@ -209,7 +219,12 @@ final class Migrator {
 			);
 
 			if ( ! $result->is_valid() ) {
-				$problems[] = 'License ' . (int) ( $row['id'] ?? 0 ) . ' worked in 1.x but does not validate now (' . $result->code . ').';
+				$problems[] = sprintf(
+				/* translators: 1: 1.x license ID, 2: the answer code. */
+					__( 'License %1$d worked in 1.x but does not validate now (%2$s).', 'wplicense-it' ),
+					(int) ( $row['id'] ?? 0 ),
+					$result->code
+				);
 			}
 		}
 
@@ -274,7 +289,13 @@ final class Migrator {
 
 			if ( MigrationTarget::CONFLICT === $result ) {
 				++$state->licenses_skipped;
-				$state->add_problem( "License {$id}: its key is already used by another license." );
+				$state->add_problem(
+					sprintf(
+					/* translators: %d: 1.x license ID. */
+						__( 'License %d: its key is already used by another license.', 'wplicense-it' ),
+						$id
+					)
+				);
 				continue;
 			}
 
@@ -342,7 +363,13 @@ final class Migrator {
 
 		if ( '' !== $current && ! hash_equals( $current, (string) $row['product_api_key'] ) ) {
 			++$state->warnings;
-			$state->add_problem( 'Note: License ' . (int) $row['id'] . ' has an old product API key. 1.x clients using it will stop validating.' );
+			$state->add_problem(
+				'Note: ' . sprintf(
+				/* translators: %d: 1.x license ID. */
+					__( 'License %d has an old product API key. 1.x clients using it will stop validating.', 'wplicense-it' ),
+					(int) $row['id']
+				)
+			);
 		}
 	}
 }

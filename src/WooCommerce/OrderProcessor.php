@@ -76,7 +76,14 @@ final class OrderProcessor {
 			try {
 				$interval = PeriodParser::parse( $item->period );
 			} catch ( InvalidArgumentException $e ) {
-				$report->problem( "{$item->name}: {$e->getMessage()} No license was issued." );
+				$report->problem(
+					sprintf(
+						/* translators: 1: order line name, 2: what is wrong. */
+						__( '%1$s: %2$s No license was issued.', 'wplicense-it' ),
+						$item->name,
+						$e->getMessage()
+					)
+				);
 				continue;
 			}
 
@@ -92,11 +99,30 @@ final class OrderProcessor {
 					$this->store->append( $item->item_id, $renewed->id );
 					++$report->renewed;
 					--$owed;
-					$report->notes[] = "{$item->name}: renewed license {$renewed->license_key}" . ( null === $renewed->expires_at ? '.' : ' until ' . $renewed->expires_at->format( 'Y-m-d' ) . '.' );
+					$report->notes[] = null === $renewed->expires_at
+						? sprintf(
+							/* translators: 1: order line name, 2: license key. */
+							__( '%1$s: renewed license %2$s.', 'wplicense-it' ),
+							$item->name,
+							$renewed->license_key
+						)
+						: sprintf(
+							/* translators: 1: order line name, 2: license key, 3: new expiry date. */
+							__( '%1$s: renewed license %2$s until %3$s.', 'wplicense-it' ),
+							$item->name,
+							$renewed->license_key,
+							$renewed->expires_at->format( 'Y-m-d' )
+						);
 				} catch ( LicenseException $e ) {
-					$report->notes[] = "{$item->name}: could not renew license {$renewal->id} ({$e->getMessage()}). A new license is issued instead.";
-				}
-			}
+					$report->notes[] = sprintf(
+						/* translators: 1: order line name, 2: license ID, 3: why. */
+						__( '%1$s: could not renew license %2$d (%3$s). A new license is issued instead.', 'wplicense-it' ),
+						$item->name,
+						$renewal->id,
+						$e->getMessage()
+					);
+				}//end try
+			}//end if
 
 			for ( $i = 0; $i < $owed; $i++ ) {
 				try {
@@ -105,7 +131,14 @@ final class OrderProcessor {
 					$this->store->append( $item->item_id, $license->id );
 					++$report->issued;
 				} catch ( LicenseException $e ) {
-					$report->problem( "{$item->name}: could not issue a license ({$e->getMessage()})." );
+					$report->problem(
+						sprintf(
+							/* translators: 1: order line name, 2: why. */
+							__( '%1$s: could not issue a license (%2$s).', 'wplicense-it' ),
+							$item->name,
+							$e->getMessage()
+						)
+					);
 					break;
 				}
 			}
@@ -200,7 +233,12 @@ final class OrderProcessor {
 
 			return 1;
 		} catch ( LicenseException $e ) {
-			$report->notes[] = "License {$license_id}: {$e->getMessage()}";
+			$report->notes[] = sprintf(
+				/* translators: 1: license ID, 2: what went wrong. */
+				__( 'License %1$d: %2$s', 'wplicense-it' ),
+				$license_id,
+				$e->getMessage()
+			);
 
 			return 0;
 		}
@@ -229,13 +267,22 @@ final class OrderProcessor {
 		);
 
 		if ( ! $owned || $license->product_id !== $item->wplit_product_id ) {
-			$report->notes[] = "{$item->name}: the license chosen for renewal does not belong to this customer or product. A new license is issued instead.";
+			$report->notes[] = sprintf(
+				/* translators: %s: order line name. */
+				__( '%s: the license chosen for renewal does not belong to this customer or product. A new license is issued instead.', 'wplicense-it' ),
+				$item->name
+			);
 
 			return null;
 		}
 
 		if ( in_array( $license->status, Status::terminal(), true ) ) {
-			$report->notes[] = "{$item->name}: license {$license->license_key} was revoked or refunded and cannot be renewed. A new license is issued instead.";
+			$report->notes[] = sprintf(
+				/* translators: 1: order line name, 2: license key. */
+				__( '%1$s: license %2$s was revoked or refunded and cannot be renewed. A new license is issued instead.', 'wplicense-it' ),
+				$item->name,
+				$license->license_key
+			);
 
 			return null;
 		}

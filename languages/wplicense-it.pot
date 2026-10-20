@@ -1,0 +1,2557 @@
+# Copyright (C) 2026 Devllo Plugins
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: WPLicense It 2.0.0-dev\n"
+"Report-Msgid-Bugs-To: https://github.com/devlloplugins/wplicense-it/issues\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-20T17:13:55+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: wplicense-it\n"
+
+#. Plugin Name of the plugin
+#: wplicense-it.php
+msgid "WPLicense It"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wplicense-it.php
+msgid "https://wplicenseit.com/"
+msgstr ""
+
+#. Description of the plugin
+#: wplicense-it.php
+msgid "WordPress Plugin and Theme Licensing plugin"
+msgstr ""
+
+#. Author of the plugin
+#: wplicense-it.php
+msgid "Devllo Plugins"
+msgstr ""
+
+#. Author URI of the plugin
+#: wplicense-it.php
+msgid "http://devlloplugins.com/"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:20
+msgctxt "Post Type General Name"
+msgid "License It Products"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:21
+msgctxt "Post Type Singular Name"
+msgid "License Products"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:22
+#: admin/wplicense-it-product-post.php:59
+msgid "License Products"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:23
+msgid "License Product"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:24
+msgid "Product Archives"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:25
+msgid "Product Attributes"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:26
+msgid "Parent Product:"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:27
+msgid "All Products"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:28
+msgid "Add New Product"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:29
+msgid "Add New License Product"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:30
+msgid "New License Product"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:31
+msgid "Edit License Product"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:32
+msgid "Update Product"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:33
+msgid "View Product"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:34
+msgid "View Products"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:35
+msgid "Search Product"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:36
+msgid "Not found"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:37
+msgid "Not found in Trash"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:38
+msgid "Featured Image"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:39
+msgid "Set featured image"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:40
+msgid "Remove featured image"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:41
+msgid "Use as featured image"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:42
+msgid "Insert into Post"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:43
+msgid "Uploaded to this post"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:44
+msgid "Products list"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:45
+msgid "Products list navigation"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:46
+msgid "Filter posts list"
+msgstr ""
+
+#: admin/wplicense-it-product-post.php:60
+msgid "WP License It Products"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:35
+#: src/Admin/AdminMenu.php:59
+#: src/Admin/LicensesScreen.php:87
+msgid "Add license"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:39
+msgid "Create and publish a license product first."
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:39
+msgid "Add a product"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:47
+#: src/Admin/LicensesTable.php:80
+#: src/Admin/LicenseView.php:73
+#: src/Admin/PlansBox.php:254
+#: src/WooCommerce/LicenseDisplay.php:53
+#: src/WooCommerce/OrderLicensesBox.php:88
+msgid "Product"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:53
+#: src/Admin/LicenseView.php:135
+msgid "Customer email"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:53
+msgid "Required unless you choose a user below."
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:55
+msgid "WordPress user"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:55
+msgid "Optional. A username or email. The license then shows in that customer's account."
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:57
+#: src/Admin/LicenseView.php:137
+#: src/Admin/ProductScreen.php:245
+#: src/WooCommerce/ProductFields.php:74
+#: src/WooCommerce/ProductFields.php:136
+msgid "Sites per license"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:57
+msgid "Empty uses the product default (1). 0 is unlimited."
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:59
+#: src/Admin/LicenseView.php:139
+msgid "Expiry"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:60
+#: src/Admin/LicenseView.php:141
+msgid "Never expires"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:61
+msgid "Expires after"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:61
+msgid "How long the license lasts"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:68
+#: src/Admin/LicenseView.php:142
+msgid "Valid through"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:68
+#: src/Admin/LicenseView.php:142
+msgid "Date the license is valid through"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:71
+#: src/Privacy/PrivacyService.php:160
+#: src/Privacy/PrivacyService.php:274
+msgid "Email"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:71
+msgid "Email the license key to the customer"
+msgstr ""
+
+#: src/Admin/AddLicenseScreen.php:74
+msgid "Issue license"
+msgstr ""
+
+#: src/Admin/AdminMenu.php:54
+#: src/Admin/OverviewScreen.php:57
+msgid "Overview"
+msgstr ""
+
+#: src/Admin/AdminMenu.php:56
+#: src/Admin/LicensesScreen.php:86
+#: src/Admin/OverviewScreen.php:312
+#: src/Privacy/PrivacyService.php:201
+#: src/WooCommerce/AccountPage.php:76
+#: src/WooCommerce/AccountPage.php:82
+msgid "Licenses"
+msgstr ""
+
+#: src/Admin/AdminMenu.php:61
+#: src/Admin/OverviewScreen.php:337
+#: src/Admin/SettingsScreen.php:227
+msgid "Licensing settings"
+msgstr ""
+
+#: src/Admin/Capabilities.php:56
+msgid "You are not allowed to manage licenses."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:83
+#: src/Admin/ConnectBox.php:129
+#: src/Migration/MigrationRunner.php:222
+#: src/WooCommerce/IssueProblems.php:253
+msgid "You are not allowed to do this."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:94
+msgid "The SDK zip could not be made on this server. Copy the sdk folder from the plugin instead."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:138
+msgid "That product does not exist."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:147
+msgid "The example zip could not be made on this server."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:165
+msgid "Connect your plugin or theme"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:175
+msgid "Save the product first. Its code and checklist appear here."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:186
+msgid "Before you sell"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:193
+#: src/Admin/OverviewScreen.php:261
+msgid "Done:"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:193
+#: src/Admin/OverviewScreen.php:261
+msgid "To do:"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:200
+msgid "Put this in your plugin or theme"
+msgstr ""
+
+#. translators: %s: link text "Download the SDK".
+#: src/Admin/ConnectBox.php:204
+msgid "%s and unzip it into your plugin or theme, so you have vendor/wplicense-it-client."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:205
+msgid "Download the SDK"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:207
+msgid "Paste this code into the main file of your plugin, or the functions.php of your theme:"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:212
+msgid "Code to paste into your plugin or theme"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:215
+msgid "Copy the code"
+msgstr ""
+
+#. translators: 1: product ID, 2: settings page name.
+#: src/Admin/ConnectBox.php:218
+msgid "Product ID: %1$s. Customers then find the license page under Settings, %2$s."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:220
+#: src/Admin/LicensesTable.php:79
+#: src/Admin/LicenseView.php:41
+#: src/Admin/OverviewScreen.php:362
+msgid "License"
+msgstr ""
+
+#. translators: %s: link text "Download an example plugin".
+#: src/Admin/ConnectBox.php:226
+msgid "Or start from a working example: %s for this product, with the SDK and this code already in it. Install it on a test site to try activation and updates, then copy what you need."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:227
+msgid "Download an example plugin"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:241
+msgid "Copied."
+msgstr ""
+
+#: src/Admin/ConnectBox.php:241
+msgid "Press Ctrl+C to copy the selected code."
+msgstr ""
+
+#: src/Admin/LicenseActions.php:138
+#: src/Licenses/LicenseService.php:149
+#: src/Licenses/LicenseService.php:194
+#: src/Licenses/LicenseService.php:225
+#: src/Licenses/LicenseService.php:256
+msgid "License not found."
+msgstr ""
+
+#: src/Admin/LicenseActions.php:146
+msgid "Site not active."
+msgstr ""
+
+#: src/Admin/LicenseActions.php:175
+msgid "Product not found."
+msgstr ""
+
+#: src/Admin/LicenseActions.php:182
+msgid "User not found."
+msgstr ""
+
+#: src/Admin/LicenseActions.php:245
+msgid "Choose a period to renew for."
+msgstr ""
+
+#: src/Admin/LicenseActions.php:324
+#: src/Admin/LicensesTable.php:266
+#: src/Admin/LicenseView.php:78
+#: src/Compat/LegacyShortcodes.php:74
+#: src/Privacy/PrivacyService.php:177
+#: src/WooCommerce/AccountPage.php:142
+#: src/WooCommerce/LicenseDisplay.php:124
+#: src/WooCommerce/OrderLicensesBox.php:170
+msgid "Never"
+msgstr ""
+
+#. translators: 1: product name, 2: license key, 3: expiry date.
+#: src/Admin/LicenseActions.php:328
+msgid ""
+"Thank you. Your license for %1$s is ready.\n"
+"\n"
+"License key: %2$s\n"
+"Expires: %3$s\n"
+""
+msgstr ""
+
+#. translators: %s: product name.
+#: src/Admin/LicenseActions.php:335
+msgid "Your license for %s"
+msgstr ""
+
+#: src/Admin/LicensesScreen.php:43
+msgid "Licenses per page"
+msgstr ""
+
+#: src/Admin/LicensesScreen.php:100
+msgid "Search key or email"
+msgstr ""
+
+#: src/Admin/LicensesScreen.php:124
+msgid "Revoke the selected licenses? They stop working immediately."
+msgstr ""
+
+#: src/Admin/LicensesTable.php:81
+#: src/Admin/LicenseView.php:75
+#: src/Admin/OverviewScreen.php:362
+msgid "Customer"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:82
+#: src/Admin/LicenseView.php:72
+#: src/Admin/SettingsScreen.php:435
+#: src/Privacy/PrivacyService.php:168
+#: src/Privacy/PrivacyService.php:229
+#: src/WooCommerce/AccountPage.php:141
+#: src/WooCommerce/OrderLicensesBox.php:88
+msgid "Status"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:83
+#: src/Admin/LicenseView.php:78
+#: src/Admin/OverviewScreen.php:362
+#: src/Compat/LegacyShortcodes.php:74
+#: src/Privacy/PrivacyService.php:176
+#: src/WooCommerce/AccountPage.php:142
+#: src/WooCommerce/LicenseDisplay.php:53
+#: src/WooCommerce/OrderLicensesBox.php:88
+msgid "Expires"
+msgstr ""
+
+#. translators: 1: sites in use, 2: sites allowed.
+#: src/Admin/LicensesTable.php:84
+#: src/Admin/LicenseView.php:79
+#: src/WooCommerce/AccountPage.php:144
+#: src/WooCommerce/OrderLicensesBox.php:88
+msgid "Sites"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:85
+#: src/Admin/LicenseView.php:80
+#: src/Admin/OverviewScreen.php:362
+#: src/Privacy/PrivacyService.php:180
+#: src/Privacy/PrivacyService.php:286
+msgid "Created"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:113
+#: src/Admin/LicensesTable.php:311
+#: src/Admin/OverviewScreen.php:306
+#: src/WooCommerce/AccountPage.php:168
+msgid "Active"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:114
+#: src/Admin/LicensesTable.php:312
+#: src/Admin/LicenseView.php:216
+#: src/Admin/OverviewScreen.php:307
+#: src/WooCommerce/AccountPage.php:179
+msgid "Expired"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:115
+#: src/Admin/LicensesTable.php:313
+#: src/Admin/LicenseView.php:217
+#: src/Admin/OverviewScreen.php:308
+#: src/WooCommerce/AccountPage.php:176
+msgid "Revoked"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:116
+#: src/Admin/LicensesTable.php:314
+#: src/Admin/LicenseView.php:218
+#: src/Admin/OverviewScreen.php:309
+#: src/WooCommerce/AccountPage.php:172
+msgid "Refunded"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:124
+msgid "All"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:149
+#: src/Admin/LicensesTable.php:217
+#: src/Admin/LicenseView.php:105
+msgid "Revoke"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:150
+#: src/Admin/LicensesTable.php:211
+#: src/Admin/LicenseView.php:103
+msgid "Reinstate"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:176
+msgid "Filter by product"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:176
+msgid "All products"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:181
+msgid "Filter"
+msgstr ""
+
+#. translators: %s: license key.
+#: src/Admin/LicensesTable.php:196
+msgid "Select %s"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:207
+msgid "Manage"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:218
+#: src/Admin/LicenseView.php:105
+msgid "Revoke this license? It stops working immediately."
+msgstr ""
+
+#: src/Admin/LicensesTable.php:245
+msgid "User profile"
+msgstr ""
+
+#: src/Admin/LicensesTable.php:293
+msgid "No licenses found."
+msgstr ""
+
+#: src/Admin/LicenseView.php:42
+#: src/Admin/OverviewScreen.php:318
+msgid "All licenses"
+msgstr ""
+
+#: src/Admin/LicenseView.php:71
+#: src/Compat/LegacyShortcodes.php:73
+#: src/Privacy/PrivacyService.php:156
+#: src/Privacy/PrivacyService.php:270
+#: src/WooCommerce/AccountPage.php:140
+#: src/WooCommerce/LicenseDisplay.php:53
+#: src/WooCommerce/OrderLicensesBox.php:88
+msgid "License key"
+msgstr ""
+
+#: src/Admin/LicenseView.php:100
+msgid "Actions"
+msgstr ""
+
+#: src/Admin/LicenseView.php:106
+msgid "Mark as refunded? It stops working immediately."
+msgstr ""
+
+#: src/Admin/LicenseView.php:106
+msgid "Mark as refunded"
+msgstr ""
+
+#: src/Admin/LicenseView.php:112
+msgid "Renew for"
+msgstr ""
+
+#: src/Admin/LicenseView.php:118
+#: src/WooCommerce/AccountPage.php:155
+msgid "Renew"
+msgstr ""
+
+#: src/Admin/LicenseView.php:119
+msgid "Extends from the current expiry, or from today if it has expired."
+msgstr ""
+
+#: src/Admin/LicenseView.php:131
+msgid "Edit"
+msgstr ""
+
+#: src/Admin/LicenseView.php:137
+msgid "0 is unlimited. Lowering it does not deactivate sites that are already active."
+msgstr ""
+
+#: src/Admin/LicenseView.php:140
+msgid "Keep as it is"
+msgstr ""
+
+#: src/Admin/LicenseView.php:145
+msgid "Save changes"
+msgstr ""
+
+#: src/Admin/LicenseView.php:157
+msgid "Active sites"
+msgstr ""
+
+#: src/Admin/LicenseView.php:160
+msgid "This license is not active on any site."
+msgstr ""
+
+#: src/Admin/LicenseView.php:165
+msgid "Site"
+msgstr ""
+
+#: src/Admin/LicenseView.php:165
+#: src/Admin/ProductScreen.php:282
+#: src/Admin/ReleasesBox.php:96
+msgid "Version"
+msgstr ""
+
+#: src/Admin/LicenseView.php:165
+msgid "Activated"
+msgstr ""
+
+#: src/Admin/LicenseView.php:168
+msgid "local or staging, not counted"
+msgstr ""
+
+#: src/Admin/LicenseView.php:172
+#: src/WooCommerce/AccountPage.php:202
+msgid "Deactivate"
+msgstr ""
+
+#: src/Admin/LicenseView.php:186
+#: src/Privacy/PrivacyService.php:194
+msgid "History"
+msgstr ""
+
+#: src/Admin/LicenseView.php:189
+msgid "No history yet."
+msgstr ""
+
+#: src/Admin/LicenseView.php:194
+msgid "When"
+msgstr ""
+
+#: src/Admin/LicenseView.php:194
+msgid "Event"
+msgstr ""
+
+#: src/Admin/LicenseView.php:194
+msgid "Details"
+msgstr ""
+
+#: src/Admin/LicenseView.php:212
+msgid "Issued"
+msgstr ""
+
+#: src/Admin/LicenseView.php:213
+msgid "Site activated"
+msgstr ""
+
+#: src/Admin/LicenseView.php:214
+msgid "Site deactivated"
+msgstr ""
+
+#: src/Admin/LicenseView.php:215
+msgid "Renewed"
+msgstr ""
+
+#: src/Admin/LicenseView.php:219
+msgid "Reinstated"
+msgstr ""
+
+#: src/Admin/LicenseView.php:220
+msgid "Edited"
+msgstr ""
+
+#: src/Admin/LicenseView.php:221
+msgid "Expiry reminder emailed"
+msgstr ""
+
+#: src/Admin/LicenseView.php:222
+msgid "Renewal invoice sent"
+msgstr ""
+
+#: src/Admin/Notices.php:25
+msgid "License revoked."
+msgstr ""
+
+#: src/Admin/Notices.php:26
+msgid "License marked as refunded."
+msgstr ""
+
+#: src/Admin/Notices.php:27
+msgid "License reinstated."
+msgstr ""
+
+#: src/Admin/Notices.php:28
+msgid "License renewed."
+msgstr ""
+
+#: src/Admin/Notices.php:29
+msgid "License updated."
+msgstr ""
+
+#: src/Admin/Notices.php:30
+msgid "Site deactivated."
+msgstr ""
+
+#: src/Admin/Notices.php:31
+msgid "License issued."
+msgstr ""
+
+#: src/Admin/Notices.php:32
+msgid "License issued and emailed to the customer."
+msgstr ""
+
+#: src/Admin/Notices.php:43
+msgid "That license no longer exists."
+msgstr ""
+
+#: src/Admin/Notices.php:44
+msgid "Some of the values were not valid. Nothing was changed."
+msgstr ""
+
+#: src/Admin/Notices.php:45
+msgid "That is not a valid email address. Nothing was changed."
+msgstr ""
+
+#: src/Admin/Notices.php:46
+msgid "A revoked or refunded license cannot be renewed. Reinstate it first."
+msgstr ""
+
+#: src/Admin/Notices.php:47
+msgid "That site is not active on this license."
+msgstr ""
+
+#: src/Admin/Notices.php:48
+msgid "No user was found for that username or email."
+msgstr ""
+
+#: src/Admin/Notices.php:49
+msgid "Choose a published license product."
+msgstr ""
+
+#. translators: %d: number of licenses.
+#: src/Admin/Notices.php:68
+msgid "%d license updated."
+msgid_plural "%d licenses updated."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Notices.php:74
+msgid "Something went wrong."
+msgstr ""
+
+#. translators: %d: number of days.
+#: src/Admin/OverviewScreen.php:82
+msgid "Expiring in the next %d day"
+msgid_plural "Expiring in the next %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/OverviewScreen.php:87
+msgid "Nothing expires soon."
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:91
+msgid "Newest licenses"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:94
+msgid "No licenses yet."
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:182
+msgid "See the details"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:184
+msgid "Open the products"
+msgstr ""
+
+#. translators: %s: order number.
+#: src/Admin/OverviewScreen.php:194
+msgid "Order %s"
+msgstr ""
+
+#. translators: %d: number of orders.
+#: src/Admin/OverviewScreen.php:216
+msgid "%d paid order could not be given its license, so the customer is waiting. Open it, fix the cause and press Try again."
+msgid_plural "%d paid orders could not be given their licenses, so the customers are waiting. Open each one, fix the cause and press Try again."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/OverviewScreen.php:219
+msgid "The move of your 1.x data needs attention. Some licenses or orders were not moved."
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:222
+msgid "The folder for product packages cannot be written to. Uploading a release will fail until its permissions are fixed."
+msgstr ""
+
+#. translators: %d: number of products.
+#: src/Admin/OverviewScreen.php:226
+msgid "%d published product has no release uploaded, so customers cannot download or update it."
+msgid_plural "%d published products have no release uploaded, so customers cannot download or update them."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/OverviewScreen.php:229
+msgid "WP-Cron is switched off on this site (DISABLE_WP_CRON). Marking licenses as expired, expiry reminders and renewal invoices only happen if a real cron job calls wp-cron.php every few minutes."
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:232
+msgid "The daily job (expiry, reminders, renewal invoices) has not run for more than two days. Check that WP-Cron works on this site."
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:235
+msgid "The daily job (expiry, reminders, renewal invoices) was due more than a day ago and has not run yet. Check that WP-Cron works on this site."
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:247
+msgid "Setup"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:247
+msgid "Getting started"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:250
+msgid "The basics are set up."
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:250
+msgid "These could help too:"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:263
+msgid "(optional)"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:281
+msgid "Create your first product"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:282
+msgid "Upload a release (a zip file) to a product"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:283
+msgid "Issue a license, to try it yourself"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:284
+msgid "Add a plan with a price to a product, so customers can buy it"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:285
+msgid "Install WooCommerce to sell licenses from your store, or issue them by hand"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:286
+msgid "Download the client SDK and add it to your plugin or theme"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:287
+msgid "Turn on expiry reminder emails"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:288
+msgid "Turn on renewal invoices"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:335
+#: src/Admin/SettingsScreen.php:192
+#: src/Admin/SettingsScreen.php:438
+msgid "Old 1.x API addresses"
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:337
+msgid "Plugins and themes released with WPLicense It 1.x call these addresses with the license key in the address. When no more calls come, switch them off."
+msgstr ""
+
+#. translators: %d: number of days.
+#: src/Admin/OverviewScreen.php:376
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/PlansBox.php:95
+#: src/Admin/ProductScreen.php:95
+msgid "Plans (what customers can buy)"
+msgstr ""
+
+#: src/Admin/PlansBox.php:116
+msgid "Each plan becomes one WooCommerce product, created as a draft. The price here is the one that counts: if someone edits a price in WooCommerce, you will be asked which to keep."
+msgstr ""
+
+#. translators: %s: currency code.
+#: src/Admin/PlansBox.php:119
+msgid "Price (%s)"
+msgstr ""
+
+#: src/Admin/PlansBox.php:120
+#: src/Admin/PlansBox.php:149
+msgid "Name"
+msgstr ""
+
+#: src/Admin/PlansBox.php:120
+#: src/Admin/PlansBox.php:151
+msgid "Sites (0 = unlimited)"
+msgstr ""
+
+#: src/Admin/PlansBox.php:120
+#: src/Admin/PlansBox.php:152
+msgid "Lasts"
+msgstr ""
+
+#: src/Admin/PlansBox.php:120
+msgid "In WooCommerce"
+msgstr ""
+
+#: src/Admin/PlansBox.php:130
+msgid "Clear a row to remove the plan. Its WooCommerce product is set back to draft so it can no longer be bought; existing licenses keep working."
+msgstr ""
+
+#. translators: 1: row number, 2: column name such as Price.
+#: src/Admin/PlansBox.php:145
+msgid "Plan %1$d: %2$s"
+msgstr ""
+
+#: src/Admin/PlansBox.php:149
+msgid "For example: 5 sites"
+msgstr ""
+
+#: src/Admin/PlansBox.php:150
+msgid "Price"
+msgstr ""
+
+#: src/Admin/PlansBox.php:161
+msgid "Created when you save."
+msgstr ""
+
+#: src/Admin/PlansBox.php:175
+msgid "Not created yet. Save to retry."
+msgstr ""
+
+#: src/Admin/PlansBox.php:182
+msgid "Deleted in WooCommerce."
+msgstr ""
+
+#: src/Admin/PlansBox.php:183
+msgid "Create it again"
+msgstr ""
+
+#: src/Admin/PlansBox.php:189
+msgid "On sale"
+msgstr ""
+
+#: src/Admin/PlansBox.php:189
+msgid "Draft"
+msgstr ""
+
+#: src/Admin/PlansBox.php:192
+msgid "Edit in WooCommerce"
+msgstr ""
+
+#: src/Admin/PlansBox.php:194
+msgid "Test this plan"
+msgstr ""
+
+#. translators: 1: price in WooCommerce, 2: price in the plan.
+#: src/Admin/PlansBox.php:201
+msgid "WooCommerce price is %1$s, plan price is %2$s."
+msgstr ""
+
+#: src/Admin/PlansBox.php:203
+msgid "Keep the plan price"
+msgstr ""
+
+#: src/Admin/PlansBox.php:204
+msgid "Use the WooCommerce price"
+msgstr ""
+
+#: src/Admin/PlansBox.php:211
+msgid "The test passed. "
+msgstr ""
+
+#: src/Admin/PlansBox.php:212
+msgid "Publish in the shop"
+msgstr ""
+
+#: src/Admin/PlansBox.php:214
+msgid "The plan, its product or its zip changed since the test passed. Test it again to publish."
+msgstr ""
+
+#: src/Admin/PlansBox.php:216
+msgid "Not for sale yet. It can be published once a test of this plan passes."
+msgstr ""
+
+#: src/Admin/PlansBox.php:239
+msgid "Plans were not saved: your account cannot edit WooCommerce products."
+msgstr ""
+
+#: src/Admin/PlansBox.php:249
+msgid "The plans were not saved. Fix these and save again:"
+msgstr ""
+
+#: src/Admin/PlansBox.php:272
+#: src/Admin/ReleasesBox.php:212
+msgid "This link has expired. Go back and try again."
+msgstr ""
+
+#: src/Admin/PlansBox.php:275
+#: src/Admin/ReleasesBox.php:215
+msgid "You are not allowed to do that."
+msgstr ""
+
+#: src/Admin/PlansBox.php:286
+msgid "The plan now uses the WooCommerce price."
+msgstr ""
+
+#: src/Admin/PlansBox.php:290
+msgid "The plan price was put back on the WooCommerce product."
+msgstr ""
+
+#: src/Admin/PlansBox.php:298
+#: src/Admin/PlansBox.php:330
+#: src/Plans/PlanSync.php:306
+msgid "That plan no longer exists."
+msgstr ""
+
+#: src/Admin/PlansBox.php:301
+msgid "Published in the shop. Customers can now buy this plan."
+msgstr ""
+
+#: src/Admin/PlansBox.php:308
+msgid "Unknown action."
+msgstr ""
+
+#: src/Admin/PlansBox.php:391
+msgid "Passed:"
+msgstr ""
+
+#: src/Admin/PlansBox.php:392
+msgid "Failed:"
+msgstr ""
+
+#: src/Admin/PlansBox.php:393
+msgid "Warning:"
+msgstr ""
+
+#: src/Admin/PlansBox.php:394
+msgid "Not tried:"
+msgstr ""
+
+#. translators: %s: plan name.
+#: src/Admin/PlansBox.php:403
+msgid "Test of \"%s\": passed. Nothing was saved or sent."
+msgstr ""
+
+#. translators: %s: plan name.
+#: src/Admin/PlansBox.php:405
+msgid "Test of \"%s\": did not pass. Fix the items below and test again."
+msgstr ""
+
+#: src/Admin/PlansBox.php:478
+msgid "Plans saved. WooCommerce is up to date."
+msgstr ""
+
+#: src/Admin/PlansBox.php:533
+#: src/Admin/ProductScreen.php:256
+#: src/WooCommerce/ProductFields.php:30
+msgid "Lifetime (never expires)"
+msgstr ""
+
+#: src/Admin/PlansBox.php:534
+#: src/TestPurchase/TestPurchase.php:571
+#: src/WooCommerce/ProductFields.php:31
+msgid "1 month"
+msgstr ""
+
+#: src/Admin/PlansBox.php:535
+#: src/TestPurchase/TestPurchase.php:572
+#: src/WooCommerce/ProductFields.php:32
+msgid "3 months"
+msgstr ""
+
+#: src/Admin/PlansBox.php:536
+#: src/TestPurchase/TestPurchase.php:573
+#: src/WooCommerce/ProductFields.php:33
+msgid "6 months"
+msgstr ""
+
+#: src/Admin/PlansBox.php:537
+#: src/TestPurchase/TestPurchase.php:574
+#: src/WooCommerce/ProductFields.php:34
+msgid "1 year"
+msgstr ""
+
+#: src/Admin/PlansBox.php:538
+#: src/TestPurchase/TestPurchase.php:575
+#: src/WooCommerce/ProductFields.php:35
+msgid "2 years"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:77
+msgid "Software"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:78
+msgid "Plans"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:79
+msgid "Releases"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:80
+msgid "Connect"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:88
+msgid "About the software"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:89
+msgid "Defaults for licenses issued by hand"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:90
+msgid "Upload a release"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:91
+msgid "Old API key (1.x clients)"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:103
+msgid "WooCommerce is not active."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:104
+msgid "Plans are sold through WooCommerce: each plan becomes a WooCommerce product, and a paid order issues the license. Install and activate WooCommerce, then come back to add plans here. Licenses can still be issued by hand under Licenses, Add license."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:117
+msgid "Product sections"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:184
+msgid "This file is too big for this server. It accepts up to"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:184
+msgid "per upload. Ask your host to raise upload_max_filesize and post_max_size, or choose a smaller file. Nothing was uploaded."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:215
+msgid "Name shown to customers"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:215
+msgid "Read from the zip when you upload a release. Empty uses the title above."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:216
+msgid "Short description"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:216
+msgid "Shown in the \"View details\" popup on customers' sites."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:217
+msgid "Needs WordPress"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:217
+msgid "Filled in from the zip when you upload a release."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:218
+msgid "Tested up to WordPress"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:218
+msgid "Filled in from the zip's readme.txt when you upload a release."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:220
+msgid "Logo"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:227
+msgid "Banner"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:244
+msgid "Plans carry their own sites and period. These defaults apply to licenses you issue by hand, and to a WooCommerce product linked to this software that has no setting of its own."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:247
+msgid "Empty means 1. 0 is unlimited."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:249
+#: src/WooCommerce/ProductFields.php:88
+#: src/WooCommerce/ProductFields.php:153
+msgid "License period"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:273
+msgid "Upload a new release (zip)"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:276
+msgid "When you save, the name, version and requirements are read from the file, and a zip that is not a plugin or theme is refused. The folder inside the zip should match your plugin's folder name."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:278
+msgid "What is new in this release"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:280
+msgid "Shown to customers in the \"View details\" popup. Leave it empty to use the entry for this version in the zip's readme.txt changelog. With no new zip, text here replaces the current release's notes."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:282
+msgid "Set from the zip when you upload. Change it only if you have to."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:284
+msgid "Stored file"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:286
+msgid "none yet"
+msgstr ""
+
+#: src/Admin/ProductScreen.php:307
+msgid "Plugins and themes still using the 1.x client send this key. The new client code does not need it. Leave it empty to keep the current key. A new product gets one automatically."
+msgstr ""
+
+#: src/Admin/ProductScreen.php:308
+msgid "API key"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:63
+msgid "Release history"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:76
+msgid "No release yet. Upload a zip above and every upload will be kept here."
+msgstr ""
+
+#. translators: 1: number of releases, 2: total size or empty.
+#: src/Admin/ReleasesBox.php:89
+msgid "%1$d release%2$s. Customers get the one marked Current."
+msgid_plural "%1$d releases%2$s. Customers get the one marked Current."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/ReleasesBox.php:93
+msgid "Making an older release current stops new downloads of the newer one. Sites that already updated stay on it, because WordPress does not downgrade on its own."
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:96
+msgid "Uploaded"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:96
+msgid "File"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:96
+msgid "Notes"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:106
+msgid "Current"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:116
+msgid "Make current"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:117
+msgid "Delete this release and its zip file? This cannot be undone."
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:117
+msgid "Delete"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:136
+msgid "Edit notes"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:142
+msgid "Release notes"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:145
+msgid "Plain text, one change per line. Customers see this on the Changelog tab of the update popup."
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:146
+msgid "Save notes"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:147
+msgid "Cancel"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:222
+msgid "This link cannot be opened directly. Use Edit notes in the release history."
+msgstr ""
+
+#. translators: %s: version.
+#: src/Admin/ReleasesBox.php:248
+msgid "Version %s is now the release customers get."
+msgstr ""
+
+#. translators: %s: version.
+#: src/Admin/ReleasesBox.php:252
+msgid "Version %s was removed from the history."
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:259
+msgid "The release notes were saved."
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:266
+msgid "The release was removed from the list, but its file stays on the server:"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:176
+msgid "Selling with WooCommerce"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:177
+msgid "Issue licenses when an order is"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:179
+msgid "Renewal invoices"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:180
+msgid "Invoice customers"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:181
+#: src/Admin/SettingsScreen.php:185
+msgid "Days before expiry"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:183
+msgid "Expiry reminders"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:184
+msgid "Email customers"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:186
+msgid "Renewal address"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:188
+msgid "API protection"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:189
+msgid "Failed lookups allowed"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:190
+msgid "Time window (minutes)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:191
+#: src/Admin/SettingsScreen.php:351
+msgid "Visitors reach this site"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:194
+msgid "Data"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:195
+msgid "Keep license history for (years)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:196
+msgid "Billing details from 1.x orders"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:197
+msgid "When the plugin is deleted"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:248
+msgid "WooCommerce is not active. Install it to sell licenses from your store."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:252
+msgid "Completed (after you or WooCommerce complete it)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:253
+msgid "Processing (as soon as payment is received)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:255
+msgid "Virtual and downloadable products are completed automatically, so \"Completed\" is right for most stores."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:262
+msgid "Some days before a license expires, create an order for its renewal and email the customer WooCommerce's invoice with a link to pay it. The customer pays with any payment method your store offers, and the license is renewed when the order is paid and completed. Needs WooCommerce and a product that sells the license."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:269
+msgid "Send renewal invoices"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:270
+msgid "Off until you turn it on. One invoice is made per expiry date and recorded in the license history. An unpaid invoice is cancelled if the license is renewed another way. Licenses that never expire, or whose product has no price, are skipped."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:284
+msgid "Email a customer before their license expires, with a link to renew. The check runs once a day. Each reminder is sent once per expiry date, and a renewal starts over. It is recorded in the license history."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:291
+msgid "Send expiry reminders"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:292
+msgid "Off until you turn it on, so nobody is emailed by surprise. Licenses that never expire, and revoked or refunded licenses, get nothing."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:300
+msgid "Up to five numbers of days, separated by commas. 30, 7 sends one email within 30 days of expiry and another within 7 days."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:308
+msgid "Where the email sends customers. Leave empty to use the Licenses page of My Account in your store (the customer logs in and presses Renew), or your home page when there is no store."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:315
+msgid "Clients that send many wrong license keys are blocked for the rest of the time window. Right keys that are expired or revoked do not count."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:316
+msgid "Clients are told apart by their address. If this site is behind Cloudflare or another proxy, choose so below; otherwise all customers would share the proxy's address and one counter, and one client sending wrong keys could block everyone."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:337
+msgid "0 keeps it forever."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:346
+msgid "Directly (no proxy or CDN in front of the site)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:347
+msgid "Through Cloudflare (the CF-Connecting-IP header is used, only on requests that come from Cloudflare's addresses)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:348
+msgid "Through another proxy or load balancer (the X-Forwarded-For header is used, only on requests from the proxies listed below)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:357
+msgid "Addresses of your proxies (for the last choice), one address or range per line, for example 10.0.0.0/8"
+msgstr ""
+
+#. translators: 1: the address the request came from, 2: the address counted for it.
+#: src/Admin/SettingsScreen.php:364
+msgid "This page was requested from %1$s, and the plugin counts it as %2$s. If the second is not your own address, the choice above is not right for this site."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:375
+msgid "Answer the old 1.x API addresses (/api/wplicense-it-api/v1/...)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:376
+msgid "Plugins and themes released with WPLicense It 1.x check licenses and updates there, with the license key in the address, where web server logs can keep it. Switch this off when no more calls come (see Status below): those addresses then answer that they are gone, and copies of your plugins that still use them stop getting updates until they are updated by hand."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:386
+msgid "On."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:386
+msgid "Switched off: they answer that they are gone."
+msgstr ""
+
+#. translators: %d: number of days.
+#: src/Admin/SettingsScreen.php:391
+msgid "No calls in the last %d days."
+msgstr ""
+
+#. translators: 1: number of calls, 2: number of days, 3: date of the last call, 4: product names.
+#: src/Admin/SettingsScreen.php:405
+msgid "%1$s call in the last %2$d days, the last on %3$s (%4$s)."
+msgid_plural "%1$s calls in the last %2$d days, the last on %3$s (%4$s)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/SettingsScreen.php:417
+msgid "Delete all license data when the plugin is deleted"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:418
+msgid "Off by default: deleting the plugin from the Plugins page keeps every license, activation, order record and setting, so installing it again picks up where you left off. Turn this on only if you want them gone for good; this cannot be undone. Products and uploaded release files are WordPress content and stay either way."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:425
+msgid "Keep the address and phone number from migrated 1.x orders"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:426
+msgid "Only used when the 1.x data is migrated. They contain personal data, and are covered by the WordPress personal data export and erase tools."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:436
+msgid "API address"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:437
+msgid "1.x data migration"
+msgstr ""
+
+#. translators: 1: licenses, 2: orders.
+#: src/Admin/SettingsScreen.php:451
+msgid "Finished. %1$d licenses and %2$d orders migrated."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:454
+msgid "Needs attention. See the notice at the top of the admin screens."
+msgstr ""
+
+#. translators: 1: licenses, 2: orders.
+#: src/Admin/SettingsScreen.php:458
+msgid "In progress. %1$d licenses and %2$d orders so far."
+msgstr ""
+
+#: src/Admin/UpgradeNotice.php:68
+msgid "WPLicense It 2.0 no longer has its own checkout."
+msgstr ""
+
+#: src/Admin/UpgradeNotice.php:69
+msgid "Sell licenses with WooCommerce instead: link a WooCommerce product to your license product. Pages that used the old product and checkout shortcodes now show nothing to visitors. Your Stripe keys from the old checkout are still stored. Copy them into your WooCommerce payment gateway if you need them, then delete them here."
+msgstr ""
+
+#: src/Admin/UpgradeNotice.php:72
+msgid "Delete the stored Stripe keys and old checkout settings"
+msgstr ""
+
+#: src/Admin/UpgradeNotice.php:73
+msgid "Dismiss"
+msgstr ""
+
+#: src/Admin/UpgradeNotice.php:89
+msgid "Delete the stored Stripe keys? This cannot be undone."
+msgstr ""
+
+#: src/Compat/LegacyShortcodes.php:55
+msgid "Please log in to see your licenses."
+msgstr ""
+
+#: src/Compat/LegacyShortcodes.php:61
+#: src/WooCommerce/AccountPage.php:114
+msgid "You have no licenses yet."
+msgstr ""
+
+#: src/Compat/LegacyShortcodes.php:78
+#: src/WooCommerce/AccountPage.php:150
+msgid "Download"
+msgstr ""
+
+#. translators: %s: shortcode name.
+#: src/Compat/LegacyShortcodes.php:100
+msgid "The [%s] shortcode was removed in 2.0, because the built-in checkout is gone. Sell licenses with WooCommerce instead. Only administrators see this message."
+msgstr ""
+
+#: src/Connect/Checklist.php:30
+msgid "Upload the plugin or theme zip"
+msgstr ""
+
+#: src/Connect/Checklist.php:31
+msgid "The version and requirements are read from the file."
+msgstr ""
+
+#: src/Connect/Checklist.php:35
+msgid "Add at least one plan"
+msgstr ""
+
+#: src/Connect/Checklist.php:36
+msgid "A plan is what a customer buys: a price, a number of sites and how long it lasts."
+msgstr ""
+
+#: src/Connect/Checklist.php:40
+msgid "Every plan has a product in WooCommerce"
+msgstr ""
+
+#: src/Connect/Checklist.php:41
+msgid "They are created as drafts when you save the plans."
+msgstr ""
+
+#: src/Connect/Checklist.php:45
+msgid "This site uses HTTPS"
+msgstr ""
+
+#: src/Connect/Checklist.php:46
+msgid "The client code only talks to an HTTPS server, so customers' sites can activate. Plain HTTP works only on local test sites."
+msgstr ""
+
+#: src/Connect/Checklist.php:50
+msgid "Test purchase passed for every plan"
+msgstr ""
+
+#: src/Connect/Checklist.php:51
+msgid "Click \"Test this plan\" in each plan's row on the Plans tab. A plan can be published in the shop only after it passes."
+msgstr ""
+
+#: src/Connect/Checklist.php:55
+msgid "Every plan is on sale"
+msgstr ""
+
+#: src/Connect/Checklist.php:56
+msgid "Published in WooCommerce."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:85
+msgid "A product is required."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:88
+#: src/Licenses/LicenseService.php:285
+msgid "A valid email is required."
+msgstr ""
+
+#. translators: %d: the highest activation limit.
+#: src/Licenses/LicenseService.php:95
+#: src/Licenses/LicenseService.php:269
+msgid "The activation limit must be between 0 and %d."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:153
+msgid "A revoked or refunded license cannot be renewed."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:188
+msgid "Status must be revoked or refunded."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:229
+msgid "Only a revoked or refunded license can be reinstated."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:634
+msgid "Could not generate a unique license key."
+msgstr ""
+
+#. translators: %d: 1.x license ID.
+#: src/Migration/LegacyConverter.php:84
+msgid "License %d: the license key is empty or longer than 64 characters."
+msgstr ""
+
+#. translators: %d: 1.x license ID.
+#: src/Migration/LegacyConverter.php:95
+msgid "License %d: it has no product."
+msgstr ""
+
+#. translators: %d: 1.x license ID.
+#: src/Migration/LegacyConverter.php:106
+msgid "License %d: it has no email."
+msgstr ""
+
+#. translators: 1: 1.x license ID, 2: its status.
+#: src/Migration/LegacyConverter.php:120
+msgid "License %1$d: unknown status '%2$s', migrated as revoked."
+msgstr ""
+
+#. translators: %d: 1.x order ID.
+#: src/Migration/LegacyConverter.php:168
+msgid "Order %d: it has no product."
+msgstr ""
+
+#: src/Migration/MigrationRunner.php:151
+msgid "WPLicense It is moving your licenses to the new 2.0 format."
+msgstr ""
+
+#. translators: 1: number of licenses, 2: number of orders.
+#: src/Migration/MigrationRunner.php:156
+msgid "Migrated so far: %1$d licenses, %2$d orders. Your customers' licenses keep working during the move."
+msgstr ""
+
+#. translators: 1: number of licenses, 2: number of orders.
+#: src/Migration/MigrationRunner.php:169
+msgid "Left behind so far: %1$d licenses, %2$d orders."
+msgstr ""
+
+#: src/Migration/MigrationRunner.php:185
+msgid "Run the migration now"
+msgstr ""
+
+#: src/Migration/MigrationRunner.php:187
+msgid "Switch to 2.0 anyway"
+msgstr ""
+
+#: src/Migration/MigrationRunner.php:209
+msgid "Rows that could not be migrated will be left behind. Continue?"
+msgstr ""
+
+#. translators: 1: licenses in 1.x, 2: licenses migrated.
+#: src/Migration/Migrator.php:197
+msgid "1.x has %1$d licenses but %2$d were migrated."
+msgstr ""
+
+#. translators: 1: orders in 1.x, 2: orders migrated.
+#: src/Migration/Migrator.php:208
+msgid "1.x has %1$d orders but %2$d were migrated."
+msgstr ""
+
+#. translators: 1: 1.x license ID, 2: the answer code.
+#: src/Migration/Migrator.php:224
+msgid "License %1$d worked in 1.x but does not validate now (%2$s)."
+msgstr ""
+
+#. translators: %d: 1.x license ID.
+#: src/Migration/Migrator.php:295
+msgid "License %d: its key is already used by another license."
+msgstr ""
+
+#. translators: %d: 1.x license ID.
+#: src/Migration/Migrator.php:369
+msgid "License %d has an old product API key. 1.x clients using it will stop validating."
+msgstr ""
+
+#: src/Packages/PackageReader.php:37
+msgid "This server cannot open zip files (the PHP zip extension is missing), so the details cannot be read from the file."
+msgstr ""
+
+#: src/Packages/PackageReader.php:42
+msgid "This file is not a readable zip."
+msgstr ""
+
+#: src/Packages/PackageReader.php:58
+msgid "This zip has too many files to be a plugin or theme."
+msgstr ""
+
+#: src/Packages/PackageReader.php:71
+msgid "This zip is empty."
+msgstr ""
+
+#: src/Packages/PackageReader.php:102
+msgid "The name in the file header is empty."
+msgstr ""
+
+#: src/Packages/PackageReader.php:109
+msgid "The file header has no Version. Add a \"Version:\" line to the style.css and upload again."
+msgstr ""
+
+#: src/Packages/PackageReader.php:110
+msgid "The file header has no Version. Add a \"Version:\" line to the main plugin file and upload again."
+msgstr ""
+
+#. translators: %s: the version found in the file.
+#: src/Packages/PackageReader.php:118
+msgid "The version \"%s\" is not a valid version number. Use something like 1.4.2."
+msgstr ""
+
+#: src/Packages/PackageReader.php:134
+msgid "No \"Requires at least\" (minimum WordPress version) was found. Customers will see no minimum."
+msgstr ""
+
+#: src/Packages/PackageReader.php:137
+msgid "No \"Requires PHP\" (minimum PHP version) was found. Customers will see no minimum."
+msgstr ""
+
+#. translators: %s: folder names.
+#: src/Packages/PackageReader.php:170
+msgid "This zip has more than one folder at the top (%s). A plugin or theme zip should contain just one folder."
+msgstr ""
+
+#: src/Packages/PackageReader.php:176
+msgid "The zip should contain one folder with all the files inside it. WordPress uses that folder name when it installs and updates, so a zip without it can install under the wrong name."
+msgstr ""
+
+#. translators: 1: stable tag in readme.txt, 2: version in the file header.
+#: src/Packages/PackageReader.php:287
+msgid "readme.txt says Stable tag %1$s but the file header says version %2$s. Update one so they match."
+msgstr ""
+
+#: src/Packages/PackageReader.php:300
+msgid "This zip contains another zip. Upload the inner zip instead."
+msgstr ""
+
+#: src/Packages/PackageReader.php:304
+msgid "No plugin or theme was found in this zip. A plugin needs a PHP file with a \"Plugin Name:\" header directly inside its folder. A theme needs a style.css with a \"Theme Name:\" header."
+msgstr ""
+
+#: src/Packages/UploadReport.php:63
+msgid "Worth a look:"
+msgstr ""
+
+#. translators: %d: the most plans a product can have.
+#: src/Plans/PlanInput.php:69
+msgid "There can be at most %d plans."
+msgstr ""
+
+#: src/Plans/PlanSync.php:131
+#: src/Plans/PlanSync.php:165
+msgid "The WooCommerce product for this plan is gone. Create it again first."
+msgstr ""
+
+#: src/Plans/PlanSync.php:156
+msgid "Run a test purchase of this plan before publishing it."
+msgstr ""
+
+#: src/Plans/PlanSync.php:160
+msgid "This plan, its product or its zip changed since the test purchase passed. Run the test again before publishing."
+msgstr ""
+
+#: src/Plans/PlanSync.php:229
+msgid "Created as a draft product in WooCommerce."
+msgstr ""
+
+#: src/Plans/PlanSync.php:234
+msgid "The WooCommerce product was deleted. Create it again to sell this plan."
+msgstr ""
+
+#: src/Plans/PlanSync.php:254
+msgid "Price and terms sent to WooCommerce."
+msgstr ""
+
+#: src/Plans/PlanSync.php:260
+msgid "The price in WooCommerce was changed. Choose which price to keep."
+msgstr ""
+
+#: src/Plans/PlanSync.php:266
+msgid "License terms sent to WooCommerce."
+msgstr ""
+
+#: src/Plans/PlanSync.php:286
+msgid "The plan was removed, but its WooCommerce product could not be taken off sale:"
+msgstr ""
+
+#: src/Plans/WcProductGateway.php:120
+msgid "Unsupported product status."
+msgstr ""
+
+#: src/Plans/WcProductGateway.php:143
+msgid "The WooCommerce product no longer exists."
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:37
+#: src/Privacy/PrivacyHooks.php:52
+msgid "WPLicense It licenses and orders"
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:91
+msgid "Software licenses"
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:92
+msgid "Suggested text. Review it and adapt it to how you use WPLicense It."
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:93
+msgid "When you buy or are given a software license, we store the email address and account the license was issued to, the license key, the product, the dates and the sites the license is activated on. For orders we keep the order number, the total and the date. We use this to provide the license, to let you download updates, to support you and for our accounting."
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:94
+msgid "When a plugin or theme you installed checks for updates or activates its license, it sends the license key, the product, your site address and the installed version to our server. Nothing else about your site is sent. If our server is asked about a license that does not exist, your IP address is counted for a few minutes to stop key guessing, and is not stored in readable form."
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:97
+msgid "The history of each license (activations, renewals and changes) is kept for as long as the license exists."
+msgstr ""
+
+#. translators: %d: number of years.
+#: src/Privacy/PrivacyHooks.php:99
+msgid "The history of each license (activations, renewals and changes) is deleted after %d year."
+msgid_plural "The history of each license (activations, renewals and changes) is deleted after %d years."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Privacy/PrivacyHooks.php:102
+msgid "Before a license expires we email the address it was issued to, with a link to renew it."
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:104
+msgid "On request we remove your name, email address and account from the licenses and orders. The license key, product, dates, activated site addresses and order totals are kept because they are needed to support the license and for accounting."
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:123
+msgid "WPLicense It: the name, email address and account were removed from the licenses and orders. The license keys, products, dates, activated site addresses and order totals were kept, because they are needed to support the licenses and for accounting."
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:164
+#: src/Privacy/PrivacyService.php:278
+msgid "Product ID"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:172
+msgid "Sites allowed"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:173
+msgid "Unlimited"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:187
+msgid "Activated site"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:202
+msgid "Software licenses bought or issued to this person."
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:217
+#: src/Privacy/PrivacyService.php:302
+msgid "Order number"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:221
+msgid "Source"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:225
+#: src/Privacy/PrivacyService.php:306
+msgid "Total"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:233
+#: src/Privacy/PrivacyService.php:310
+msgid "Date"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:249
+msgid "License orders"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:250
+msgid "Orders for software licenses."
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:265
+msgid "Licenses (WPLicense It 1.x)"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:266
+#: src/Privacy/PrivacyService.php:327
+msgid "Records kept from before WPLicense It 2.0."
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:282
+msgid "Valid until"
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:326
+msgid "License orders (WPLicense It 1.x)"
+msgstr ""
+
+#: src/Products/ProductSaver.php:170
+#: src/Products/ProductSaver.php:179
+#: src/Products/ProductSaver.php:183
+msgid "The release was not saved."
+msgstr ""
+
+#: src/Products/ProductSaver.php:252
+msgid "The release notes were not saved: there is no release yet. Upload a zip first."
+msgstr ""
+
+#: src/Products/ProductSaver.php:259
+msgid "The release notes were updated."
+msgstr ""
+
+#: src/Products/ProductSaver.php:363
+msgid "The upload could not be verified. Try again."
+msgstr ""
+
+#. translators: 1: software name, 2: version, 3: plugin or theme.
+#: src/Products/ProductSaver.php:384
+msgid "Release saved. Read from the zip: %1$s %2$s (%3$s)."
+msgstr ""
+
+#. translators: %s: the largest upload the server allows, or "the upload limit".
+#: src/Products/UploadError.php:32
+msgid "The file is bigger than this server allows (%s). Ask your host to raise upload_max_filesize and post_max_size, or upload a smaller zip."
+msgstr ""
+
+#: src/Products/UploadError.php:33
+msgid "the upload limit"
+msgstr ""
+
+#: src/Products/UploadError.php:36
+msgid "The file was only partly uploaded. Try again."
+msgstr ""
+
+#: src/Products/UploadError.php:40
+msgid "The server has no temporary folder for uploads. Ask your host to fix this."
+msgstr ""
+
+#: src/Products/UploadError.php:42
+msgid "The server could not write the file. Check the disk space and folder permissions."
+msgstr ""
+
+#: src/Products/UploadError.php:44
+msgid "A PHP extension stopped the upload."
+msgstr ""
+
+#. translators: %d: PHP upload error code.
+#: src/Products/UploadError.php:48
+msgid "The upload failed (error %d)."
+msgstr ""
+
+#: src/Products/WpFileStore.php:41
+msgid "The file name is not valid. Use a name that ends in .zip."
+msgstr ""
+
+#: src/Products/WpFileStore.php:55
+msgid "The folder for this release could not be created. Check the permissions of the uploads folder."
+msgstr ""
+
+#: src/Products/WpFileStore.php:62
+msgid "The file could not be moved into the releases folder. Check the permissions of the uploads folder."
+msgstr ""
+
+#: src/Products/WpFileStore.php:86
+msgid "That file is not a release zip in the releases folder, so it was not deleted."
+msgstr ""
+
+#: src/Products/WpFileStore.php:90
+msgid "The file could not be deleted. Check the permissions of the uploads folder."
+msgstr ""
+
+#: src/Products/WpFileStore.php:129
+msgid "The product folder could not be removed."
+msgstr ""
+
+#: src/Products/WpFileStore.php:140
+msgid "The product folder is not inside the releases folder, so it was not deleted."
+msgstr ""
+
+#. translators: %s: file path.
+#: src/Products/WpFileStore.php:162
+msgid "A file could not be deleted: %s"
+msgstr ""
+
+#: src/Products/WpFileStore.php:170
+msgid "A folder could not be removed."
+msgstr ""
+
+#: src/Products/WpFileStore.php:208
+msgid "The image could not be stored."
+msgstr ""
+
+#. translators: 1: version of this release, 2: version customers had.
+#: src/Releases/ReleaseService.php:122
+msgid "This release (%1$s) is older than the one customers had (%2$s). Sites already on %2$s will not be offered it."
+msgstr ""
+
+#: src/Releases/ReleaseService.php:209
+msgid "This is the release customers get now. Make another release current before deleting it."
+msgstr ""
+
+#: src/Releases/ReleaseService.php:342
+msgid "That release no longer exists."
+msgstr ""
+
+#: src/Reminders/WpReminderMailer.php:50
+msgid "your product"
+msgstr ""
+
+#. translators: 1: product name, 2: number of days.
+#: src/Reminders/WpReminderMailer.php:57
+msgid "Your %1$s license expires in %2$d day"
+msgid_plural "Your %1$s license expires in %2$d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: product name, 2: expiry date, 3: renewal address, 4: site name.
+#: src/Reminders/WpReminderMailer.php:64
+msgid ""
+"Hello,\n"
+"\n"
+"Your license for %1$s expires on %2$s. After that date you will no longer receive updates for it.\n"
+"\n"
+"Renew it here to keep receiving them:\n"
+"%3$s\n"
+"\n"
+"Thank you,\n"
+"%4$s\n"
+""
+msgstr ""
+
+#. translators: 1: the error, 2: the license API address.
+#: src/TestPurchase/RestLoopbackProbe.php:39
+msgid "This server could not reach its own license API (%1$s). Some hosts block requests from the server to itself. If customers can open %2$s in a browser, this is only a warning."
+msgstr ""
+
+#. translators: 1: HTTP status code, 2: the license API address.
+#: src/TestPurchase/RestLoopbackProbe.php:52
+msgid "The license API address answered with HTTP %1$d. A firewall, a security plugin or the host may be blocking it. Check %2$s in a browser."
+msgstr ""
+
+#. translators: %s: the license API address.
+#: src/TestPurchase/RestLoopbackProbe.php:65
+msgid "The license API address answered, but not with the license API (it may be a login page or a security check). Check %s in a browser."
+msgstr ""
+
+#. translators: %s: the license API address.
+#: src/TestPurchase/RestLoopbackProbe.php:75
+msgid "The license API answers at %s."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:95
+#: src/TestPurchase/TestPurchase.php:172
+msgid "The license terms"
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:104
+#: src/TestPurchase/TestPurchase.php:273
+msgid "A purchase issues a license"
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:110
+#: src/TestPurchase/TestPurchase.php:351
+msgid "The license can be activated"
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:111
+#: src/TestPurchase/TestPurchase.php:472
+msgid "The download works"
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:124
+msgid "The WooCommerce product"
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:127
+msgid "This plan has no WooCommerce product yet. Save the plans to create it."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:132
+msgid "The WooCommerce product was deleted. Use \"Create it again\" on the plan."
+msgstr ""
+
+#. translators: %s: WooCommerce product type, such as variable.
+#: src/TestPurchase/TestPurchase.php:142
+msgid "The WooCommerce product is a %s product. Plans are sold as simple products. Change its type back to Simple product."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:149
+msgid "The WooCommerce product is not linked to this software, so buying it would issue no license. Save the plans to link it."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:149
+msgid "The WooCommerce product is linked to a different software product. Save the plans to correct it."
+msgstr ""
+
+#. translators: %d: WooCommerce product ID.
+#: src/TestPurchase/TestPurchase.php:158
+msgid "WooCommerce product #%d exists and is linked to this software."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:184
+msgid "An order for this product would not issue a license for this software. Save the plans to link it."
+msgstr ""
+
+#. translators: 1: sites in the plan, 2: period in the plan, 3: sites an order would carry, 4: period an order would carry.
+#: src/TestPurchase/TestPurchase.php:196
+msgid "The plan says %1$s for %2$s, but an order would carry %3$s for %4$s. Save the plans again to correct WooCommerce."
+msgstr ""
+
+#. translators: 1: number of sites, 2: license period.
+#: src/TestPurchase/TestPurchase.php:211
+msgid "An order would carry %1$s for %2$s, as the plan says."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:224
+msgid "The software and its zip"
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:228
+msgid "This license product is not published. Publish it (not Draft), or customers will get \"unknown product\"."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:232
+msgid "The software has no version. Upload the zip, or enter a version."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:236
+msgid "No zip is stored for this software, or the file is missing from the server. Upload the zip again."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:241
+msgid "The zip is missing from the server. Upload it again."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:247
+msgid "The stored zip is not a usable plugin or theme:"
+msgstr ""
+
+#. translators: 1: software name, 2: version.
+#: src/TestPurchase/TestPurchase.php:256
+msgid "%1$s %2$s is published and its zip opens."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:279
+msgid "The plan's period is not valid:"
+msgstr ""
+
+#. translators: %d: number of licenses issued.
+#: src/TestPurchase/TestPurchase.php:294
+msgid "An order for one unit issued %d licenses instead of 1."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:302
+msgid "The license that was issued does not match the plan."
+msgstr ""
+
+#. translators: 1: date the license expires (or never), 2: date the plan gives (or never).
+#: src/TestPurchase/TestPurchase.php:314
+msgid "The license expires on %1$s but the plan says %2$s."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:315
+#: src/TestPurchase/TestPurchase.php:316
+msgid "never"
+msgstr ""
+
+#. translators: %s: number of sites.
+#: src/TestPurchase/TestPurchase.php:330
+msgid "One license was issued for %s, never expiring."
+msgstr ""
+
+#. translators: 1: number of sites, 2: expiry date.
+#: src/TestPurchase/TestPurchase.php:335
+msgid "One license was issued for %1$s, expiring %2$s."
+msgstr ""
+
+#. translators: %s: what the API answered.
+#: src/TestPurchase/TestPurchase.php:365
+msgid "A new license did not validate (%s)."
+msgstr ""
+
+#. translators: 1: site number, 2: number of sites, 3: what the API answered.
+#: src/TestPurchase/TestPurchase.php:383
+msgid "Site %1$d of %2$d could not be activated (%3$s)."
+msgstr ""
+
+#. translators: %s: what the API answered.
+#: src/TestPurchase/TestPurchase.php:401
+msgid "Deactivating a site failed (%s)."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:412
+msgid "It activated on one site and deactivated again. The site limit was not tried (the plan is unlimited)."
+msgstr ""
+
+#. translators: %d: the most sites the test tries.
+#: src/TestPurchase/TestPurchase.php:415
+msgid "It activated on one site and deactivated again. The site limit was not tried (more than %d sites)."
+msgstr ""
+
+#. translators: 1: site number, 2: sites the license allows, 3: what the API answered.
+#: src/TestPurchase/TestPurchase.php:429
+msgid "Site %1$d was allowed on a %2$d-site license (%3$s). The site limit is not being enforced."
+msgstr ""
+
+#. translators: %s: what the API answered.
+#: src/TestPurchase/TestPurchase.php:446
+msgid "Freeing a site did not make room for another (%s)."
+msgstr ""
+
+#. translators: %d: number of sites.
+#: src/TestPurchase/TestPurchase.php:458
+msgid "It activated on %d site, the next site was refused, and freeing one made room."
+msgid_plural "It activated on %d sites, the next site was refused, and freeing one made room."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: what the API answered.
+#: src/TestPurchase/TestPurchase.php:488
+msgid "The update check gave no download link (%s)."
+msgstr ""
+
+#. translators: %s: what the API answered.
+#: src/TestPurchase/TestPurchase.php:505
+msgid "The download link did not lead to the stored zip (%s)."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:513
+msgid "A download link that was changed was still accepted."
+msgstr ""
+
+#. translators: %s: zip file name.
+#: src/TestPurchase/TestPurchase.php:522
+msgid "The update check gave a signed link that downloads %s, and a changed link is refused."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:532
+msgid "This site can reach its own license API"
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:545
+msgid "Not tried, because an earlier check did not pass."
+msgstr ""
+
+#: src/TestPurchase/TestPurchase.php:555
+msgid "unlimited sites"
+msgstr ""
+
+#. translators: %d: number of sites.
+#: src/TestPurchase/TestPurchase.php:558
+msgid "%d site"
+msgid_plural "%d sites"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/TestPurchase/TestPurchase.php:570
+msgid "a lifetime"
+msgstr ""
+
+#: src/TestPurchase/WcOrderBuilder.php:45
+msgid "The WooCommerce product could not be loaded."
+msgstr ""
+
+#: src/WooCommerce/AccountPage.php:106
+msgid "The site was deactivated. You can use the license on another site."
+msgstr ""
+
+#: src/WooCommerce/AccountPage.php:108
+msgid "That site could not be deactivated."
+msgstr ""
+
+#: src/WooCommerce/AccountPage.php:134
+msgid "unlimited"
+msgstr ""
+
+#. translators: 1: sites in use, 2: sites allowed.
+#: src/WooCommerce/AccountPage.php:144
+msgid "%1$d of %2$s in use"
+msgstr ""
+
+#: src/WooCommerce/CartRenewal.php:117
+msgid "Renews license"
+msgstr ""
+
+#. translators: %s: order number.
+#: src/WooCommerce/IssueProblems.php:147
+msgid "Order %s was paid but its license could not be issued"
+msgstr ""
+
+#. translators: 1: order number, 2: what went wrong, 3: address of the order.
+#: src/WooCommerce/IssueProblems.php:152
+msgid ""
+"Order %1$s could not be given its license, so the customer has not received it.\n"
+"\n"
+"What went wrong:\n"
+"%2$s\n"
+"\n"
+"Open the order, fix the cause and press Try again:\n"
+"%3$s\n"
+""
+msgstr ""
+
+#: src/WooCommerce/IssueProblems.php:237
+msgid "The license was issued."
+msgstr ""
+
+#: src/WooCommerce/IssueProblems.php:243
+msgid "WPLicense It could not issue the license for this order."
+msgstr ""
+
+#: src/WooCommerce/IssueProblems.php:243
+msgid "The customer has not received it."
+msgstr ""
+
+#: src/WooCommerce/IssueProblems.php:243
+msgid "Fix the cause, then try again. Changing the order status to Completed again does the same."
+msgstr ""
+
+#: src/WooCommerce/IssueProblems.php:243
+msgid "Try again"
+msgstr ""
+
+#: src/WooCommerce/IssueProblems.php:261
+msgid "That order does not exist."
+msgstr ""
+
+#: src/WooCommerce/LicenseDisplay.php:52
+#: src/WooCommerce/LicenseDisplay.php:82
+#: src/WooCommerce/LicenseDisplay.php:91
+msgid "Your licenses"
+msgstr ""
+
+#: src/WooCommerce/OrderLicensesBox.php:64
+msgid "WPLicense It licenses"
+msgstr ""
+
+#: src/WooCommerce/OrderLicensesBox.php:82
+msgid "No license has been issued for this order. Licenses are issued when the order reaches the status chosen in Licensing settings."
+msgstr ""
+
+#: src/WooCommerce/OrderLicensesBox.php:94
+msgid "View"
+msgstr ""
+
+#. translators: %d: sites in use.
+#: src/WooCommerce/OrderLicensesBox.php:160
+msgid "%d (no limit)"
+msgstr ""
+
+#. translators: 1: sites in use, 2: sites allowed.
+#: src/WooCommerce/OrderLicensesBox.php:165
+msgid "%1$d of %2$d"
+msgstr ""
+
+#. translators: 1: order line name, 2: what is wrong.
+#: src/WooCommerce/OrderProcessor.php:82
+msgid "%1$s: %2$s No license was issued."
+msgstr ""
+
+#. translators: 1: order line name, 2: license key.
+#: src/WooCommerce/OrderProcessor.php:105
+msgid "%1$s: renewed license %2$s."
+msgstr ""
+
+#. translators: 1: order line name, 2: license key, 3: new expiry date.
+#: src/WooCommerce/OrderProcessor.php:111
+msgid "%1$s: renewed license %2$s until %3$s."
+msgstr ""
+
+#. translators: 1: order line name, 2: license ID, 3: why.
+#: src/WooCommerce/OrderProcessor.php:119
+msgid "%1$s: could not renew license %2$d (%3$s). A new license is issued instead."
+msgstr ""
+
+#. translators: 1: order line name, 2: why.
+#: src/WooCommerce/OrderProcessor.php:137
+msgid "%1$s: could not issue a license (%2$s)."
+msgstr ""
+
+#. translators: 1: license ID, 2: what went wrong.
+#: src/WooCommerce/OrderProcessor.php:238
+msgid "License %1$d: %2$s"
+msgstr ""
+
+#. translators: %s: order line name.
+#: src/WooCommerce/OrderProcessor.php:272
+msgid "%s: the license chosen for renewal does not belong to this customer or product. A new license is issued instead."
+msgstr ""
+
+#. translators: 1: order line name, 2: license key.
+#: src/WooCommerce/OrderProcessor.php:282
+msgid "%1$s: license %2$s was revoked or refunded and cannot be renewed. A new license is issued instead."
+msgstr ""
+
+#. translators: %s: the license period setting.
+#: src/WooCommerce/PeriodParser.php:40
+#: src/WooCommerce/PeriodParser.php:54
+msgid "Invalid license period '%s'."
+msgstr ""
+
+#: src/WooCommerce/ProductFields.php:29
+msgid "Use the license product default"
+msgstr ""
+
+#: src/WooCommerce/ProductFields.php:53
+msgid "Not a licensed product"
+msgstr ""
+
+#: src/WooCommerce/ProductFields.php:64
+msgid "WPLicense It product"
+msgstr ""
+
+#: src/WooCommerce/ProductFields.php:65
+msgid "Buying this product issues a license for the selected plugin or theme. For best results also tick Virtual."
+msgstr ""
+
+#: src/WooCommerce/ProductFields.php:75
+msgid "Leave empty to use the license product default (1). Enter 0 for unlimited."
+msgstr ""
+
+#: src/WooCommerce/ProductFields.php:137
+msgid "Empty uses the product setting. 0 is unlimited."
+msgstr ""
+
+#. translators: %s: what went wrong.
+#: src/WooCommerce/WooAdapter.php:164
+msgid "WPLicense It error: %s Change the order status again to retry."
+msgstr ""
+
+#. translators: %s: what went wrong.
+#: src/WooCommerce/WooAdapter.php:166
+msgid "WPLicense It error: %s"
+msgstr ""
+
+#. translators: %d: number of licenses.
+#: src/WooCommerce/WooAdapter.php:192
+msgid "issued %d license"
+msgid_plural "issued %d licenses"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of licenses.
+#: src/WooCommerce/WooAdapter.php:196
+msgid "renewed %d license"
+msgid_plural "renewed %d licenses"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of licenses.
+#: src/WooCommerce/WooAdapter.php:200
+msgid "ended %d license"
+msgid_plural "ended %d licenses"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: license ID, 2: expiry date.
+#: src/WooCommerce/WooRenewalOrderCreator.php:104
+msgid "Renewal invoice for license #%1$d, which expires on %2$s. When this order is paid and completed, the license is renewed."
+msgstr ""
+
+#: src/WooCommerce/WooRenewalOrderCreator.php:132
+msgid "Invoice emailed to the customer."
+msgstr ""
+
+#. translators: %s: order number.
+#: src/WooCommerce/WooRenewalOrderCreator.php:158
+msgid "Cancelled: the license was renewed by order %s."
+msgstr ""
+
+#: wplicense-it.php:33
+msgid "WPLicense It 2.0 requires PHP 8.0 or higher and WordPress 6.2 or higher. The plugin has not been loaded."
+msgstr ""

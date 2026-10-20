@@ -34,7 +34,12 @@ final class RestLoopbackProbe implements ReachabilityProbe {
 		if ( is_wp_error( $response ) ) {
 			return array(
 				'ok'      => false,
-				'message' => 'This server could not reach its own license API (' . $response->get_error_message() . '). Some hosts block requests from the server to itself. If customers can open ' . $url . ' in a browser, this is only a warning.',
+				'message' => sprintf(
+					/* translators: 1: the error, 2: the license API address. */
+					__( 'This server could not reach its own license API (%1$s). Some hosts block requests from the server to itself. If customers can open %2$s in a browser, this is only a warning.', 'wplicense-it' ),
+					$response->get_error_message(),
+					$url
+				),
 			);
 		}
 
@@ -42,7 +47,12 @@ final class RestLoopbackProbe implements ReachabilityProbe {
 		if ( 200 !== $code ) {
 			return array(
 				'ok'      => false,
-				'message' => 'The license API address answered with HTTP ' . $code . '. A firewall, a security plugin or the host may be blocking it. Check ' . $url . ' in a browser.',
+				'message' => sprintf(
+					/* translators: 1: HTTP status code, 2: the license API address. */
+					__( 'The license API address answered with HTTP %1$d. A firewall, a security plugin or the host may be blocking it. Check %2$s in a browser.', 'wplicense-it' ),
+					$code,
+					$url
+				),
 			);
 		}
 
@@ -50,13 +60,21 @@ final class RestLoopbackProbe implements ReachabilityProbe {
 		if ( ! is_array( $body ) || ( $body['namespace'] ?? '' ) !== self::NAMESPACE_NAME ) {
 			return array(
 				'ok'      => false,
-				'message' => 'The license API address answered, but not with the license API (it may be a login page or a security check). Check ' . $url . ' in a browser.',
+				'message' => sprintf(
+					/* translators: %s: the license API address. */
+					__( 'The license API address answered, but not with the license API (it may be a login page or a security check). Check %s in a browser.', 'wplicense-it' ),
+					$url
+				),
 			);
 		}
 
 		return array(
 			'ok'      => true,
-			'message' => 'The license API answers at ' . $url . '.',
+			'message' => sprintf(
+				/* translators: %s: the license API address. */
+				__( 'The license API answers at %s.', 'wplicense-it' ),
+				$url
+			),
 		);
 	}
 }

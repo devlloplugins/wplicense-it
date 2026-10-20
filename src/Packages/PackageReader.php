@@ -34,12 +34,12 @@ final class PackageReader {
 	 */
 	public static function read( string $path ): PackageInfo {
 		if ( ! class_exists( \ZipArchive::class ) ) {
-			throw new PackageException( 'This server cannot open zip files (the PHP zip extension is missing), so the details cannot be read from the file.' );
+			throw new PackageException( __( 'This server cannot open zip files (the PHP zip extension is missing), so the details cannot be read from the file.', 'wplicense-it' ) );
 		}
 
 		$zip = new \ZipArchive();
 		if ( true !== $zip->open( $path, \ZipArchive::RDONLY ) ) {
-			throw new PackageException( 'This file is not a readable zip.' );
+			throw new PackageException( __( 'This file is not a readable zip.', 'wplicense-it' ) );
 		}
 
 		try {
@@ -55,7 +55,7 @@ final class PackageReader {
 	 */
 	private static function read_archive( \ZipArchive $zip ): PackageInfo {
 		if ( $zip->numFiles > self::MAX_ENTRIES ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- ZipArchive property.
-			throw new PackageException( 'This zip has too many files to be a plugin or theme.' );
+			throw new PackageException( __( 'This zip has too many files to be a plugin or theme.', 'wplicense-it' ) );
 		}
 
 		$names = array();
@@ -68,7 +68,7 @@ final class PackageReader {
 		}
 
 		if ( ! $names ) {
-			throw new PackageException( 'This zip is empty.' );
+			throw new PackageException( __( 'This zip is empty.', 'wplicense-it' ) );
 		}
 
 		$warnings = array();
@@ -99,16 +99,26 @@ final class PackageReader {
 
 		$name = self::clean( $headers['name'] ?? '', self::MAX_NAME_LENGTH );
 		if ( '' === $name ) {
-			throw new PackageException( 'The name in the file header is empty.' );
+			throw new PackageException( __( 'The name in the file header is empty.', 'wplicense-it' ) );
 		}
 
 		$raw_version = trim( (string) ( $headers['version'] ?? '' ) );
 		if ( '' === $raw_version ) {
-			throw new PackageException( 'The file header has no Version. Add a "Version:" line to the ' . ( PackageInfo::TYPE_THEME === $type ? 'style.css' : 'main plugin file' ) . ' and upload again.' );
+			throw new PackageException(
+				PackageInfo::TYPE_THEME === $type
+					? __( 'The file header has no Version. Add a "Version:" line to the style.css and upload again.', 'wplicense-it' )
+					: __( 'The file header has no Version. Add a "Version:" line to the main plugin file and upload again.', 'wplicense-it' )
+			);
 		}
 		$version = self::clean( $raw_version, self::MAX_VERSION );
 		if ( ! preg_match( '/^[0-9]+(?:\.[0-9]+)*(?:[-+.]?[A-Za-z0-9][A-Za-z0-9.+\-]*)?$/', $version ) ) {
-			throw new PackageException( 'The version "' . $version . '" is not a valid version number. Use something like 1.4.2.' );
+			throw new PackageException(
+				sprintf(
+					/* translators: %s: the version found in the file. */
+					__( 'The version "%s" is not a valid version number. Use something like 1.4.2.', 'wplicense-it' ),
+					$version
+				)
+			);
 		}
 
 		$info               = new PackageInfo( $type, $name, $version, $folder, $main_file );
@@ -121,10 +131,10 @@ final class PackageReader {
 		self::apply_readme( $zip, $files, $info );
 
 		if ( '' === $info->requires_wp ) {
-			$info->warnings[] = 'No "Requires at least" (minimum WordPress version) was found. Customers will see no minimum.';
+			$info->warnings[] = __( 'No "Requires at least" (minimum WordPress version) was found. Customers will see no minimum.', 'wplicense-it' );
 		}
 		if ( '' === $info->requires_php ) {
-			$info->warnings[] = 'No "Requires PHP" (minimum PHP version) was found. Customers will see no minimum.';
+			$info->warnings[] = __( 'No "Requires PHP" (minimum PHP version) was found. Customers will see no minimum.', 'wplicense-it' );
 		}
 
 		return $info;
@@ -154,10 +164,16 @@ final class PackageReader {
 		}
 
 		if ( count( $folders ) > 1 && ! $root ) {
-			throw new PackageException( 'This zip has more than one folder at the top (' . implode( ', ', array_slice( array_keys( $folders ), 0, 3 ) ) . '). A plugin or theme zip should contain just one folder.' );
+			throw new PackageException(
+				sprintf(
+					/* translators: %s: folder names. */
+					__( 'This zip has more than one folder at the top (%s). A plugin or theme zip should contain just one folder.', 'wplicense-it' ),
+					implode( ', ', array_slice( array_keys( $folders ), 0, 3 ) )
+				)
+			);
 		}
 
-		$warnings[] = 'The zip should contain one folder with all the files inside it. WordPress uses that folder name when it installs and updates, so a zip without it can install under the wrong name.';
+		$warnings[] = __( 'The zip should contain one folder with all the files inside it. WordPress uses that folder name when it installs and updates, so a zip without it can install under the wrong name.', 'wplicense-it' );
 
 		return '';
 	}
@@ -266,7 +282,12 @@ final class PackageReader {
 
 		$stable = self::clean( self::header( $head, 'Stable tag' ), self::MAX_VERSION );
 		if ( '' !== $stable && 'trunk' !== strtolower( $stable ) && $stable !== $info->version ) {
-			$info->warnings[] = 'readme.txt says Stable tag ' . $stable . ' but the file header says version ' . $info->version . '. Update one so they match.';
+			$info->warnings[] = sprintf(
+				/* translators: 1: stable tag in readme.txt, 2: version in the file header. */
+				__( 'readme.txt says Stable tag %1$s but the file header says version %2$s. Update one so they match.', 'wplicense-it' ),
+				$stable,
+				$info->version
+			);
 		}
 	}
 
@@ -276,11 +297,11 @@ final class PackageReader {
 	private static function not_found_message( array $files ): string {
 		foreach ( $files as $file => $entry ) {
 			if ( '.zip' === strtolower( substr( $file, -4 ) ) ) {
-				return 'This zip contains another zip. Upload the inner zip instead.';
+				return __( 'This zip contains another zip. Upload the inner zip instead.', 'wplicense-it' );
 			}
 		}
 
-		return 'No plugin or theme was found in this zip. A plugin needs a PHP file with a "Plugin Name:" header directly inside its folder. A theme needs a style.css with a "Theme Name:" header.';
+		return __( 'No plugin or theme was found in this zip. A plugin needs a PHP file with a "Plugin Name:" header directly inside its folder. A theme needs a style.css with a "Theme Name:" header.', 'wplicense-it' );
 	}
 
 	/**

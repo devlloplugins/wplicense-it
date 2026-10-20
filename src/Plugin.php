@@ -117,6 +117,8 @@ final class Plugin {
 
 		$this->load_product_screens();
 
+		// Before anything registers labels on init (the product type does at priority 0).
+		add_action( 'init', array( $this, 'load_textdomain' ), -1 );
 		add_action( 'init', array( $this, 'register_legacy_shortcodes' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 
@@ -174,6 +176,14 @@ final class Plugin {
 		if ( ! self::legacy_data_migrated() ) {
 			require_once WPLICENSE_IT_DIR . 'includes/wplicense-it-api.php';
 		}
+	}
+
+	/**
+	 * Loads the translations in the plugin's languages folder (wplicense-it-<locale>.mo). WordPress only fetches translations
+	 * by itself for plugins hosted on wordpress.org, which 2.0 is not (decision 21).
+	 */
+	public function load_textdomain(): void {
+		load_plugin_textdomain( 'wplicense-it', false, dirname( plugin_basename( WPLICENSE_IT_FILE ) ) . '/languages' );
 	}
 
 	/**

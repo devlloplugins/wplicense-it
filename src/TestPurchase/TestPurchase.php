@@ -92,7 +92,7 @@ final class TestPurchase {
 		$product_ok = CheckResult::PASS === $product->status;
 
 		$order     = null;
-		$terms     = $product_ok ? $this->check_terms( $software_id, $plan, $order ) : $this->skipped( 'terms', 'The license terms' );
+		$terms     = $product_ok ? $this->check_terms( $software_id, $plan, $order ) : $this->skipped( 'terms', __( 'The license terms', 'wplicense-it' ) );
 		$results[] = $terms;
 
 		$package    = $this->check_package( $software_id );
@@ -101,14 +101,14 @@ final class TestPurchase {
 
 		$sandbox     = new Sandbox( $this->clock );
 		$license     = null;
-		$purchase    = CheckResult::PASS === $terms->status && null !== $order ? $this->check_purchase( $software_id, $plan, $order, $sandbox, $license ) : $this->skipped( 'purchase', 'A purchase issues a license' );
+		$purchase    = CheckResult::PASS === $terms->status && null !== $order ? $this->check_purchase( $software_id, $plan, $order, $sandbox, $license ) : $this->skipped( 'purchase', __( 'A purchase issues a license', 'wplicense-it' ) );
 		$results[]   = $purchase;
 		$purchase_ok = CheckResult::PASS === $purchase->status && null !== $license;
 
 		$api = $sandbox->api( $this->catalog );
 
-		$results[] = $purchase_ok ? $this->check_activation( $software_id, $plan, $license, $api ) : $this->skipped( 'activation', 'The license can be activated' );
-		$results[] = $purchase_ok && $package_ok ? $this->check_download( $software_id, $license, $api ) : $this->skipped( 'download', 'The download works' );
+		$results[] = $purchase_ok ? $this->check_activation( $software_id, $plan, $license, $api ) : $this->skipped( 'activation', __( 'The license can be activated', 'wplicense-it' ) );
+		$results[] = $purchase_ok && $package_ok ? $this->check_download( $software_id, $license, $api ) : $this->skipped( 'download', __( 'The download works', 'wplicense-it' ) );
 		$results[] = $this->check_reachable();
 
 		return new TestReport( $results );
@@ -121,26 +121,44 @@ final class TestPurchase {
 	 * @param Plan $plan        Plan.
 	 */
 	private function check_product( int $software_id, Plan $plan ): CheckResult {
-		$label = 'The WooCommerce product';
+		$label = __( 'The WooCommerce product', 'wplicense-it' );
 
 		if ( 0 === $plan->woo_product_id ) {
-			return new CheckResult( 'product', $label, CheckResult::FAIL, 'This plan has no WooCommerce product yet. Save the plans to create it.' );
+			return new CheckResult( 'product', $label, CheckResult::FAIL, __( 'This plan has no WooCommerce product yet. Save the plans to create it.', 'wplicense-it' ) );
 		}
 
 		$remote = $this->woo->find( $plan->woo_product_id );
 		if ( null === $remote || $remote->is_trashed() ) {
-			return new CheckResult( 'product', $label, CheckResult::FAIL, 'The WooCommerce product was deleted. Use "Create it again" on the plan.' );
+			return new CheckResult( 'product', $label, CheckResult::FAIL, __( 'The WooCommerce product was deleted. Use "Create it again" on the plan.', 'wplicense-it' ) );
 		}
 
 		if ( 'simple' !== $remote->type ) {
-			return new CheckResult( 'product', $label, CheckResult::FAIL, 'The WooCommerce product is a ' . $remote->type . ' product. Plans are sold as simple products. Change its type back to Simple product.' );
+			return new CheckResult(
+				'product',
+				$label,
+				CheckResult::FAIL,
+				sprintf(
+				/* translators: %s: WooCommerce product type, such as variable. */
+					__( 'The WooCommerce product is a %s product. Plans are sold as simple products. Change its type back to Simple product.', 'wplicense-it' ),
+					$remote->type
+				)
+			);
 		}
 
 		if ( $remote->software_id !== $software_id ) {
-			return new CheckResult( 'product', $label, CheckResult::FAIL, 0 === $remote->software_id ? 'The WooCommerce product is not linked to this software, so buying it would issue no license. Save the plans to link it.' : 'The WooCommerce product is linked to a different software product. Save the plans to correct it.' );
+			return new CheckResult( 'product', $label, CheckResult::FAIL, 0 === $remote->software_id ? __( 'The WooCommerce product is not linked to this software, so buying it would issue no license. Save the plans to link it.', 'wplicense-it' ) : __( 'The WooCommerce product is linked to a different software product. Save the plans to correct it.', 'wplicense-it' ) );
 		}
 
-		return new CheckResult( 'product', $label, CheckResult::PASS, 'WooCommerce product #' . $remote->id . ' exists and is linked to this software.' );
+		return new CheckResult(
+			'product',
+			$label,
+			CheckResult::PASS,
+			sprintf(
+			/* translators: %d: WooCommerce product ID. */
+				__( 'WooCommerce product #%d exists and is linked to this software.', 'wplicense-it' ),
+				$remote->id
+			)
+		);
 	}
 
 	/**
@@ -151,7 +169,7 @@ final class TestPurchase {
 	 * @param OrderData|null $order       Receives the order that was built.
 	 */
 	private function check_terms( int $software_id, Plan $plan, ?OrderData &$order ): CheckResult {
-		$label = 'The license terms';
+		$label = __( 'The license terms', 'wplicense-it' );
 
 		try {
 			$order = $this->orders->build( $plan->woo_product_id, 1 );
@@ -163,7 +181,7 @@ final class TestPurchase {
 		if ( null === $item || $item->wplit_product_id !== $software_id ) {
 			$order = null;
 
-			return new CheckResult( 'terms', $label, CheckResult::FAIL, 'An order for this product would not issue a license for this software. Save the plans to link it.' );
+			return new CheckResult( 'terms', $label, CheckResult::FAIL, __( 'An order for this product would not issue a license for this software. Save the plans to link it.', 'wplicense-it' ) );
 		}
 
 		if ( $item->activation_limit !== $plan->sites || $item->period !== $plan->period ) {
@@ -174,7 +192,8 @@ final class TestPurchase {
 				$label,
 				CheckResult::FAIL,
 				sprintf(
-					'The plan says %1$s for %2$s, but an order would carry %3$s for %4$s. Save the plans again to correct WooCommerce.',
+					/* translators: 1: sites in the plan, 2: period in the plan, 3: sites an order would carry, 4: period an order would carry. */
+					__( 'The plan says %1$s for %2$s, but an order would carry %3$s for %4$s. Save the plans again to correct WooCommerce.', 'wplicense-it' ),
 					self::sites_text( $plan->sites ),
 					self::period_text( $plan->period ),
 					self::sites_text( $item->activation_limit ),
@@ -183,7 +202,17 @@ final class TestPurchase {
 			);
 		}
 
-		return new CheckResult( 'terms', $label, CheckResult::PASS, 'An order would carry ' . self::sites_text( $plan->sites ) . ' for ' . self::period_text( $plan->period ) . ', as the plan says.' );
+		return new CheckResult(
+			'terms',
+			$label,
+			CheckResult::PASS,
+			sprintf(
+			/* translators: 1: number of sites, 2: license period. */
+				__( 'An order would carry %1$s for %2$s, as the plan says.', 'wplicense-it' ),
+				self::sites_text( $plan->sites ),
+				self::period_text( $plan->period )
+			)
+		);
 	}
 
 	/**
@@ -192,33 +221,43 @@ final class TestPurchase {
 	 * @param int $software_id License product ID.
 	 */
 	private function check_package( int $software_id ): CheckResult {
-		$label   = 'The software and its zip';
+		$label   = __( 'The software and its zip', 'wplicense-it' );
 		$product = $this->catalog->find( $software_id );
 
 		if ( null === $product ) {
-			return new CheckResult( 'package', $label, CheckResult::FAIL, 'This license product is not published. Publish it (not Draft), or customers will get "unknown product".' );
+			return new CheckResult( 'package', $label, CheckResult::FAIL, __( 'This license product is not published. Publish it (not Draft), or customers will get "unknown product".', 'wplicense-it' ) );
 		}
 
 		if ( '' === trim( $product->version ) ) {
-			return new CheckResult( 'package', $label, CheckResult::FAIL, 'The software has no version. Upload the zip, or enter a version.' );
+			return new CheckResult( 'package', $label, CheckResult::FAIL, __( 'The software has no version. Upload the zip, or enter a version.', 'wplicense-it' ) );
 		}
 
 		if ( ! $product->has_package ) {
-			return new CheckResult( 'package', $label, CheckResult::FAIL, 'No zip is stored for this software, or the file is missing from the server. Upload the zip again.' );
+			return new CheckResult( 'package', $label, CheckResult::FAIL, __( 'No zip is stored for this software, or the file is missing from the server. Upload the zip again.', 'wplicense-it' ) );
 		}
 
 		$file = $this->catalog->package_file( $software_id );
 		if ( null === $file ) {
-			return new CheckResult( 'package', $label, CheckResult::FAIL, 'The zip is missing from the server. Upload it again.' );
+			return new CheckResult( 'package', $label, CheckResult::FAIL, __( 'The zip is missing from the server. Upload it again.', 'wplicense-it' ) );
 		}
 
 		try {
 			$info = PackageReader::read( $file );
 		} catch ( PackageException $e ) {
-			return new CheckResult( 'package', $label, CheckResult::FAIL, 'The stored zip is not a usable plugin or theme: ' . $e->getMessage() );
+			return new CheckResult( 'package', $label, CheckResult::FAIL, __( 'The stored zip is not a usable plugin or theme:', 'wplicense-it' ) . ' ' . $e->getMessage() );
 		}
 
-		return new CheckResult( 'package', $label, CheckResult::PASS, $info->name . ' ' . $info->version . ' is published and its zip opens.' );
+		return new CheckResult(
+			'package',
+			$label,
+			CheckResult::PASS,
+			sprintf(
+			/* translators: 1: software name, 2: version. */
+				__( '%1$s %2$s is published and its zip opens.', 'wplicense-it' ),
+				$info->name,
+				$info->version
+			)
+		);
 	}
 
 	/**
@@ -231,13 +270,13 @@ final class TestPurchase {
 	 * @param \Devllo\WPLicenseIt\Licenses\License|null $license     Receives the issued license.
 	 */
 	private function check_purchase( int $software_id, Plan $plan, OrderData $order, Sandbox $sandbox, &$license ): CheckResult {
-		$label = 'A purchase issues a license';
+		$label = __( 'A purchase issues a license', 'wplicense-it' );
 		$now   = ( $this->clock )();
 
 		try {
 			$interval = PeriodParser::parse( $plan->period );
 		} catch ( \InvalidArgumentException $e ) {
-			return new CheckResult( 'purchase', $label, CheckResult::FAIL, 'The plan\'s period is not valid: ' . $e->getMessage() );
+			return new CheckResult( 'purchase', $label, CheckResult::FAIL, __( 'The plan\'s period is not valid:', 'wplicense-it' ) . ' ' . $e->getMessage() );
 		}
 
 		$report = $sandbox->processor()->issue( $order );
@@ -246,23 +285,58 @@ final class TestPurchase {
 		if ( 1 !== $report->issued || 1 !== count( $ids ) ) {
 			$why = $report->notes ? ' ' . implode( ' ', $report->notes ) : '';
 
-			return new CheckResult( 'purchase', $label, CheckResult::FAIL, 'An order for one unit issued ' . $report->issued . ' licenses instead of 1.' . $why );
+			return new CheckResult(
+				'purchase',
+				$label,
+				CheckResult::FAIL,
+				sprintf(
+				/* translators: %d: number of licenses issued. */
+					__( 'An order for one unit issued %d licenses instead of 1.', 'wplicense-it' ),
+					$report->issued
+				) . $why
+			);
 		}
 
 		$issued = $sandbox->licenses()->find( $ids[0] );
 		if ( null === $issued || $issued->product_id !== $software_id || $issued->activation_limit !== $plan->sites ) {
-			return new CheckResult( 'purchase', $label, CheckResult::FAIL, 'The license that was issued does not match the plan.' );
+			return new CheckResult( 'purchase', $label, CheckResult::FAIL, __( 'The license that was issued does not match the plan.', 'wplicense-it' ) );
 		}
 
 		$expected = null === $interval ? null : $now->add( $interval )->format( 'Y-m-d' );
 		$actual   = null === $issued->expires_at ? null : $issued->expires_at->format( 'Y-m-d' );
 		if ( $expected !== $actual ) {
-			return new CheckResult( 'purchase', $label, CheckResult::FAIL, 'The license expires on ' . ( $actual ?? 'never' ) . ' but the plan says ' . ( $expected ?? 'never' ) . '.' );
+			return new CheckResult(
+				'purchase',
+				$label,
+				CheckResult::FAIL,
+				sprintf(
+				/* translators: 1: date the license expires (or never), 2: date the plan gives (or never). */
+					__( 'The license expires on %1$s but the plan says %2$s.', 'wplicense-it' ),
+					$actual ?? __( 'never', 'wplicense-it' ),
+					$expected ?? __( 'never', 'wplicense-it' )
+				)
+			);
 		}
 
 		$license = $issued;
 
-		return new CheckResult( 'purchase', $label, CheckResult::PASS, 'One license was issued for ' . self::sites_text( $plan->sites ) . ', ' . ( null === $actual ? 'never expiring.' : 'expiring ' . $actual . '.' ) );
+		return new CheckResult(
+			'purchase',
+			$label,
+			CheckResult::PASS,
+			( null === $actual
+			? sprintf(
+				/* translators: %s: number of sites. */
+				__( 'One license was issued for %s, never expiring.', 'wplicense-it' ),
+				self::sites_text( $plan->sites )
+			)
+			: sprintf(
+				/* translators: 1: number of sites, 2: expiry date. */
+				__( 'One license was issued for %1$s, expiring %2$s.', 'wplicense-it' ),
+				self::sites_text( $plan->sites ),
+				$actual
+			) )
+		);
 	}
 
 	/**
@@ -274,7 +348,7 @@ final class TestPurchase {
 	 * @param ApiService                           $api         API logic over the sandbox.
 	 */
 	private function check_activation( int $software_id, Plan $plan, $license, ApiService $api ): CheckResult {
-		$label = 'The license can be activated';
+		$label = __( 'The license can be activated', 'wplicense-it' );
 		$base  = array(
 			'license_key' => $license->license_key,
 			'product_id'  => $software_id,
@@ -282,7 +356,16 @@ final class TestPurchase {
 
 		$valid = $api->validate( $base, self::CLIENT );
 		if ( 200 !== $valid->status ) {
-			return new CheckResult( 'activation', $label, CheckResult::FAIL, 'A new license did not validate (' . self::code( $valid ) . ').' );
+			return new CheckResult(
+				'activation',
+				$label,
+				CheckResult::FAIL,
+				sprintf(
+				/* translators: %s: what the API answered. */
+					__( 'A new license did not validate (%s).', 'wplicense-it' ),
+					self::code( $valid )
+				)
+			);
 		}
 
 		$tries = $plan->sites >= 1 && $plan->sites <= self::MAX_TRY_SITES;
@@ -291,31 +374,91 @@ final class TestPurchase {
 		for ( $i = 1; $i <= $count; $i++ ) {
 			$activated = $api->activate( $base + array( 'site_url' => self::site( $i ) ), self::CLIENT );
 			if ( 200 !== $activated->status ) {
-				return new CheckResult( 'activation', $label, CheckResult::FAIL, 'Site ' . $i . ' of ' . $count . ' could not be activated (' . self::code( $activated ) . ').' );
+				return new CheckResult(
+					'activation',
+					$label,
+					CheckResult::FAIL,
+					sprintf(
+					/* translators: 1: site number, 2: number of sites, 3: what the API answered. */
+						__( 'Site %1$d of %2$d could not be activated (%3$s).', 'wplicense-it' ),
+						$i,
+						$count,
+						self::code( $activated )
+					)
+				);
 			}
 		}
 
 		if ( ! $tries ) {
 			$freed = $api->deactivate( $base + array( 'site_url' => self::site( 1 ) ), self::CLIENT );
 			if ( 200 !== $freed->status ) {
-				return new CheckResult( 'activation', $label, CheckResult::FAIL, 'Deactivating a site failed (' . self::code( $freed ) . ').' );
+				return new CheckResult(
+					'activation',
+					$label,
+					CheckResult::FAIL,
+					sprintf(
+					/* translators: %s: what the API answered. */
+						__( 'Deactivating a site failed (%s).', 'wplicense-it' ),
+						self::code( $freed )
+					)
+				);
 			}
 
-			return new CheckResult( 'activation', $label, CheckResult::PASS, 'It activated on one site and deactivated again. The site limit was not tried (' . ( 0 === $plan->sites ? 'the plan is unlimited' : 'more than ' . self::MAX_TRY_SITES . ' sites' ) . ').' );
-		}
+			return new CheckResult(
+				'activation',
+				$label,
+				CheckResult::PASS,
+				0 === $plan->sites
+				? __( 'It activated on one site and deactivated again. The site limit was not tried (the plan is unlimited).', 'wplicense-it' )
+				: sprintf(
+					/* translators: %d: the most sites the test tries. */
+					__( 'It activated on one site and deactivated again. The site limit was not tried (more than %d sites).', 'wplicense-it' ),
+					self::MAX_TRY_SITES
+				)
+			);
+		}//end if
 
 		$over = $api->activate( $base + array( 'site_url' => self::site( $count + 1 ) ), self::CLIENT );
 		if ( 403 !== $over->status || 'limit_reached' !== ( $over->body['code'] ?? '' ) ) {
-			return new CheckResult( 'activation', $label, CheckResult::FAIL, 'Site ' . ( $count + 1 ) . ' was allowed on a ' . $count . '-site license (' . self::code( $over ) . '). The site limit is not being enforced.' );
+			return new CheckResult(
+				'activation',
+				$label,
+				CheckResult::FAIL,
+				sprintf(
+				/* translators: 1: site number, 2: sites the license allows, 3: what the API answered. */
+					__( 'Site %1$d was allowed on a %2$d-site license (%3$s). The site limit is not being enforced.', 'wplicense-it' ),
+					$count + 1,
+					$count,
+					self::code( $over )
+				)
+			);
 		}
 
 		$freed = $api->deactivate( $base + array( 'site_url' => self::site( 1 ) ), self::CLIENT );
 		$again = 200 === $freed->status ? $api->activate( $base + array( 'site_url' => self::site( $count + 1 ) ), self::CLIENT ) : $freed;
 		if ( 200 !== $again->status ) {
-			return new CheckResult( 'activation', $label, CheckResult::FAIL, 'Freeing a site did not make room for another (' . self::code( $again ) . ').' );
+			return new CheckResult(
+				'activation',
+				$label,
+				CheckResult::FAIL,
+				sprintf(
+				/* translators: %s: what the API answered. */
+					__( 'Freeing a site did not make room for another (%s).', 'wplicense-it' ),
+					self::code( $again )
+				)
+			);
 		}
 
-		return new CheckResult( 'activation', $label, CheckResult::PASS, 'It activated on ' . $count . ' site' . ( 1 === $count ? '' : 's' ) . ', the next site was refused, and freeing one made room.' );
+		return new CheckResult(
+			'activation',
+			$label,
+			CheckResult::PASS,
+			sprintf(
+			/* translators: %d: number of sites. */
+				_n( 'It activated on %d site, the next site was refused, and freeing one made room.', 'It activated on %d sites, the next site was refused, and freeing one made room.', $count, 'wplicense-it' ),
+				$count
+			)
+		);
 	}
 
 	/**
@@ -326,7 +469,7 @@ final class TestPurchase {
 	 * @param ApiService                           $api         API logic over the sandbox.
 	 */
 	private function check_download( int $software_id, $license, ApiService $api ): CheckResult {
-		$label = 'The download works';
+		$label = __( 'The download works', 'wplicense-it' );
 
 		$update = $api->check_update(
 			array(
@@ -336,7 +479,16 @@ final class TestPurchase {
 			self::CLIENT
 		);
 		if ( 200 !== $update->status || empty( $update->body['download_url'] ) ) {
-			return new CheckResult( 'download', $label, CheckResult::FAIL, 'The update check gave no download link (' . self::code( $update ) . ').' );
+			return new CheckResult(
+				'download',
+				$label,
+				CheckResult::FAIL,
+				sprintf(
+				/* translators: %s: what the API answered. */
+					__( 'The update check gave no download link (%s).', 'wplicense-it' ),
+					self::code( $update )
+				)
+			);
 		}
 
 		$token    = (string) $update->body['download_url'];
@@ -344,22 +496,40 @@ final class TestPurchase {
 		$expected = $this->catalog->package_file( $software_id );
 
 		if ( 200 !== $download->status || null === $download->file || $download->file !== $expected ) {
-			return new CheckResult( 'download', $label, CheckResult::FAIL, 'The download link did not lead to the stored zip (' . self::code( $download ) . ').' );
+			return new CheckResult(
+				'download',
+				$label,
+				CheckResult::FAIL,
+				sprintf(
+				/* translators: %s: what the API answered. */
+					__( 'The download link did not lead to the stored zip (%s).', 'wplicense-it' ),
+					self::code( $download )
+				)
+			);
 		}
 
 		$tampered = $api->download( $token . 'x', self::CLIENT );
 		if ( 403 !== $tampered->status ) {
-			return new CheckResult( 'download', $label, CheckResult::FAIL, 'A download link that was changed was still accepted.' );
+			return new CheckResult( 'download', $label, CheckResult::FAIL, __( 'A download link that was changed was still accepted.', 'wplicense-it' ) );
 		}
 
-		return new CheckResult( 'download', $label, CheckResult::PASS, 'The update check gave a signed link that downloads ' . basename( (string) $download->file ) . ', and a changed link is refused.' );
+		return new CheckResult(
+			'download',
+			$label,
+			CheckResult::PASS,
+			sprintf(
+			/* translators: %s: zip file name. */
+				__( 'The update check gave a signed link that downloads %s, and a changed link is refused.', 'wplicense-it' ),
+				basename( (string) $download->file )
+			)
+		);
 	}
 
 	/**
 	 * Check 7: can this site reach its own license API. A failure is only a warning.
 	 */
 	private function check_reachable(): CheckResult {
-		$label = 'This site can reach its own license API';
+		$label = __( 'This site can reach its own license API', 'wplicense-it' );
 		$probe = $this->probe->probe();
 
 		return new CheckResult( 'reachable', $label, $probe['ok'] ? CheckResult::PASS : CheckResult::WARN, $probe['message'] );
@@ -372,7 +542,7 @@ final class TestPurchase {
 	 * @param string $label Check label.
 	 */
 	private function skipped( string $id, string $label ): CheckResult {
-		return new CheckResult( $id, $label, CheckResult::SKIP, 'Not tried, because an earlier check did not pass.' );
+		return new CheckResult( $id, $label, CheckResult::SKIP, __( 'Not tried, because an earlier check did not pass.', 'wplicense-it' ) );
 	}
 
 	/**
@@ -381,7 +551,13 @@ final class TestPurchase {
 	 * @param int $sites Sites, 0 for unlimited.
 	 */
 	private static function sites_text( int $sites ): string {
-		return 0 === $sites ? 'unlimited sites' : $sites . ' site' . ( 1 === $sites ? '' : 's' );
+		return 0 === $sites
+			? __( 'unlimited sites', 'wplicense-it' )
+			: sprintf(
+				/* translators: %d: number of sites. */
+				_n( '%d site', '%d sites', $sites, 'wplicense-it' ),
+				$sites
+			);
 	}
 
 	/**
@@ -391,12 +567,12 @@ final class TestPurchase {
 	 */
 	private static function period_text( string $period ): string {
 		$names = array(
-			'lifetime' => 'a lifetime',
-			'P1M'      => '1 month',
-			'P3M'      => '3 months',
-			'P6M'      => '6 months',
-			'P1Y'      => '1 year',
-			'P2Y'      => '2 years',
+			'lifetime' => __( 'a lifetime', 'wplicense-it' ),
+			'P1M'      => __( '1 month', 'wplicense-it' ),
+			'P3M'      => __( '3 months', 'wplicense-it' ),
+			'P6M'      => __( '6 months', 'wplicense-it' ),
+			'P1Y'      => __( '1 year', 'wplicense-it' ),
+			'P2Y'      => __( '2 years', 'wplicense-it' ),
 		);
 
 		return $names[ $period ] ?? $period;

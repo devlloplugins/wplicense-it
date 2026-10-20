@@ -135,7 +135,7 @@ final class LicenseActions {
 		$license = $this->licenses->find( $license_id );
 
 		if ( null === $license ) {
-			throw new LicenseException( LicenseException::NOT_FOUND, 'License not found.' );
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified in handle().
@@ -143,7 +143,7 @@ final class LicenseActions {
 		$result = $this->licenses->deactivate( $license->license_key, $site );
 
 		if ( ! $result->is_success() ) {
-			throw new LicenseException( 'no_site', 'Site not active.' );
+			throw new LicenseException( 'no_site', __( 'Site not active.', 'wplicense-it' ) );
 		}
 
 		return array(
@@ -172,14 +172,14 @@ final class LicenseActions {
 
 		$post = $product_id > 0 ? get_post( $product_id ) : null;
 		if ( ! $post || 'wplit_product' !== $post->post_type || 'publish' !== $post->post_status ) {
-			throw new LicenseException( 'no_product', 'Product not found.' );
+			throw new LicenseException( 'no_product', __( 'Product not found.', 'wplicense-it' ) );
 		}
 
 		$user_id = null;
 		if ( '' !== $user_ref ) {
 			$user = get_user_by( is_email( $user_ref ) ? 'email' : 'login', $user_ref );
 			if ( ! $user ) {
-				throw new LicenseException( 'no_user', 'User not found.' );
+				throw new LicenseException( 'no_user', __( 'User not found.', 'wplicense-it' ) );
 			}
 
 			$user_id = (int) $user->ID;
@@ -242,7 +242,7 @@ final class LicenseActions {
 		}
 
 		if ( null === $interval ) {
-			throw new LicenseException( LicenseException::INVALID_INPUT, 'Choose a period to renew for.' );
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'Choose a period to renew for.', 'wplicense-it' ) );
 		}
 
 		return $interval;

@@ -42,7 +42,7 @@ final class WcOrderBuilder implements OrderBuilder {
 	public function build( int $woo_product_id, int $quantity ): OrderData {
 		$product = wc_get_product( $woo_product_id );
 		if ( ! $product ) {
-			throw new \RuntimeException( 'The WooCommerce product could not be loaded.' );
+			throw new \RuntimeException( __( 'The WooCommerce product could not be loaded.', 'wplicense-it' ) );
 		}
 
 		$terms = $this->reader->current_terms( $product );

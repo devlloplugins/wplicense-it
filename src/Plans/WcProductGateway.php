@@ -117,7 +117,7 @@ final class WcProductGateway implements ProductGateway {
 	 */
 	public function set_status( int $id, string $status ): void {
 		if ( ! in_array( $status, array( 'draft', 'publish' ), true ) ) {
-			throw new PlanException( 'Unsupported product status.' );
+			throw new PlanException( __( 'Unsupported product status.', 'wplicense-it' ) );
 		}
 
 		$product = $this->load( $id );
@@ -140,7 +140,7 @@ final class WcProductGateway implements ProductGateway {
 	private function load( int $id ) {
 		$product = wc_get_product( $id );
 		if ( ! $product ) {
-			throw new PlanException( 'The WooCommerce product no longer exists.' );
+			throw new PlanException( __( 'The WooCommerce product no longer exists.', 'wplicense-it' ) );
 		}
 
 		return $product;

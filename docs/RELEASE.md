@@ -44,7 +44,8 @@ all 19 test files passed, so nothing the plugin needs was left out.
    number (for example `2.0.0`). The script fails if they differ.
 2. If the browser tests now run on a newer WordPress (`WPLIT_WP_TAG` in `tests/env/setup.sh`), raise `Tested up to` in `readme.txt` to match. Do not raise it without testing.
 3. Add the changelog entry to `readme.txt`.
-4. Run `bin/build-release.sh --check` and `tests/env/plugin-check.sh`.
+4. Run `bin/make-pot.sh` if any text changed (CI fails while `languages/wplicense-it.pot` is out of date), then
+   `bin/build-release.sh --check` and `tests/env/plugin-check.sh`.
 5. Tag the commit and publish the zip. Rebuilding from the tag gives the same bytes.
 
 See `WORDPRESS-ORG.md` for the Plugin Check results and why 2.0 is not hosted on wordpress.org.

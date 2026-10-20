@@ -38,7 +38,7 @@ final class WpFileStore implements FileStore {
 	public function store_package( int $product_id, string $tmp, string $original_name, string $version ): StoredFile {
 		$name = sanitize_file_name( basename( $original_name ) );
 		if ( '' === $name || 0 !== validate_file( $name ) || 'zip' !== strtolower( pathinfo( $name, PATHINFO_EXTENSION ) ) ) {
-			throw new FileStoreException( 'The file name is not valid. Use a name that ends in .zip.' );
+			throw new FileStoreException( __( 'The file name is not valid. Use a name that ends in .zip.', 'wplicense-it' ) );
 		}
 
 		$uploads = wp_upload_dir();
@@ -52,14 +52,14 @@ final class WpFileStore implements FileStore {
 		$version_dir = $uploads['basedir'] . '/' . $folder . '/';
 
 		if ( ! wp_mkdir_p( $version_dir ) ) {
-			throw new FileStoreException( 'The folder for this release could not be created. Check the permissions of the uploads folder.' );
+			throw new FileStoreException( __( 'The folder for this release could not be created. Check the permissions of the uploads folder.', 'wplicense-it' ) );
 		}
 
 		// A new folder with a random name for every upload, so the package cannot be found by guessing its address.
 		$package_dir = ProtectedStorage::new_package_directory( $version_dir );
 
 		if ( ! is_dir( $package_dir ) || ! move_uploaded_file( $tmp, $package_dir . $name ) ) {
-			throw new FileStoreException( 'The file could not be moved into the releases folder. Check the permissions of the uploads folder.' );
+			throw new FileStoreException( __( 'The file could not be moved into the releases folder. Check the permissions of the uploads folder.', 'wplicense-it' ) );
 		}
 
 		$relative = $folder . '/' . basename( $package_dir ) . '/' . $name;
@@ -83,11 +83,11 @@ final class WpFileStore implements FileStore {
 		}
 
 		if ( false === $root || 0 !== strpos( $file, $root . DIRECTORY_SEPARATOR ) || 'zip' !== strtolower( pathinfo( $file, PATHINFO_EXTENSION ) ) || ! is_file( $file ) ) {
-			throw new FileStoreException( 'That file is not a release zip in the releases folder, so it was not deleted.' );
+			throw new FileStoreException( __( 'That file is not a release zip in the releases folder, so it was not deleted.', 'wplicense-it' ) );
 		}
 
 		if ( ! @unlink( $file ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink -- The result is checked.
-			throw new FileStoreException( 'The file could not be deleted. Check the permissions of the uploads folder.' );
+			throw new FileStoreException( __( 'The file could not be deleted. Check the permissions of the uploads folder.', 'wplicense-it' ) );
 		}
 
 		// Tidy up the folders that only held this file: the random one, then the version's.
@@ -126,7 +126,7 @@ final class WpFileStore implements FileStore {
 		// A link in place of the folder is removed as a link; what it points to is not ours to delete.
 		if ( is_link( $folder ) ) {
 			if ( ! @unlink( $folder ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink -- The result is checked.
-				throw new FileStoreException( 'The product folder could not be removed.' );
+				throw new FileStoreException( __( 'The product folder could not be removed.', 'wplicense-it' ) );
 			}
 
 			return;
@@ -137,7 +137,7 @@ final class WpFileStore implements FileStore {
 		$expected = 'p' . $product_id;
 
 		if ( false === $real || dirname( $real ) !== $root || basename( $real ) !== $expected ) { // phpcs:ignore WordPress.PHP.YodaConditions.NotYoda -- Both sides are values, neither is a constant.
-			throw new FileStoreException( 'The product folder is not inside the releases folder, so it was not deleted.' );
+			throw new FileStoreException( __( 'The product folder is not inside the releases folder, so it was not deleted.', 'wplicense-it' ) );
 		}
 
 		self::remove_tree( $real );
@@ -156,12 +156,18 @@ final class WpFileStore implements FileStore {
 			if ( is_dir( $path ) && ! is_link( $path ) ) {
 				self::remove_tree( $path );
 			} elseif ( ! @unlink( $path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink -- The result is checked.
-				throw new FileStoreException( 'A file could not be deleted: ' . $entry );
+				throw new FileStoreException(
+					sprintf(
+						/* translators: %s: file path. */
+						__( 'A file could not be deleted: %s', 'wplicense-it' ),
+						$entry
+					)
+				);
 			}
 		}
 
 		if ( ! @rmdir( $dir ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- The result is checked.
-			throw new FileStoreException( 'A folder could not be removed.' );
+			throw new FileStoreException( __( 'A folder could not be removed.', 'wplicense-it' ) );
 		}
 	}
 
@@ -199,7 +205,7 @@ final class WpFileStore implements FileStore {
 		}
 
 		if ( ! is_array( $result ) || isset( $result['error'] ) || empty( $result['file'] ) || empty( $result['url'] ) ) {
-			throw new FileStoreException( is_array( $result ) && isset( $result['error'] ) ? (string) $result['error'] : 'The image could not be stored.' );
+			throw new FileStoreException( is_array( $result ) && isset( $result['error'] ) ? (string) $result['error'] : __( 'The image could not be stored.', 'wplicense-it' ) );
 		}
 
 		ProtectedStorage::seal( dirname( (string) $result['file'] ) );

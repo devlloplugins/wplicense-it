@@ -24,6 +24,11 @@ owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 `bin/build-release.sh --check` builds the release zip, checks what is in it and that two builds are identical (see `RELEASE.md`). It runs in CI.
 The browser suite was also run once against the plugin unpacked from that zip, with all 19 files passing.
 
+`tests/e2e/26-translations.cjs` (12 checks) makes a small German translation from `languages/wplicense-it.pot`, compiles it with
+WP-CLI into the plugin's languages folder, switches the admin user to German, and checks the menu (registered with the product type)
+and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
+the plugin's own translation loading.
+
 `tests/e2e/25-example-plugin.cjs` (14 checks) downloads the example plugin from a product's Connect box, installs it on the customer site
 without editing it, and checks: the licensed feature is off and its notice links to the license page, a license turns it on and the server
 records the site, and deleting the plugin removes what the SDK stored.

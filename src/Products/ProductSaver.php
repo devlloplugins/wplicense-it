@@ -167,7 +167,7 @@ final class ProductSaver {
 
 		$problem = $this->upload_problem( $file );
 		if ( null !== $problem ) {
-			$report->errors[] = 'The release was not saved. ' . $problem;
+			$report->errors[] = __( 'The release was not saved.', 'wplicense-it' ) . ' ' . $problem;
 
 			return false;
 		}
@@ -176,11 +176,11 @@ final class ProductSaver {
 			$info   = PackageReader::read( (string) $file['tmp_name'] );
 			$stored = $this->files->store_package( $product_id, (string) $file['tmp_name'], (string) $file['name'], Version::clean( $info->version ) );
 		} catch ( PackageException $e ) {
-			$report->errors[] = 'The release was not saved. ' . $e->getMessage();
+			$report->errors[] = __( 'The release was not saved.', 'wplicense-it' ) . ' ' . $e->getMessage();
 
 			return false;
 		} catch ( FileStoreException $e ) {
-			$report->errors[] = 'The release was not saved. ' . $e->getMessage();
+			$report->errors[] = __( 'The release was not saved.', 'wplicense-it' ) . ' ' . $e->getMessage();
 
 			return false;
 		}
@@ -249,14 +249,14 @@ final class ProductSaver {
 
 		$current = $this->releases->current( $product_id );
 		if ( null === $current ) {
-			$report->warnings[] = 'The release notes were not saved: there is no release yet. Upload a zip first.';
+			$report->warnings[] = __( 'The release notes were not saved: there is no release yet. Upload a zip first.', 'wplicense-it' );
 
 			return;
 		}
 
 		try {
 			$this->releases->set_notes( $product_id, $current->id, $notes );
-			$report->messages[] = 'The release notes were updated.';
+			$report->messages[] = __( 'The release notes were updated.', 'wplicense-it' );
 		} catch ( ReleaseException $e ) {
 			$report->errors[] = $e->getMessage();
 		}
@@ -360,7 +360,7 @@ final class ProductSaver {
 
 		$tmp = isset( $file['tmp_name'] ) && is_string( $file['tmp_name'] ) ? $file['tmp_name'] : '';
 		if ( '' === $tmp || ! $this->files->is_uploaded( $tmp ) ) {
-			return 'The upload could not be verified. Try again.';
+			return __( 'The upload could not be verified. Try again.', 'wplicense-it' );
 		}
 
 		return null;
@@ -380,7 +380,8 @@ final class ProductSaver {
 			$needs[] = 'PHP ' . $info->requires_php;
 		}
 
-		return sprintf( 'Release saved. Read from the zip: %1$s %2$s (%3$s).', $info->name, $info->version, $info->type )
+		/* translators: 1: software name, 2: version, 3: plugin or theme. */
+		return sprintf( __( 'Release saved. Read from the zip: %1$s %2$s (%3$s).', 'wplicense-it' ), $info->name, $info->version, $info->type )
 			. ( $needs ? ' Needs ' . implode( ' and ', $needs ) . '.' : '' )
 			. ' The version and requirements were filled in from the file.';
 	}

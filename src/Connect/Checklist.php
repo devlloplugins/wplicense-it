@@ -27,33 +27,33 @@ final class Checklist {
 		return array(
 			array(
 				'done'  => $facts['has_package'] && '' !== $facts['version'],
-				'label' => 'Upload the plugin or theme zip',
-				'hint'  => 'The version and requirements are read from the file.',
+				'label' => __( 'Upload the plugin or theme zip', 'wplicense-it' ),
+				'hint'  => __( 'The version and requirements are read from the file.', 'wplicense-it' ),
 			),
 			array(
 				'done'  => $plans > 0,
-				'label' => 'Add at least one plan',
-				'hint'  => 'A plan is what a customer buys: a price, a number of sites and how long it lasts.',
+				'label' => __( 'Add at least one plan', 'wplicense-it' ),
+				'hint'  => __( 'A plan is what a customer buys: a price, a number of sites and how long it lasts.', 'wplicense-it' ),
 			),
 			array(
 				'done'  => $plans > 0 && $facts['created_count'] >= $plans,
-				'label' => 'Every plan has a product in WooCommerce',
-				'hint'  => 'They are created as drafts when you save the plans.',
+				'label' => __( 'Every plan has a product in WooCommerce', 'wplicense-it' ),
+				'hint'  => __( 'They are created as drafts when you save the plans.', 'wplicense-it' ),
 			),
 			array(
 				'done'  => $facts['server_https'],
-				'label' => 'This site uses HTTPS',
-				'hint'  => 'The client code only talks to an HTTPS server, so customers\' sites can activate. Plain HTTP works only on local test sites.',
+				'label' => __( 'This site uses HTTPS', 'wplicense-it' ),
+				'hint'  => __( 'The client code only talks to an HTTPS server, so customers\' sites can activate. Plain HTTP works only on local test sites.', 'wplicense-it' ),
 			),
 			array(
 				'done'  => $plans > 0 && $facts['tested_count'] >= $plans,
-				'label' => 'Test purchase passed for every plan',
-				'hint'  => 'Click "Test this plan" in each plan\'s row on the Plans tab. A plan can be published in the shop only after it passes.',
+				'label' => __( 'Test purchase passed for every plan', 'wplicense-it' ),
+				'hint'  => __( 'Click "Test this plan" in each plan\'s row on the Plans tab. A plan can be published in the shop only after it passes.', 'wplicense-it' ),
 			),
 			array(
 				'done'  => $plans > 0 && $facts['published_count'] >= $plans,
-				'label' => 'Every plan is on sale',
-				'hint'  => 'Published in WooCommerce.',
+				'label' => __( 'Every plan is on sale', 'wplicense-it' ),
+				'hint'  => __( 'Published in WooCommerce.', 'wplicense-it' ),
 			),
 		);
 	}

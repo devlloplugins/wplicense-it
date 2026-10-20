@@ -27,19 +27,27 @@ final class UploadError {
 				return null;
 			case UPLOAD_ERR_INI_SIZE:
 			case UPLOAD_ERR_FORM_SIZE:
-				return 'The file is bigger than this server allows (' . ( '' !== $max_size ? $max_size : 'the upload limit' ) . '). Ask your host to raise upload_max_filesize and post_max_size, or upload a smaller zip.';
+				return sprintf(
+					/* translators: %s: the largest upload the server allows, or "the upload limit". */
+					__( 'The file is bigger than this server allows (%s). Ask your host to raise upload_max_filesize and post_max_size, or upload a smaller zip.', 'wplicense-it' ),
+					'' !== $max_size ? $max_size : __( 'the upload limit', 'wplicense-it' )
+				);
 			case UPLOAD_ERR_PARTIAL:
-				return 'The file was only partly uploaded. Try again.';
+				return __( 'The file was only partly uploaded. Try again.', 'wplicense-it' );
 			case UPLOAD_ERR_NO_FILE:
 				return null;
 			case UPLOAD_ERR_NO_TMP_DIR:
-				return 'The server has no temporary folder for uploads. Ask your host to fix this.';
+				return __( 'The server has no temporary folder for uploads. Ask your host to fix this.', 'wplicense-it' );
 			case UPLOAD_ERR_CANT_WRITE:
-				return 'The server could not write the file. Check the disk space and folder permissions.';
+				return __( 'The server could not write the file. Check the disk space and folder permissions.', 'wplicense-it' );
 			case UPLOAD_ERR_EXTENSION:
-				return 'A PHP extension stopped the upload.';
+				return __( 'A PHP extension stopped the upload.', 'wplicense-it' );
 			default:
-				return 'The upload failed (error ' . $code . ').';
-		}
+				return sprintf(
+					/* translators: %d: PHP upload error code. */
+					__( 'The upload failed (error %d).', 'wplicense-it' ),
+					$code
+				);
+		}//end switch
 	}
 }

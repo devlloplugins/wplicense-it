@@ -295,7 +295,7 @@ final class PlansBox {
 				case 'publish':
 					$plan = $this->plan_by_id( $post_id, $plan_id );
 					if ( null === $plan ) {
-						throw new PlanException( 'That plan no longer exists.' );
+						throw new PlanException( __( 'That plan no longer exists.', 'wplicense-it' ) );
 					}
 					$this->sync->publish( $post_id, $plan_id, Fingerprint::of( $post_id, $plan, $this->catalog->package_file( $post_id ) ) );
 					$done = __( 'Published in the shop. Customers can now buy this plan.', 'wplicense-it' );
@@ -327,7 +327,7 @@ final class PlansBox {
 	private function run_test( int $post_id, string $plan_id ): void {
 		$plan = $this->plan_by_id( $post_id, $plan_id );
 		if ( null === $plan ) {
-			throw new PlanException( 'That plan no longer exists.' );
+			throw new PlanException( __( 'That plan no longer exists.', 'wplicense-it' ) );
 		}
 
 		$report = $this->tester->run( $post_id, $plan );

@@ -34,7 +34,13 @@ final class PeriodParser {
 		}
 
 		if ( 1 !== preg_match( '/^P(?:(\d{1,3})Y)?(?:(\d{1,3})M)?(?:(\d{1,4})D)?$/', $period, $parts ) || 'P' === $period ) {
-			throw new InvalidArgumentException( "Invalid license period '{$period}'." );
+			throw new InvalidArgumentException(
+				sprintf(
+					/* translators: %s: the license period setting. */
+					__( 'Invalid license period \'%s\'.', 'wplicense-it' ),
+					$period
+				)
+			);
 		}
 
 		$years  = (int) ( $parts[1] ?? 0 );
@@ -42,7 +48,13 @@ final class PeriodParser {
 		$days   = (int) ( $parts[3] ?? 0 );
 
 		if ( 0 === $years + $months + $days ) {
-			throw new InvalidArgumentException( "Invalid license period '{$period}'." );
+			throw new InvalidArgumentException(
+				sprintf(
+					/* translators: %s: the license period setting. */
+					__( 'Invalid license period \'%s\'.', 'wplicense-it' ),
+					$period
+				)
+			);
 		}
 
 		return new DateInterval( $period );

@@ -243,25 +243,27 @@ final class ReleasesBox {
 
 		try {
 			if ( 'current' === $do ) {
-				$release            = $this->releases->make_current( $post_id, $release_id );
-				$report->messages[] = sprintf( 'Version %s is now the release customers get.', $release->version );
+				$release = $this->releases->make_current( $post_id, $release_id );
+				/* translators: %s: version. */
+				$report->messages[] = sprintf( __( 'Version %s is now the release customers get.', 'wplicense-it' ), $release->version );
 			} elseif ( 'delete' === $do ) {
-				$release            = $this->releases->remove( $post_id, $release_id );
-				$report->messages[] = sprintf( 'Version %s was removed from the history.', $release->version );
+				$release = $this->releases->remove( $post_id, $release_id );
+				/* translators: %s: version. */
+				$report->messages[] = sprintf( __( 'Version %s was removed from the history.', 'wplicense-it' ), $release->version );
 
 				if ( ! $this->releases->shares_file( $post_id, $release_id, $release->path ) ) {
 					$this->files->delete_package( $release->path );
 				}
 			} elseif ( 'notes' === $do && null !== $notes ) {
 				$this->releases->set_notes( $post_id, $release_id, $notes );
-				$report->messages[] = 'The release notes were saved.';
+				$report->messages[] = __( 'The release notes were saved.', 'wplicense-it' );
 			} else {
 				$report->errors[] = 'Unknown action.';
 			}
 		} catch ( ReleaseException $e ) {
 			$report->errors[] = $e->getMessage();
 		} catch ( FileStoreException $e ) {
-			$report->errors[] = 'The release was removed from the list, but its file stays on the server: ' . $e->getMessage();
+			$report->errors[] = __( 'The release was removed from the list, but its file stays on the server:', 'wplicense-it' ) . ' ' . $e->getMessage();
 		}//end try
 
 		return $report;

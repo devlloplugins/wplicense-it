@@ -82,13 +82,20 @@ final class LicenseService {
 		$email = strtolower( trim( $email ) );
 
 		if ( $product_id <= 0 ) {
-			throw new LicenseException( LicenseException::INVALID_INPUT, 'A product is required.' );
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A product is required.', 'wplicense-it' ) );
 		}
 		if ( '' === $email || false === strpos( $email, '@' ) ) {
-			throw new LicenseException( LicenseException::INVALID_INPUT, 'A valid email is required.' );
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A valid email is required.', 'wplicense-it' ) );
 		}
 		if ( $activation_limit < 0 || $activation_limit > self::MAX_ACTIVATION_LIMIT ) {
-			throw new LicenseException( LicenseException::INVALID_INPUT, 'The activation limit must be between 0 and ' . self::MAX_ACTIVATION_LIMIT . '.' );
+			throw new LicenseException(
+				LicenseException::INVALID_INPUT,
+				sprintf(
+					/* translators: %d: the highest activation limit. */
+					__( 'The activation limit must be between 0 and %d.', 'wplicense-it' ),
+					self::MAX_ACTIVATION_LIMIT
+				)
+			);
 		}
 
 		$now = $this->now();
@@ -139,11 +146,11 @@ final class LicenseService {
 		$license = $this->licenses->find( $license_id );
 
 		if ( null === $license ) {
-			throw new LicenseException( LicenseException::NOT_FOUND, 'License not found.' );
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
 		}
 
 		if ( in_array( $license->status, Status::terminal(), true ) ) {
-			throw new LicenseException( LicenseException::NOT_RENEWABLE, 'A revoked or refunded license cannot be renewed.' );
+			throw new LicenseException( LicenseException::NOT_RENEWABLE, __( 'A revoked or refunded license cannot be renewed.', 'wplicense-it' ) );
 		}
 
 		if ( $license->is_lifetime() ) {
@@ -178,13 +185,13 @@ final class LicenseService {
 	 */
 	public function revoke_license( int $license_id, string $status = Status::REVOKED ): License {
 		if ( ! in_array( $status, Status::terminal(), true ) ) {
-			throw new LicenseException( LicenseException::INVALID_INPUT, 'Status must be revoked or refunded.' );
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'Status must be revoked or refunded.', 'wplicense-it' ) );
 		}
 
 		$license = $this->licenses->find( $license_id );
 
 		if ( null === $license ) {
-			throw new LicenseException( LicenseException::NOT_FOUND, 'License not found.' );
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
 		}
 
 		if ( $license->status === $status ) {
@@ -215,11 +222,11 @@ final class LicenseService {
 		$license = $this->licenses->find( $license_id );
 
 		if ( null === $license ) {
-			throw new LicenseException( LicenseException::NOT_FOUND, 'License not found.' );
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
 		}
 
 		if ( ! in_array( $license->status, Status::terminal(), true ) ) {
-			throw new LicenseException( LicenseException::INVALID_INPUT, 'Only a revoked or refunded license can be reinstated.' );
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'Only a revoked or refunded license can be reinstated.', 'wplicense-it' ) );
 		}
 
 		$now        = $this->now();
@@ -246,7 +253,7 @@ final class LicenseService {
 		$license = $this->licenses->find( $license_id );
 
 		if ( null === $license ) {
-			throw new LicenseException( LicenseException::NOT_FOUND, 'License not found.' );
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
 		}
 
 		$now     = $this->now();
@@ -255,7 +262,14 @@ final class LicenseService {
 
 		if ( null !== $changes->activation_limit ) {
 			if ( $changes->activation_limit < 0 || $changes->activation_limit > self::MAX_ACTIVATION_LIMIT ) {
-				throw new LicenseException( LicenseException::INVALID_INPUT, 'The activation limit must be between 0 and ' . self::MAX_ACTIVATION_LIMIT . '.' );
+				throw new LicenseException(
+					LicenseException::INVALID_INPUT,
+					sprintf(
+					/* translators: %d: the highest activation limit. */
+						__( 'The activation limit must be between 0 and %d.', 'wplicense-it' ),
+						self::MAX_ACTIVATION_LIMIT
+					)
+				);
 			}
 
 			if ( $changes->activation_limit !== $license->activation_limit ) {
@@ -268,7 +282,7 @@ final class LicenseService {
 			$email = strtolower( trim( $changes->email ) );
 
 			if ( '' === $email || false === strpos( $email, '@' ) ) {
-				throw new LicenseException( LicenseException::INVALID_INPUT, 'A valid email is required.' );
+				throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A valid email is required.', 'wplicense-it' ) );
 			}
 
 			if ( $email !== $license->email ) {
@@ -617,6 +631,6 @@ final class LicenseService {
 			}
 		}
 
-		throw new LicenseException( LicenseException::INVALID_INPUT, 'Could not generate a unique license key.' );
+		throw new LicenseException( LicenseException::INVALID_INPUT, __( 'Could not generate a unique license key.', 'wplicense-it' ) );
 	}
 }

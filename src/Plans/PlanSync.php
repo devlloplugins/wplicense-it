@@ -128,7 +128,7 @@ final class PlanSync {
 
 		$remote = $this->woo->find( $plan->woo_product_id );
 		if ( null === $remote || $remote->is_trashed() ) {
-			throw new PlanException( 'The WooCommerce product for this plan is gone. Create it again first.' );
+			throw new PlanException( __( 'The WooCommerce product for this plan is gone. Create it again first.', 'wplicense-it' ) );
 		}
 
 		$this->woo->update_price( $plan->woo_product_id, $minor );
@@ -153,16 +153,16 @@ final class PlanSync {
 		$plan  = $this->find_plan( $plans, $plan_id );
 
 		if ( null === $plan->tested_hash || null === $plan->tested_at ) {
-			throw new PlanException( 'Run a test purchase of this plan before publishing it.' );
+			throw new PlanException( __( 'Run a test purchase of this plan before publishing it.', 'wplicense-it' ) );
 		}
 
 		if ( ! hash_equals( $plan->tested_hash, $fingerprint ) ) {
-			throw new PlanException( 'This plan, its product or its zip changed since the test purchase passed. Run the test again before publishing.' );
+			throw new PlanException( __( 'This plan, its product or its zip changed since the test purchase passed. Run the test again before publishing.', 'wplicense-it' ) );
 		}
 
 		$remote = $this->woo->find( $plan->woo_product_id );
 		if ( null === $remote || $remote->is_trashed() ) {
-			throw new PlanException( 'The WooCommerce product for this plan is gone. Create it again first.' );
+			throw new PlanException( __( 'The WooCommerce product for this plan is gone. Create it again first.', 'wplicense-it' ) );
 		}
 
 		$this->woo->set_status( $plan->woo_product_id, 'publish' );
@@ -226,12 +226,12 @@ final class PlanSync {
 			$plan->synced_currency = $currency;
 			$plan->conflict_minor  = null;
 
-			return new PlanResult( $plan->id, $plan->name, PlanResult::CREATED, 'Created as a draft product in WooCommerce.' );
+			return new PlanResult( $plan->id, $plan->name, PlanResult::CREATED, __( 'Created as a draft product in WooCommerce.', 'wplicense-it' ) );
 		}
 
 		$remote = $this->woo->find( $plan->woo_product_id );
 		if ( null === $remote || $remote->is_trashed() ) {
-			return new PlanResult( $plan->id, $plan->name, PlanResult::MISSING, 'The WooCommerce product was deleted. Create it again to sell this plan.' );
+			return new PlanResult( $plan->id, $plan->name, PlanResult::MISSING, __( 'The WooCommerce product was deleted. Create it again to sell this plan.', 'wplicense-it' ) );
 		}
 
 		$changed = false;
@@ -251,19 +251,19 @@ final class PlanSync {
 			$plan->synced_currency = $currency;
 			$plan->conflict_minor  = null;
 
-			return new PlanResult( $plan->id, $plan->name, PlanResult::UPDATED, 'Price and terms sent to WooCommerce.' );
+			return new PlanResult( $plan->id, $plan->name, PlanResult::UPDATED, __( 'Price and terms sent to WooCommerce.', 'wplicense-it' ) );
 		}
 
 		if ( $remote->price_minor !== $plan->synced_minor ) {
 			$plan->conflict_minor = $remote->price_minor;
 
-			return new PlanResult( $plan->id, $plan->name, PlanResult::PRICE_CONFLICT, 'The price in WooCommerce was changed. Choose which price to keep.' );
+			return new PlanResult( $plan->id, $plan->name, PlanResult::PRICE_CONFLICT, __( 'The price in WooCommerce was changed. Choose which price to keep.', 'wplicense-it' ) );
 		}
 
 		$plan->conflict_minor = null;
 
 		return $changed
-			? new PlanResult( $plan->id, $plan->name, PlanResult::UPDATED, 'License terms sent to WooCommerce.' )
+			? new PlanResult( $plan->id, $plan->name, PlanResult::UPDATED, __( 'License terms sent to WooCommerce.', 'wplicense-it' ) )
 			: new PlanResult( $plan->id, $plan->name, PlanResult::IN_SYNC, 'In sync.' );
 	}
 
@@ -283,7 +283,7 @@ final class PlanSync {
 				$this->woo->set_status( $plan->woo_product_id, 'draft' );
 			}
 		} catch ( \Exception $e ) {
-			return new PlanResult( $plan->id, $plan->name, PlanResult::ERROR, 'The plan was removed, but its WooCommerce product could not be taken off sale: ' . $e->getMessage() );
+			return new PlanResult( $plan->id, $plan->name, PlanResult::ERROR, __( 'The plan was removed, but its WooCommerce product could not be taken off sale:', 'wplicense-it' ) . ' ' . $e->getMessage() );
 		}
 
 		return new PlanResult( $plan->id, $plan->name, PlanResult::UPDATED, 'Removed. Its WooCommerce product was set back to draft, so it can no longer be bought.' );
@@ -303,6 +303,6 @@ final class PlanSync {
 			}
 		}
 
-		throw new PlanException( 'That plan no longer exists.' );
+		throw new PlanException( __( 'That plan no longer exists.', 'wplicense-it' ) );
 	}
 }

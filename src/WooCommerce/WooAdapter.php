@@ -160,8 +160,10 @@ final class WooAdapter {
 			$problems = $report->problems;
 		} catch ( Throwable $e ) {
 			error_log( 'WPLicense It: order ' . $order->get_id() . ': ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operators need to see this.
-			$order->add_order_note( 'WPLicense It error: ' . $e->getMessage() . ' Change the order status again to retry.' );
-			$problems = array( 'WPLicense It error: ' . $e->getMessage() );
+			/* translators: %s: what went wrong. */
+			$order->add_order_note( sprintf( __( 'WPLicense It error: %s Change the order status again to retry.', 'wplicense-it' ), $e->getMessage() ) );
+			/* translators: %s: what went wrong. */
+			$problems = array( sprintf( __( 'WPLicense It error: %s', 'wplicense-it' ), $e->getMessage() ) );
 		} finally {
 			delete_transient( $lock );
 		}

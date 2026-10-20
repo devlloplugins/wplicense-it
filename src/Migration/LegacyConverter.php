@@ -78,17 +78,35 @@ final class LegacyConverter {
 
 		$key = trim( (string) ( $row['license_key'] ?? '' ) );
 		if ( '' === $key || strlen( $key ) > 64 ) {
-			throw new InvalidLegacyRow( "License {$id}: the license key is empty or longer than 64 characters." );
+			throw new InvalidLegacyRow(
+				sprintf(
+				/* translators: %d: 1.x license ID. */
+					__( 'License %d: the license key is empty or longer than 64 characters.', 'wplicense-it' ),
+					$id
+				)
+			);
 		}
 
 		$product_id = (int) ( $row['product_id'] ?? 0 );
 		if ( $product_id <= 0 ) {
-			throw new InvalidLegacyRow( "License {$id}: it has no product." );
+			throw new InvalidLegacyRow(
+				sprintf(
+				/* translators: %d: 1.x license ID. */
+					__( 'License %d: it has no product.', 'wplicense-it' ),
+					$id
+				)
+			);
 		}
 
 		$email = strtolower( trim( (string) ( $row['email'] ?? '' ) ) );
 		if ( '' === $email ) {
-			throw new InvalidLegacyRow( "License {$id}: it has no email." );
+			throw new InvalidLegacyRow(
+				sprintf(
+				/* translators: %d: 1.x license ID. */
+					__( 'License %d: it has no email.', 'wplicense-it' ),
+					$id
+				)
+			);
 		}
 
 		$expires = $this->to_utc( $row['valid_until'] ?? null );
@@ -97,8 +115,13 @@ final class LegacyConverter {
 		if ( 'active' === $status ) {
 			$status = null !== $expires && $expires <= $now ? Status::EXPIRED : Status::ACTIVE;
 		} else {
-			$notes[] = "License {$id}: unknown status '{$status}', migrated as revoked.";
-			$status  = Status::REVOKED;
+			$notes[] = sprintf(
+				/* translators: 1: 1.x license ID, 2: its status. */
+				__( 'License %1$d: unknown status \'%2$s\', migrated as revoked.', 'wplicense-it' ),
+				$id,
+				$status
+			);
+			$status = Status::REVOKED;
 		}
 
 		$created = $this->to_utc( $row['created_at'] ?? null ) ?? $now;
@@ -139,7 +162,13 @@ final class LegacyConverter {
 		$product_id = (int) ( $row['product_id'] ?? 0 );
 
 		if ( $product_id <= 0 ) {
-			throw new InvalidLegacyRow( "Order {$id}: it has no product." );
+			throw new InvalidLegacyRow(
+				sprintf(
+				/* translators: %d: 1.x order ID. */
+					__( 'Order %d: it has no product.', 'wplicense-it' ),
+					$id
+				)
+			);
 		}
 
 		$number = trim( (string) ( $row['order_number'] ?? '' ) );

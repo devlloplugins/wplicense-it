@@ -44,7 +44,7 @@ LIST="$(unzip -Z1 "$ZIP")"
 if echo "$LIST" | grep -qv "^$SLUG/"; then fail "files outside the $SLUG/ folder: $(echo "$LIST" | grep -v "^$SLUG/" | head -3 | tr '\n' ' ')"; fi
 
 # What must be in it.
-for file in "$SLUG.php" readme.txt license.txt uninstall.php src/Plugin.php src/Autoloader.php admin/wplicense-it-product-post.php includes/wplicense-it-api.php sdk/wplicense-it-client.php sdk/src/Updater.php; do
+for file in "$SLUG.php" readme.txt license.txt uninstall.php src/Plugin.php src/Autoloader.php admin/wplicense-it-product-post.php includes/wplicense-it-api.php sdk/wplicense-it-client.php sdk/src/Updater.php languages/wplicense-it.pot; do
 	echo "$LIST" | grep -qx "$SLUG/$file" || fail "missing from the zip: $file"
 done
 

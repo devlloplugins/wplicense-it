@@ -64,7 +64,11 @@ final class PlanInput {
 			$ok    = true;
 
 			if ( $number > self::MAX_PLANS ) {
-				$errors[] = 'There can be at most ' . self::MAX_PLANS . ' plans.';
+				$errors[] = sprintf(
+				/* translators: %d: the most plans a product can have. */
+					__( 'There can be at most %d plans.', 'wplicense-it' ),
+					self::MAX_PLANS
+				);
 				break;
 			}
 

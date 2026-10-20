@@ -75,6 +75,8 @@ jobs:
           php-version: '8.2'
       - name: Build the release zip and check what is in it
         run: bin/build-release.sh --check
+      - name: Check the translation template is up to date
+        run: WPLIT_ENV_ROOT="$RUNNER_TEMP/wp" bin/make-pot.sh --check
       - uses: actions/upload-artifact@v4
         with:
           name: wplicense-it-release-zip
