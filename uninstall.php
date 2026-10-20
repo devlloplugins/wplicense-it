@@ -48,6 +48,8 @@ function wplit_uninstall_site() {
     delete_option( 'wplit_problem_orders' );
     delete_option( 'wplit_legacy_api_enabled' );
     delete_option( 'wplit_legacy_api_usage' );
+    delete_option( 'wplit_client_ip_source' );
+    delete_option( 'wplit_trusted_proxies' );
 }
 
 // On a network the plugin has tables and settings in every site, not only in the one that is current now.

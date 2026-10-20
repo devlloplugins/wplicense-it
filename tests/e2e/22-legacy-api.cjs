@@ -16,8 +16,11 @@ const save = async ( page ) => Promise.all( [ page.waitForNavigation( { waitUnti
 
 ( async () => {
 	const logStart = logSize();
-	const saved = { enabled: option( 'wplit_legacy_api_enabled' ), usage: option( 'wplit_legacy_api_usage' ) };
-	sql( "DELETE FROM wp_options WHERE option_name IN ('wplit_legacy_api_enabled','wplit_legacy_api_usage')" );
+	// Every call here uses a wrong key, which counts against the client, so the limit is raised for the test.
+	const saved = { enabled: option( 'wplit_legacy_api_enabled' ), usage: option( 'wplit_legacy_api_usage' ), failures: option( 'wplit_rate_limit_failures' ) };
+	sql( "DELETE FROM wp_options WHERE option_name IN ('wplit_legacy_api_enabled','wplit_legacy_api_usage','wplit_rate_limit_failures')" );
+	sql( "INSERT INTO wp_options (option_name, option_value, autoload) VALUES ('wplit_rate_limit_failures', '100', 'yes')" );
+	sql( "DELETE FROM wp_options WHERE option_name LIKE '\\_transient%wplit\\_rl\\_%'" );
 	const product = Number( php( 'echo wp_insert_post( array( "post_type" => "wplit_product", "post_status" => "publish", "post_title" => "Legacy Usage Product" ) );' ) );
 
 	const env = await start();
@@ -35,6 +38,17 @@ const save = async ( page ) => Promise.all( [ page.waitForNavigation( { waitUnti
 	const usage = JSON.parse( php( 'echo wp_json_encode( get_option( "wplit_legacy_api_usage" ) );' ) );
 	const today = Object.keys( usage.days || {} );
 	check( 1 === today.length && 2 === usage.days[ today[ 0 ] ][ product ], 'two calls are counted for the product: ' + JSON.stringify( usage.days ) );
+
+	// A call can name any number; a post that is not a license product is not named by its title.
+	const post = Number( php( 'echo wp_insert_post( array( "post_type" => "post", "post_status" => "publish", "post_title" => "Not A Product Post" ) );' ) );
+	await page.request.get( BASE + '/api/wplicense-it-api/v1/status?p=' + post + '&e=a%40b.c&l=x&k=y' );
+	await page.goto( SETTINGS );
+	const named = await page.locator( 'tr:has(th:text("Old 1.x API addresses"))' ).last().innerText();
+	check( ! /Not A Product Post/.test( named ) && named.includes( '#' + post ), 'a number that is not a license product is shown as a number, not by its title: ' + named.replace( /\s+/g, ' ' ) );
+	php( 'wp_delete_post( ' + post + ', true );' );
+	sql( "DELETE FROM wp_options WHERE option_name='wplit_legacy_api_usage'" );
+	await old( 'status' );
+	await old( 'info' );
 
 	await page.goto( SETTINGS );
 	check( true === await page.locator( BOX ).isChecked(), 'the setting to answer the old addresses is on by default' );
@@ -70,8 +84,9 @@ const save = async ( page ) => Promise.all( [ page.waitForNavigation( { waitUnti
 
 	// Put everything back.
 	php( 'wp_delete_post( ' + product + ', true );' );
-	sql( "DELETE FROM wp_options WHERE option_name IN ('wplit_legacy_api_enabled','wplit_legacy_api_usage')" );
-	for ( const [ name, value ] of [ [ 'wplit_legacy_api_enabled', saved.enabled ], [ 'wplit_legacy_api_usage', saved.usage ] ] ) {
+	sql( "DELETE FROM wp_options WHERE option_name IN ('wplit_legacy_api_enabled','wplit_legacy_api_usage','wplit_rate_limit_failures')" );
+	sql( "DELETE FROM wp_options WHERE option_name LIKE '\\_transient%wplit\\_rl\\_%'" );
+	for ( const [ name, value ] of [ [ 'wplit_legacy_api_enabled', saved.enabled ], [ 'wplit_legacy_api_usage', saved.usage ], [ 'wplit_rate_limit_failures', saved.failures ] ] ) {
 		if ( '' !== value ) { sql( "INSERT INTO wp_options (option_name, option_value, autoload) VALUES ('" + name + "', '" + value.replace( /'/g, "''" ) + "', 'no')" ); }
 	}
 

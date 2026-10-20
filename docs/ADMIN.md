@@ -145,6 +145,7 @@ The seller still has to copy the `sdk` folder from the WPLicense It plugin into 
 | Expiry reminders | Email customers before their license expires (off by default), on which days (default `30, 7`), and the renewal address the email links to. See below. |
 | Renewal invoices | Create an unpaid renewal order and email WooCommerce's invoice before a license expires (off by default), and how many days before. See below. |
 | Failed lookups allowed / time window | How many wrong keys a client may send before it is blocked, and for how long. |
+| Visitors reach this site | Directly (default), through Cloudflare, or through another proxy (with the proxies' addresses), so that wrong keys are counted per customer and not per proxy. The screen shows which address the current request is counted as. See `docs/API.md`. |
 | Old 1.x API addresses | Whether the `/api/wplicense-it-api/v1/` addresses that plugins released with 1.x use are answered (on by default). Below it, and in Status, how many calls they got in the last 30 days, when the last came and for which products. Switch it off when no calls come: they then answer `410 Gone`. |
 | Keep license history for | Years of audit history kept. `0` keeps it forever. |
 | Billing details from 1.x orders | Whether the migration keeps address and phone numbers. |

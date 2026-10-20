@@ -62,12 +62,15 @@ the addresses off (**Licensing settings > API protection > Old 1.x API addresses
 
 ## Configuration
 
-- `wplicense_it_client_ip` filter: return the real client IP when the site is behind a trusted proxy
-  (the default is `REMOTE_ADDR`, because forwarding headers can be forged). **Set this if the license server is
-  behind a proxy or CDN such as Cloudflare.** Otherwise every customer shares the proxy's address, and one
-  attacker sending wrong keys can block everyone on that address. Example for Cloudflare, only on a site that
-  accepts traffic exclusively through Cloudflare:
-
-      add_filter( 'wplicense_it_client_ip', function ( $ip ) {
-          return isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) : $ip;
-      } );
+- **Licensing settings > API protection > Visitors reach this site** decides which address a client is counted as.
+  **Set it if the license server is behind a proxy or CDN such as Cloudflare.** Otherwise every customer shares the
+  proxy's address, and one attacker sending wrong keys can block everyone on that address.
+  - *Directly* (default): `REMOTE_ADDR`. Forwarding headers are ignored, because anyone can send them.
+  - *Through Cloudflare*: `CF-Connecting-IP`, read only when the request came from one of Cloudflare's published
+    ranges (built in; replace them with the `wplicense_it_cloudflare_ranges` filter). A request from anywhere else is
+    counted as its own address.
+  - *Through another proxy or load balancer*: `X-Forwarded-For`, read only when the request came from one of the
+    proxies listed (addresses or ranges such as `10.0.0.0/8`). The client is the rightmost address in the header that
+    is not a listed proxy, so what a client writes on the left of the header does not matter.
+  The settings screen shows the address it counts the current request as, to check the choice.
+- `wplicense_it_client_ip` filter: has the last word on the address, for setups the setting does not cover.

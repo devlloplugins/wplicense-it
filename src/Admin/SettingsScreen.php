@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Admin;
 
+use Devllo\WPLicenseIt\Api\ClientIp;
 use Devllo\WPLicenseIt\Api\LegacyGate;
 use Devllo\WPLicenseIt\Api\LegacyUsage;
 use Devllo\WPLicenseIt\Api\RestController;
@@ -137,6 +138,24 @@ final class SettingsScreen {
 
 		register_setting(
 			self::GROUP,
+			ClientIp::OPTION_SOURCE,
+			array(
+				'type'              => 'string',
+				'default'           => ClientIp::DIRECT,
+				'sanitize_callback' => array( ClientIp::class, 'sanitize_source' ),
+			)
+		);
+		register_setting(
+			self::GROUP,
+			ClientIp::OPTION_PROXIES,
+			array(
+				'type'              => 'string',
+				'default'           => '',
+				'sanitize_callback' => array( ClientIp::class, 'sanitize_proxies' ),
+			)
+		);
+		register_setting(
+			self::GROUP,
 			LegacyGate::OPTION_ENABLED,
 			array(
 				'type'              => 'boolean',
@@ -169,6 +188,7 @@ final class SettingsScreen {
 		add_settings_section( 'wplit_api', __( 'API protection', 'wplicense-it' ), array( $this, 'section_api' ), self::PAGE );
 		add_settings_field( self::OPTION_FAILURES, __( 'Failed lookups allowed', 'wplicense-it' ), array( $this, 'field_failures' ), self::PAGE, 'wplit_api', array( 'label_for' => self::OPTION_FAILURES ) );
 		add_settings_field( self::OPTION_WINDOW, __( 'Time window (minutes)', 'wplicense-it' ), array( $this, 'field_window' ), self::PAGE, 'wplit_api', array( 'label_for' => self::OPTION_WINDOW ) );
+		add_settings_field( ClientIp::OPTION_SOURCE, __( 'Visitors reach this site', 'wplicense-it' ), array( $this, 'field_client_ip' ), self::PAGE, 'wplit_api' );
 		add_settings_field( LegacyGate::OPTION_ENABLED, __( 'Old 1.x API addresses', 'wplicense-it' ), array( $this, 'field_legacy_api' ), self::PAGE, 'wplit_api' );
 
 		add_settings_section( 'wplit_data', __( 'Data', 'wplicense-it' ), '__return_false', self::PAGE );
@@ -293,7 +313,7 @@ final class SettingsScreen {
 	 */
 	public function section_api(): void {
 		echo '<p>' . esc_html__( 'Clients that send many wrong license keys are blocked for the rest of the time window. Right keys that are expired or revoked do not count.', 'wplicense-it' ) . '</p>';
-		echo '<p class="description">' . esc_html__( 'If this site is behind a proxy or CDN (for example Cloudflare), WordPress sees the proxy\'s address, so all customers would share one counter. Return the visitor\'s real address with the wplicense_it_client_ip filter.', 'wplicense-it' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Clients are told apart by their address. If this site is behind Cloudflare or another proxy, choose so below; otherwise all customers would share the proxy\'s address and one counter, and one client sending wrong keys could block everyone.', 'wplicense-it' ) . '</p>';
 	}
 
 	/**
@@ -315,6 +335,37 @@ final class SettingsScreen {
 	 */
 	public function field_retention(): void {
 		echo '<input type="number" min="0" max="20" class="small-text" id="' . esc_attr( self::OPTION_RETENTION ) . '" name="' . esc_attr( self::OPTION_RETENTION ) . '" value="' . esc_attr( (string) get_option( self::OPTION_RETENTION, 2 ) ) . '"> <span class="description">' . esc_html__( '0 keeps it forever.', 'wplicense-it' ) . '</span>';
+	}
+
+	/**
+	 * How the visitor's address is found.
+	 */
+	public function field_client_ip(): void {
+		$source  = ClientIp::sanitize_source( get_option( ClientIp::OPTION_SOURCE, ClientIp::DIRECT ) );
+		$choices = array(
+			ClientIp::DIRECT     => __( 'Directly (no proxy or CDN in front of the site)', 'wplicense-it' ),
+			ClientIp::CLOUDFLARE => __( 'Through Cloudflare (the CF-Connecting-IP header is used, only on requests that come from Cloudflare\'s addresses)', 'wplicense-it' ),
+			ClientIp::PROXY      => __( 'Through another proxy or load balancer (the X-Forwarded-For header is used, only on requests from the proxies listed below)', 'wplicense-it' ),
+		);
+
+		echo '<fieldset><legend class="screen-reader-text">' . esc_html__( 'Visitors reach this site', 'wplicense-it' ) . '</legend>';
+		foreach ( $choices as $value => $label ) {
+			echo '<label style="display:block;margin-bottom:4px"><input type="radio" name="' . esc_attr( ClientIp::OPTION_SOURCE ) . '" value="' . esc_attr( $value ) . '"' . checked( $source, $value, false ) . '> ' . esc_html( $label ) . '</label>';
+		}
+		echo '</fieldset>';
+
+		echo '<p><label for="' . esc_attr( ClientIp::OPTION_PROXIES ) . '">' . esc_html__( 'Addresses of your proxies (for the last choice), one address or range per line, for example 10.0.0.0/8', 'wplicense-it' ) . '</label><br>';
+		echo '<textarea class="large-text code" rows="3" id="' . esc_attr( ClientIp::OPTION_PROXIES ) . '" name="' . esc_attr( ClientIp::OPTION_PROXIES ) . '">' . esc_textarea( (string) get_option( ClientIp::OPTION_PROXIES, '' ) ) . '</textarea></p>';
+
+		$remote = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		echo '<p class="description">' . esc_html(
+			sprintf(
+				/* translators: 1: the address the request came from, 2: the address counted for it. */
+				__( 'This page was requested from %1$s, and the plugin counts it as %2$s. If the second is not your own address, the choice above is not right for this site.', 'wplicense-it' ),
+				'' !== $remote ? $remote : '?',
+				RestController::client_id()
+			)
+		) . '</p>';
 	}
 
 	/**
@@ -344,7 +395,8 @@ final class SettingsScreen {
 
 		$names = array();
 		foreach ( array_slice( array_keys( $summary['products'] ), 0, 3 ) as $product_id ) {
-			$title   = $product_id > 0 ? get_the_title( $product_id ) : '';
+			// Calls can name any number; only a license product is named by its title.
+			$title   = $product_id > 0 && 'wplit_product' === get_post_type( $product_id ) ? get_the_title( $product_id ) : '';
 			$names[] = '' !== $title ? $title : '#' . $product_id;
 		}
 

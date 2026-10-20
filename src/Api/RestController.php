@@ -265,11 +265,25 @@ final class RestController {
 	/**
 	 * Identifies the client for rate limiting.
 	 *
-	 * Uses REMOTE_ADDR only. Sites behind a trusted proxy can supply the real address
-	 * with the wplicense_it_client_ip filter.
+	 * REMOTE_ADDR, unless Licensing settings say the site is behind Cloudflare or another proxy (see ClientIp). The
+	 * wplicense_it_client_ip filter has the last word.
 	 */
 	public static function client_id(): string {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		$remote = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+		$source = ClientIp::sanitize_source( get_option( ClientIp::OPTION_SOURCE, ClientIp::DIRECT ) );
+
+		if ( ClientIp::DIRECT === $source ) {
+			$ip = $remote;
+		} else {
+			$trusted = ClientIp::CLOUDFLARE === $source
+				? (array) apply_filters( 'wplicense_it_cloudflare_ranges', ClientIp::CLOUDFLARE_RANGES )
+				: ClientIp::parse_proxies( (string) get_option( ClientIp::OPTION_PROXIES, '' ) );
+			$headers = array(
+				'cf-connecting-ip' => isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) : '',
+				'x-forwarded-for'  => isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) : '',
+			);
+			$ip      = ClientIp::resolve( $remote, $headers, $source, $trusted );
+		}
 
 		return (string) apply_filters( 'wplicense_it_client_ip', $ip );
 	}
