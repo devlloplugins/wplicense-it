@@ -25,6 +25,7 @@ interface EventLog {
 	public const UPDATED     = 'updated';
 	public const REMINDER    = 'reminder_sent';
 	public const INVOICED    = 'renewal_invoiced';
+	public const IMPORTED    = 'imported';
 
 	/**
 	 * Records an event.

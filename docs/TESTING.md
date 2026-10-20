@@ -29,6 +29,12 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/27-import-export.cjs` (22 checks) exports a product's licenses from the Licenses list link and by status from
+Import and export, checks the columns and that a formula-looking email is written as text, then imports the export with
+new lines added (one by product name, one with a bad email, one with a bad status): the check lists skipped and wrong
+lines by number and writes nothing, the import adds exactly the good lines with their dates and an "imported" history entry,
+sending the same check again is refused, and an editor can neither download the export nor open the screen.
+
 `tests/e2e/25-example-plugin.cjs` (14 checks) downloads the example plugin from a product's Connect box, installs it on the customer site
 without editing it, and checks: the licensed feature is off and its notice links to the license page, a license turns it on and the server
 records the site, and deleting the plugin removes what the SDK stored.

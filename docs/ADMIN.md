@@ -64,6 +64,29 @@ Issue a license by hand (gifts, support, licenses sold elsewhere). Choose the pr
 and optionally a WordPress user (so it shows in their account), sites per license, expiry (never, after a
 period, or through a date), and whether to email the key to the customer.
 
+## Import and export
+
+Licenses → Import and export (and the "Export these licenses (CSV)" link on the Licenses list, which exports the
+current view: same status, product and search).
+
+* **Export** writes a CSV file with one line per license: `license_key, product_id, product, email, status,
+  activation_limit, sites_in_use, expires_at, created_at, order, user_id`. Dates are UTC (`YYYY-MM-DD HH:MM:SS`).
+  The file starts with a byte order mark so spreadsheets read it as UTF-8. A value that a spreadsheet would run as a
+  formula (starting with `=`, `+`, `-`, `@`) is written with a leading apostrophe; the import takes it off again. The
+  file holds customers' email addresses.
+* **Import** reads the first line as column names (any order, case and spaces do not matter, comma or semicolon
+  separated). Required: `license_key`, `email`, and `product_id` or `product` (the product's exact name; a name
+  shared by two products is refused). Optional: `status` (active, expired, revoked, refunded; active if empty),
+  `activation_limit` (0 for unlimited, 1 if empty), `expires_at` and `created_at` (`YYYY-MM-DD`, meaning the end
+  of that day, or `YYYY-MM-DD HH:MM[:SS]`, UTC), `user_id`. Other columns, such as the export's `sites_in_use` and
+  `order`, are ignored. Keys may be 4 to 64 visible characters, so keys from another system keep working.
+* Uploading only checks the file (at most 2 MB and 5,000 licenses, UTF-8) and shows what would happen: how many
+  can be imported, which lines are skipped because the key is already in use (that license is left as it is),
+  and which lines have a mistake, with the line number and why. Nothing is written until **Import N licenses**
+  is pressed. A check is kept for an hour, for the user who made it, and can be imported once.
+* Imported licenses get an "imported" entry in their history. Activated sites are not imported: customers
+  activate again. No emails are sent.
+
 ## The product screen (tabs)
 
 A product (**License Products**, add or edit) is still a WordPress post, so saving and the file upload work as

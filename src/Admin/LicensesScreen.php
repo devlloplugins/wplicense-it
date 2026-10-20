@@ -84,7 +84,9 @@ final class LicensesScreen {
 		$table->prepare_items();
 
 		echo '<div class="wrap"><h1 class="wp-heading-inline">' . esc_html__( 'Licenses', 'wplicense-it' ) . '</h1> ';
-		echo '<a href="' . esc_url( Urls::add() ) . '" class="page-title-action">' . esc_html__( 'Add license', 'wplicense-it' ) . '</a><hr class="wp-header-end">';
+		echo '<a href="' . esc_url( Urls::add() ) . '" class="page-title-action">' . esc_html__( 'Add license', 'wplicense-it' ) . '</a>';
+		echo ' <a href="' . esc_url( TransferScreen::export_url( $this->current_view_args() ) ) . '" class="page-title-action" id="wplit-export-shown">' . esc_html__( 'Export these licenses (CSV)', 'wplicense-it' ) . '</a>';
+		echo ' <a href="' . esc_url( Urls::transfer() ) . '" class="page-title-action">' . esc_html__( 'Import', 'wplicense-it' ) . '</a><hr class="wp-header-end">';
 
 		// The table lays its columns out at equal widths, which wrapped every license key onto three lines. Give the key room.
 		echo '<style>.wp-list-table .column-license{width:29%}.wp-list-table .column-product{width:12%}.wp-list-table .column-email{width:15%}.wp-list-table .column-status{width:9%}.wp-list-table .column-sites{width:6%}.wp-list-table .column-expires,.wp-list-table .column-created{width:13%}.wp-list-table .column-license code{word-break:break-all;background:transparent;padding:0}@media screen and (max-width:782px){.wp-list-table .column-license{width:auto}}</style>';

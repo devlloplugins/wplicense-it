@@ -132,6 +132,109 @@ final class LicenseService {
 	}
 
 	/**
+	 * Adds a license that already exists elsewhere (a CSV import from another system or from a backup): its own key,
+	 * status and dates are kept. Recorded in the history as imported. The key must not be in use yet.
+	 *
+	 * @param int                    $product_id       Post ID of the wplit_product.
+	 * @param string                 $email            Customer email.
+	 * @param string                 $license_key      The license's key (4 to 64 visible characters, no spaces).
+	 * @param string                 $status           One of Status::all().
+	 * @param int                    $activation_limit Maximum active sites, 0 for unlimited.
+	 * @param DateTimeImmutable|null $expires_at       Expiry, null for a lifetime license.
+	 * @param int|null               $user_id          WordPress user ID, if any.
+	 * @param DateTimeImmutable|null $created_at       When it was first issued, if known; now otherwise.
+	 * @throws LicenseException If the input is invalid or the key is taken.
+	 */
+	public function import_license(
+		int $product_id,
+		string $email,
+		string $license_key,
+		string $status,
+		int $activation_limit,
+		?DateTimeImmutable $expires_at,
+		?int $user_id = null,
+		?DateTimeImmutable $created_at = null
+	): License {
+		$email       = strtolower( trim( $email ) );
+		$license_key = trim( $license_key );
+
+		if ( $product_id <= 0 ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A product is required.', 'wplicense-it' ) );
+		}
+		if ( ! self::is_valid_email( $email ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A valid email is required.', 'wplicense-it' ) );
+		}
+		if ( ! self::is_valid_key( $license_key ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'The license key must be 4 to 64 characters, without spaces.', 'wplicense-it' ) );
+		}
+		if ( ! in_array( $status, Status::all(), true ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'The status must be active, expired, revoked or refunded.', 'wplicense-it' ) );
+		}
+		if ( $activation_limit < 0 || $activation_limit > self::MAX_ACTIVATION_LIMIT ) {
+			throw new LicenseException(
+				LicenseException::INVALID_INPUT,
+				sprintf(
+					/* translators: %d: the highest activation limit. */
+					__( 'The activation limit must be between 0 and %d.', 'wplicense-it' ),
+					self::MAX_ACTIVATION_LIMIT
+				)
+			);
+		}
+		if ( null !== $this->licenses->find_by_key( $license_key ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A license with this key already exists.', 'wplicense-it' ) );
+		}
+
+		$now = $this->now();
+
+		$license = $this->licenses->insert(
+			new License(
+				0,
+				$product_id,
+				$user_id,
+				null,
+				$license_key,
+				$email,
+				$status,
+				$activation_limit,
+				$expires_at,
+				$created_at ?? $now,
+				$now
+			)
+		);
+
+		$this->events->record(
+			$license->id,
+			EventLog::IMPORTED,
+			array(
+				'product_id' => $product_id,
+				'status'     => $status,
+				'expires_at' => $this->format( $expires_at ),
+			)
+		);
+
+		return $license;
+	}
+
+	/**
+	 * Whether a key from another system can be stored: 4 to 64 visible ASCII characters (the API takes keys up to 64,
+	 * and keys from 1.x and other systems are not limited to letters and digits). No spaces, so it survives copying.
+	 *
+	 * @param string $key License key.
+	 */
+	public static function is_valid_key( string $key ): bool {
+		return 1 === preg_match( '/^[\x21-\x7E]{4,64}$/', $key );
+	}
+
+	/**
+	 * Whether an email address is usable (a light check that works without WordPress).
+	 *
+	 * @param string $email Email address.
+	 */
+	public static function is_valid_email( string $email ): bool {
+		return strlen( $email ) <= 190 && false !== filter_var( $email, FILTER_VALIDATE_EMAIL );
+	}
+
+	/**
 	 * Extends a license.
 	 *
 	 * The new period starts from the current expiry, or from now if the license
@@ -348,6 +451,15 @@ final class LicenseService {
 	 */
 	public function find( int $license_id ): ?License {
 		return $this->licenses->find( $license_id );
+	}
+
+	/**
+	 * Finds a license by its key.
+	 *
+	 * @param string $license_key License key.
+	 */
+	public function find_by_key( string $license_key ): ?License {
+		return $this->licenses->find_by_key( $license_key );
 	}
 
 	/**

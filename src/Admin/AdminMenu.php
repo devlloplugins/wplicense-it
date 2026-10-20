@@ -38,6 +38,7 @@ final class AdminMenu {
 		Capabilities::register();
 		( new LicenseActions( $this->licenses ) )->register();
 		( new SettingsScreen() )->register();
+		( new TransferScreen( $this->licenses ) )->register();
 
 		add_action( 'admin_menu', array( $this, 'add_pages' ), 20 );
 		add_filter( 'set-screen-option', array( LicensesScreen::class, 'save_screen_option' ), 10, 3 );
@@ -58,9 +59,11 @@ final class AdminMenu {
 
 		$add = add_submenu_page( Urls::PARENT, __( 'Add license', 'wplicense-it' ), __( 'Add license', 'wplicense-it' ), Capabilities::MANAGE, Urls::PAGE_ADD, array( new AddLicenseScreen(), 'render' ) );
 
+		$transfer = add_submenu_page( Urls::PARENT, __( 'Import and export licenses', 'wplicense-it' ), __( 'Import and export', 'wplicense-it' ), Capabilities::MANAGE, Urls::PAGE_TRANSFER, array( new TransferScreen( $this->licenses ), 'render' ) );
+
 		$settings = add_submenu_page( Urls::PARENT, __( 'Licensing settings', 'wplicense-it' ), __( 'Licensing settings', 'wplicense-it' ), Capabilities::MANAGE, Urls::PAGE_SETTINGS, array( new SettingsScreen(), 'render' ) );
 
-		$this->hooks = array_filter( array( $home, $list, $add, $settings ) );
+		$this->hooks = array_filter( array( $home, $list, $add, $transfer, $settings ) );
 	}
 
 	/**

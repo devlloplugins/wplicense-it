@@ -116,8 +116,9 @@ async function focusVisible( page ) {
 	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.keyboard.press( 'Enter' ) ] );
 	check( /product_id=\d+/.test( page.url() ), 'choosing a product with the arrow keys and pressing Enter filters the list: ' + page.url().slice( -40 ) );
 
+	// From the top of the page: the whole admin menu (with WooCommerce's) comes first, about 120 stops.
 	await page.goto( ADMIN + 'wplit-licenses&orderby=id&order=asc' );
-	check( await tabTo( page, 'table.wp-list-table tbody tr:first-child a.row-title' ) > 0 && await focusVisible( page ), 'Tab reaches the first license, and you can see the focus' );
+	check( await tabTo( page, 'table.wp-list-table tbody tr:first-child a.row-title', 200 ) > 0 && await focusVisible( page ), 'Tab reaches the first license, and you can see the focus' );
 	const actionsShown = await page.evaluate( () => { const a = document.activeElement.closest( 'td' ).querySelector( '.row-actions' ); const c = getComputedStyle( a ); return 'static' === c.position || parseInt( c.left, 10 ) > -1000 || 'auto' === c.left; } );
 	check( actionsShown, 'the row actions (Manage, Revoke) appear when the license has the focus' );
 	check( await tabTo( page, 'table.wp-list-table tbody tr:first-child .row-actions a[href*="revoke"], table.wp-list-table tbody tr:first-child .row-actions a[href*="do=revoke"]', 4 ) > 0, 'and Tab goes on to Revoke' );

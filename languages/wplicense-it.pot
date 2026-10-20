@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T17:23:36+00:00\n"
+"POT-Creation-Date: 2026-10-20T17:40:37+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -155,7 +155,7 @@ msgid "WP License It Products"
 msgstr ""
 
 #: src/Admin/AddLicenseScreen.php:35
-#: src/Admin/AdminMenu.php:59
+#: src/Admin/AdminMenu.php:60
 #: src/Admin/LicensesScreen.php:87
 msgid "Add license"
 msgstr ""
@@ -172,6 +172,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:80
 #: src/Admin/LicenseView.php:73
 #: src/Admin/PlansBox.php:254
+#: src/Admin/TransferScreen.php:265
 #: src/WooCommerce/LicenseDisplay.php:53
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "Product"
@@ -248,12 +249,12 @@ msgstr ""
 msgid "Issue license"
 msgstr ""
 
-#: src/Admin/AdminMenu.php:54
+#: src/Admin/AdminMenu.php:55
 #: src/Admin/OverviewScreen.php:57
 msgid "Overview"
 msgstr ""
 
-#: src/Admin/AdminMenu.php:56
+#: src/Admin/AdminMenu.php:57
 #: src/Admin/LicensesScreen.php:86
 #: src/Admin/OverviewScreen.php:312
 #: src/Privacy/PrivacyService.php:201
@@ -262,7 +263,16 @@ msgstr ""
 msgid "Licenses"
 msgstr ""
 
-#: src/Admin/AdminMenu.php:61
+#: src/Admin/AdminMenu.php:62
+#: src/Admin/TransferScreen.php:227
+msgid "Import and export licenses"
+msgstr ""
+
+#: src/Admin/AdminMenu.php:62
+msgid "Import and export"
+msgstr ""
+
+#: src/Admin/AdminMenu.php:64
 #: src/Admin/OverviewScreen.php:337
 #: src/Admin/SettingsScreen.php:227
 msgid "Licensing settings"
@@ -371,10 +381,10 @@ msgid "Press Ctrl+C to copy the selected code."
 msgstr ""
 
 #: src/Admin/LicenseActions.php:138
-#: src/Licenses/LicenseService.php:149
-#: src/Licenses/LicenseService.php:194
-#: src/Licenses/LicenseService.php:225
-#: src/Licenses/LicenseService.php:256
+#: src/Licenses/LicenseService.php:252
+#: src/Licenses/LicenseService.php:297
+#: src/Licenses/LicenseService.php:328
+#: src/Licenses/LicenseService.php:359
 msgid "License not found."
 msgstr ""
 
@@ -426,11 +436,20 @@ msgstr ""
 msgid "Licenses per page"
 msgstr ""
 
-#: src/Admin/LicensesScreen.php:100
+#: src/Admin/LicensesScreen.php:88
+msgid "Export these licenses (CSV)"
+msgstr ""
+
+#: src/Admin/LicensesScreen.php:89
+#: src/Admin/TransferScreen.php:278
+msgid "Import"
+msgstr ""
+
+#: src/Admin/LicensesScreen.php:102
 msgid "Search key or email"
 msgstr ""
 
-#: src/Admin/LicensesScreen.php:124
+#: src/Admin/LicensesScreen.php:126
 msgid "Revoke the selected licenses? They stop working immediately."
 msgstr ""
 
@@ -443,6 +462,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:82
 #: src/Admin/LicenseView.php:72
 #: src/Admin/SettingsScreen.php:435
+#: src/Admin/TransferScreen.php:261
 #: src/Privacy/PrivacyService.php:168
 #: src/Privacy/PrivacyService.php:229
 #: src/WooCommerce/AccountPage.php:141
@@ -509,6 +529,7 @@ msgid "Refunded"
 msgstr ""
 
 #: src/Admin/LicensesTable.php:124
+#: src/Admin/TransferScreen.php:261
 msgid "All"
 msgstr ""
 
@@ -529,6 +550,7 @@ msgid "Filter by product"
 msgstr ""
 
 #: src/Admin/LicensesTable.php:176
+#: src/Admin/TransferScreen.php:265
 msgid "All products"
 msgstr ""
 
@@ -1585,6 +1607,119 @@ msgstr ""
 msgid "In progress. %1$d licenses and %2$d orders so far."
 msgstr ""
 
+#: src/Admin/TransferScreen.php:255
+msgid "Export"
+msgstr ""
+
+#: src/Admin/TransferScreen.php:256
+msgid "A CSV file with one line per license: key, product, email, status, sites allowed and in use, expiry and creation dates (UTC), order and user. It can be opened in a spreadsheet and imported again. It holds customers' email addresses, so keep it safe."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:270
+msgid "Download CSV"
+msgstr ""
+
+#: src/Admin/TransferScreen.php:279
+msgid "Add licenses from a CSV file, for example from another licensing system or from an export. The first line names the columns:"
+msgstr ""
+
+#: src/Admin/TransferScreen.php:281
+msgid "Required: license_key, email, and product_id (or product, the product's exact name)."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:282
+msgid "Optional: status (active, expired, revoked or refunded; active if empty), activation_limit (sites, 0 for unlimited; 1 if empty), expires_at (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS in UTC; empty for never), created_at, user_id. Other columns are ignored."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:283
+msgid "A license whose key is already in use is skipped and left as it is. Activated sites are not imported: customers activate again."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:285
+msgid "Nothing is imported yet when you upload: you first see what would happen."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:289
+msgid "CSV file (at most 2 MB)"
+msgstr ""
+
+#: src/Admin/TransferScreen.php:290
+msgid "Check the file"
+msgstr ""
+
+#: src/Admin/TransferScreen.php:304
+msgid "This file cannot be imported."
+msgstr ""
+
+#. translators: 1: file name, 2: licenses to import, 3: skipped, 4: with mistakes.
+#: src/Admin/TransferScreen.php:313
+#, php-format
+msgid "%1$s: %2$d licenses can be imported, %3$d are skipped and %4$d have a mistake."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:321
+#: src/Admin/TransferScreen.php:362
+msgid "Skipped"
+msgstr ""
+
+#: src/Admin/TransferScreen.php:322
+msgid "Not imported because of a mistake (fix the file and check it again, or import the rest)"
+msgstr ""
+
+#. translators: %d: number of licenses.
+#: src/Admin/TransferScreen.php:332
+#, php-format
+msgid "Import %d license"
+msgid_plural "Import %d licenses"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: file name, 2: licenses imported, 3: skipped, 4: not imported.
+#: src/Admin/TransferScreen.php:354
+#, php-format
+msgid "%1$s: %2$d licenses imported, %3$d skipped, %4$d not imported."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:360
+msgid "See the licenses"
+msgstr ""
+
+#: src/Admin/TransferScreen.php:363
+msgid "Not imported"
+msgstr ""
+
+#. translators: 1: line number in the file, 2: why.
+#: src/Admin/TransferScreen.php:383
+#, php-format
+msgid "Line %1$d: %2$s"
+msgstr ""
+
+#. translators: %d: number of lines not listed.
+#: src/Admin/TransferScreen.php:393
+#, php-format
+msgid "And %d more."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:510
+msgid "No file was uploaded. Choose a CSV file."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:511
+msgid "The file is bigger than 2 MB. Split it into smaller files."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:512
+msgid "The file is not UTF-8 text. Save it as \"CSV UTF-8\" and upload it again."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:513
+msgid "That check is no longer available (they are kept for an hour, and each can be imported once). Upload the file again."
+msgstr ""
+
+#: src/Admin/TransferScreen.php:516
+msgid "Something went wrong. Try again."
+msgstr ""
+
 #: src/Admin/UpgradeNotice.php:68
 msgid "WPLicense It 2.0 no longer has its own checkout."
 msgstr ""
@@ -1674,34 +1809,51 @@ msgid "Published in WooCommerce."
 msgstr ""
 
 #: src/Licenses/LicenseService.php:85
+#: src/Licenses/LicenseService.php:162
 msgid "A product is required."
 msgstr ""
 
 #: src/Licenses/LicenseService.php:88
-#: src/Licenses/LicenseService.php:285
+#: src/Licenses/LicenseService.php:165
+#: src/Licenses/LicenseService.php:388
 msgid "A valid email is required."
 msgstr ""
 
 #. translators: %d: the highest activation limit.
 #: src/Licenses/LicenseService.php:95
-#: src/Licenses/LicenseService.php:269
+#: src/Licenses/LicenseService.php:178
+#: src/Licenses/LicenseService.php:372
 #, php-format
 msgid "The activation limit must be between 0 and %d."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:153
+#: src/Licenses/LicenseService.php:168
+#: src/Transfer/LicenseImport.php:108
+msgid "The license key must be 4 to 64 characters, without spaces."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:171
+#: src/Transfer/LicenseImport.php:150
+msgid "The status must be active, expired, revoked or refunded."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:184
+msgid "A license with this key already exists."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:256
 msgid "A revoked or refunded license cannot be renewed."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:188
+#: src/Licenses/LicenseService.php:291
 msgid "Status must be revoked or refunded."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:229
+#: src/Licenses/LicenseService.php:332
 msgid "Only a revoked or refunded license can be reinstated."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:634
+#: src/Licenses/LicenseService.php:746
 msgid "Could not generate a unique license key."
 msgstr ""
 
@@ -2419,6 +2571,62 @@ msgstr ""
 
 #: src/TestPurchase/WcOrderBuilder.php:45
 msgid "The WooCommerce product could not be loaded."
+msgstr ""
+
+#. translators: %s: column names.
+#: src/Transfer/LicenseImport.php:71
+#, php-format
+msgid "The first line of the file must name the columns, and these are missing: %s."
+msgstr ""
+
+#: src/Transfer/LicenseImport.php:79
+msgid "The file has no licenses, only a header line."
+msgstr ""
+
+#. translators: %d: the most licenses one file may have.
+#: src/Transfer/LicenseImport.php:87
+#, php-format
+msgid "The file has more than %d licenses. Split it into smaller files."
+msgstr ""
+
+#: src/Transfer/LicenseImport.php:108
+msgid "The license key is empty."
+msgstr ""
+
+#. translators: %d: line number.
+#: src/Transfer/LicenseImport.php:116
+#, php-format
+msgid "The same license key is on line %d."
+msgstr ""
+
+#: src/Transfer/LicenseImport.php:127
+msgid "A license with this key already exists. It is left as it is."
+msgstr ""
+
+#: src/Transfer/LicenseImport.php:134
+msgid "No license product has this ID or name."
+msgstr ""
+
+#: src/Transfer/LicenseImport.php:138
+msgid "Several license products have this name. Use the product_id column instead."
+msgstr ""
+
+#: src/Transfer/LicenseImport.php:144
+msgid "The email address is not valid."
+msgstr ""
+
+#. translators: %d: the highest activation limit.
+#: src/Transfer/LicenseImport.php:159
+#, php-format
+msgid "The activation limit must be a whole number from 0 to %d."
+msgstr ""
+
+#: src/Transfer/LicenseImport.php:169
+msgid "A date is not valid. Use YYYY-MM-DD or YYYY-MM-DD HH:MM:SS (UTC), or leave expires_at empty for never."
+msgstr ""
+
+#: src/Transfer/LicenseImport.php:175
+msgid "No WordPress user has this user_id. Leave it empty to import the license without an account."
 msgstr ""
 
 #: src/WooCommerce/AccountPage.php:106

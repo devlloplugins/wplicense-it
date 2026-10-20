@@ -26,6 +26,9 @@ The export lists, for the person: every license (key, email, product, status, si
 on, its history, the order records with totals and any billing details, and the old 1.x records. Licenses are exported in
 pages of 25.
 
+The Import and export screen (and the Licenses list's export link) writes a CSV of licenses with customers' email
+addresses. It is only available to users who can manage licenses; treat the downloaded file as personal data.
+
 ## Erasing
 
 Erasing **removes the identity and keeps the license**:

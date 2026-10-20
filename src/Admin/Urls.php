@@ -18,6 +18,7 @@ final class Urls {
 	public const PAGE_LICENSES = 'wplit-licenses';
 	public const PAGE_ADD      = 'wplit-add-license';
 	public const PAGE_SETTINGS = 'wplit-licensing-settings';
+	public const PAGE_TRANSFER = 'wplit-import-export';
 	public const PARENT        = 'edit.php?post_type=wplit_product';
 	public const ACTION        = 'wplit_license_action';
 
@@ -70,6 +71,19 @@ final class Urls {
 			array(
 				'post_type' => 'wplit_product',
 				'page'      => self::PAGE_ADD,
+			),
+			admin_url( 'edit.php' )
+		);
+	}
+
+	/**
+	 * The import and export screen.
+	 */
+	public static function transfer(): string {
+		return add_query_arg(
+			array(
+				'post_type' => 'wplit_product',
+				'page'      => self::PAGE_TRANSFER,
 			),
 			admin_url( 'edit.php' )
 		);
