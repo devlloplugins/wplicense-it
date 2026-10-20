@@ -11,6 +11,23 @@ You get, with a few lines of code:
 
 Requires PHP 7.4+ and WordPress 5.8+ on the customer's site. Your server (the site running WPLicense It 2.0) needs HTTPS.
 
+## Quickest start: the example plugin
+
+On your WPLicense It site, open the product, go to the **Connect** tab and click **Download an example plugin**. You get a
+small working plugin made for that product: this SDK in `vendor/wplicense-it-client`, the registration code with your
+server and product already filled in, a feature that is only on while the license is active, and a readme with a changelog.
+
+1. Install it on a test site (Plugins > Add New > Upload) and activate it. A notice says the licensed feature is off.
+2. Issue yourself a license (**License Products > Add license**), follow the notice to the license page and enter the key.
+   The notice now says the feature is on, and the license shows on your server with the test site.
+3. To see updates: raise `Version` in the plugin header and the `Stable tag` in its readme, zip the folder, and upload it
+   as a new release of the product. The test site offers the update under Dashboard > Updates.
+4. Copy what you need into your own plugin: the `require_once` and `wplicense_it_client()` call, and
+   `wplicense_it_license_active()` wherever a feature depends on the license.
+
+The example's folder is your plugin's folder name (from the release you uploaded, or made from the product name), so
+updates of your real plugin find it.
+
 ## Install
 
 1. Copy this `sdk` folder into your plugin or theme (for example `my-plugin/vendor/wplicense-it-client/`).

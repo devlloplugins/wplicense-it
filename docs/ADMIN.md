@@ -134,8 +134,12 @@ safely, so a name with quotes or backslashes still gives code that runs. The typ
 folder come from the uploaded zip when there is one. The plugin version is read from the plugin's own header
 when the plugin runs, so it never goes stale. Themes read theirs from `style.css`.
 
-The seller still has to copy the `sdk` folder from the WPLicense It plugin into their own plugin or theme as
-`vendor/wplicense-it-client`. There is no download button for it yet.
+**Download the SDK** gives the `wplicense-it-client` folder as a zip, to unpack into the seller's plugin or theme as
+`vendor/wplicense-it-client`. For plugins, **Download an example plugin** gives a small working plugin made for this
+product: the SDK, the code above, a feature that is only on while the license is active, a notice that links to the
+license page, and a readme with a changelog. It can be installed on a test site as it is, to try activation and updates,
+and copied from (see `sdk/README.md`, "Quickest start"). Its folder is the product's plugin folder, so updates of the real
+plugin find it.
 
 ## Licensing settings
 

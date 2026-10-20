@@ -24,6 +24,10 @@ owner's decision). Run `php tests/e2e/php/legacy.php restore` afterwards.
 `bin/build-release.sh --check` builds the release zip, checks what is in it and that two builds are identical (see `RELEASE.md`). It runs in CI.
 The browser suite was also run once against the plugin unpacked from that zip, with all 19 files passing.
 
+`tests/e2e/25-example-plugin.cjs` (14 checks) downloads the example plugin from a product's Connect box, installs it on the customer site
+without editing it, and checks: the licensed feature is off and its notice links to the license page, a license turns it on and the server
+records the site, and deleting the plugin removes what the SDK stored.
+
 `tests/e2e/24-sdk-cleanup.cjs` (11 checks) puts two small plugins with the client SDK on the customer site and deletes them through the real
 Plugins screen: one without an uninstall.php (and with a slug that is not its folder name) has its license, update cache and daily check
 removed by the uninstall hook the SDK registered; one with its own uninstall.php does the same with the one call from the SDK README;

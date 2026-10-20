@@ -11,6 +11,7 @@ namespace Devllo\WPLicenseIt\Admin;
 
 use Devllo\WPLicenseIt\Api\ProductCatalog;
 use Devllo\WPLicenseIt\Connect\Checklist;
+use Devllo\WPLicenseIt\Connect\ExamplePlugin;
 use Devllo\WPLicenseIt\Connect\SdkZip;
 use Devllo\WPLicenseIt\Connect\Snippet;
 use Devllo\WPLicenseIt\Plans\PlanRepository;
@@ -40,6 +41,7 @@ final class ConnectBox {
 	private $catalog;
 
 	public const ACTION            = 'wplit_download_sdk';
+	public const EXAMPLE_ACTION    = 'wplit_download_example';
 	public const DOWNLOADED_OPTION = 'wplit_sdk_downloaded';
 
 	/**
@@ -61,6 +63,7 @@ final class ConnectBox {
 	public function register(): void {
 		add_action( 'add_meta_boxes_wplit_product', array( $this, 'add_box' ) );
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'download_sdk' ) );
+		add_action( 'admin_post_' . self::EXAMPLE_ACTION, array( $this, 'download_example' ) );
 	}
 
 	/**
@@ -94,6 +97,61 @@ final class ConnectBox {
 		nocache_headers();
 		header( 'Content-Type: application/zip' );
 		header( 'Content-Disposition: attachment; filename="' . SdkZip::FOLDER . '.zip"' );
+		header( 'Content-Length: ' . (string) filesize( $path ) );
+		readfile( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Streaming a temp file we made.
+		unlink( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Temp file we made.
+		exit;
+	}
+
+	/**
+	 * The link that downloads the example plugin of a product.
+	 *
+	 * @param int $product_id License product ID.
+	 */
+	public static function example_url( int $product_id ): string {
+		return wp_nonce_url(
+			add_query_arg(
+				array(
+					'action'  => self::EXAMPLE_ACTION,
+					'product' => $product_id,
+				),
+				admin_url( 'admin-post.php' )
+			),
+			self::EXAMPLE_ACTION . '_' . $product_id
+		);
+	}
+
+	/**
+	 * Sends a working example plugin for a product, with this server and the product filled in, and the SDK inside.
+	 */
+	public function download_example(): void {
+		if ( ! current_user_can( Capabilities::MANAGE ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'wplicense-it' ), '', array( 'response' => 403 ) );
+		}
+
+		$product_id = isset( $_GET['product'] ) ? absint( wp_unslash( $_GET['product'] ) ) : 0;
+		check_admin_referer( self::EXAMPLE_ACTION . '_' . $product_id );
+
+		$post = get_post( $product_id );
+
+		if ( ! $post instanceof WP_Post || 'wplit_product' !== $post->post_type ) {
+			wp_die( esc_html__( 'That product does not exist.', 'wplicense-it' ), '', array( 'response' => 404 ) );
+		}
+
+		$name  = (string) get_post_meta( $post->ID, 'wplit_package_name', true );
+		$files = ExamplePlugin::files( '' !== $name ? $name : $post->post_title, (string) get_post_meta( $post->ID, 'wplit_package_folder', true ), untrailingslashit( home_url() ), $post->ID );
+
+		try {
+			$path = ExamplePlugin::build( $files, WPLICENSE_IT_DIR . 'sdk' );
+		} catch ( \RuntimeException $e ) {
+			wp_die( esc_html__( 'The example zip could not be made on this server.', 'wplicense-it' ), '', array( 'response' => 500 ) );
+		}
+
+		update_option( self::DOWNLOADED_OPTION, 1, false );
+
+		nocache_headers();
+		header( 'Content-Type: application/zip' );
+		header( 'Content-Disposition: attachment; filename="' . strtok( (string) array_key_first( $files ), '/' ) . '.zip"' );
 		header( 'Content-Length: ' . (string) filesize( $path ) );
 		readfile( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- Streaming a temp file we made.
 		unlink( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Temp file we made.
@@ -162,6 +220,13 @@ final class ConnectBox {
 			esc_html( $name . ' ' . __( 'License', 'wplicense-it' ) )
 		) . '</p>';
 
+		if ( 'plugin' === $type ) {
+			echo '<p>' . sprintf(
+				/* translators: %s: link text "Download an example plugin". */
+				esc_html__( 'Or start from a working example: %s for this product, with the SDK and this code already in it. Install it on a test site to try activation and updates, then copy what you need.', 'wplicense-it' ),
+				'<a href="' . esc_url( self::example_url( $post->ID ) ) . '" id="wplit-example-download">' . esc_html__( 'Download an example plugin', 'wplicense-it' ) . '</a>'
+			) . '</p>';
+		}
 		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript -- A few lines that only serve this box.
 		?>
 		<script>
