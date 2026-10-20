@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Admin;
 
+use Devllo\WPLicenseIt\Api\LegacyGate;
+use Devllo\WPLicenseIt\Api\LegacyUsage;
 use Devllo\WPLicenseIt\Api\RestController;
 use Devllo\WPLicenseIt\Migration\MigrationState;
 use Devllo\WPLicenseIt\Migration\OptionStateStore;
@@ -135,6 +137,15 @@ final class SettingsScreen {
 
 		register_setting(
 			self::GROUP,
+			LegacyGate::OPTION_ENABLED,
+			array(
+				'type'              => 'boolean',
+				'default'           => true,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			)
+		);
+		register_setting(
+			self::GROUP,
 			self::OPTION_DELETE_ON_UNINSTALL,
 			array(
 				'type'              => 'boolean',
@@ -158,6 +169,7 @@ final class SettingsScreen {
 		add_settings_section( 'wplit_api', __( 'API protection', 'wplicense-it' ), array( $this, 'section_api' ), self::PAGE );
 		add_settings_field( self::OPTION_FAILURES, __( 'Failed lookups allowed', 'wplicense-it' ), array( $this, 'field_failures' ), self::PAGE, 'wplit_api', array( 'label_for' => self::OPTION_FAILURES ) );
 		add_settings_field( self::OPTION_WINDOW, __( 'Time window (minutes)', 'wplicense-it' ), array( $this, 'field_window' ), self::PAGE, 'wplit_api', array( 'label_for' => self::OPTION_WINDOW ) );
+		add_settings_field( LegacyGate::OPTION_ENABLED, __( 'Old 1.x API addresses', 'wplicense-it' ), array( $this, 'field_legacy_api' ), self::PAGE, 'wplit_api' );
 
 		add_settings_section( 'wplit_data', __( 'Data', 'wplicense-it' ), '__return_false', self::PAGE );
 		add_settings_field( self::OPTION_RETENTION, __( 'Keep license history for (years)', 'wplicense-it' ), array( $this, 'field_retention' ), self::PAGE, 'wplit_data', array( 'label_for' => self::OPTION_RETENTION ) );
@@ -306,6 +318,47 @@ final class SettingsScreen {
 	}
 
 	/**
+	 * Whether the 1.x API addresses are answered.
+	 */
+	public function field_legacy_api(): void {
+		echo '<label><input type="checkbox" name="' . esc_attr( LegacyGate::OPTION_ENABLED ) . '" value="1"' . checked( LegacyGate::enabled(), true, false ) . '> ' . esc_html__( 'Answer the old 1.x API addresses (/api/wplicense-it-api/v1/...)', 'wplicense-it' ) . '</label>';
+		echo '<p class="description">' . esc_html__( 'Plugins and themes released with WPLicense It 1.x check licenses and updates there, with the license key in the address, where web server logs can keep it. Switch this off when no more calls come (see Status below): those addresses then answer that they are gone, and copies of your plugins that still use them stop getting updates until they are updated by hand.', 'wplicense-it' ) . '</p>';
+		echo '<p class="description">' . esc_html( self::legacy_api_text() ) . '</p>';
+	}
+
+	/**
+	 * How much the 1.x API addresses are used, in one sentence.
+	 */
+	public static function legacy_api_text(): string {
+		$state   = get_option( LegacyUsage::OPTION, array() );
+		$summary = LegacyUsage::summary( is_array( $state ) ? $state : array(), time() );
+		$prefix  = LegacyGate::enabled() ? __( 'On.', 'wplicense-it' ) : __( 'Switched off: they answer that they are gone.', 'wplicense-it' );
+
+		if ( 0 === $summary['calls'] ) {
+			return $prefix . ' ' . sprintf(
+				/* translators: %d: number of days. */
+				__( 'No calls in the last %d days.', 'wplicense-it' ),
+				LegacyUsage::DAYS
+			);
+		}
+
+		$names = array();
+		foreach ( array_slice( array_keys( $summary['products'] ), 0, 3 ) as $product_id ) {
+			$title   = $product_id > 0 ? get_the_title( $product_id ) : '';
+			$names[] = '' !== $title ? $title : '#' . $product_id;
+		}
+
+		return $prefix . ' ' . sprintf(
+			/* translators: 1: number of calls, 2: number of days, 3: date of the last call, 4: product names. */
+			_n( '%1$s call in the last %2$d days, the last on %3$s (%4$s).', '%1$s calls in the last %2$d days, the last on %3$s (%4$s).', $summary['calls'], 'wplicense-it' ),
+			number_format_i18n( $summary['calls'] ),
+			LegacyUsage::DAYS,
+			wp_date( get_option( 'date_format' ), (int) $summary['last'] ),
+			implode( ', ', $names )
+		);
+	}
+
+	/**
 	 * Whether deleting the plugin deletes its data.
 	 */
 	public function field_delete_on_uninstall(): void {
@@ -330,6 +383,7 @@ final class SettingsScreen {
 		echo '<h2>' . esc_html__( 'Status', 'wplicense-it' ) . '</h2><table class="widefat striped" style="max-width: 760px;"><tbody>';
 		echo '<tr><th style="width: 200px;">' . esc_html__( 'API address', 'wplicense-it' ) . '</th><td><code>' . esc_html( rest_url( RestController::ROUTE_NAMESPACE ) ) . '</code></td></tr>';
 		echo '<tr><th>' . esc_html__( '1.x data migration', 'wplicense-it' ) . '</th><td>' . esc_html( $this->migration_text( $state ) ) . '</td></tr>';
+		echo '<tr><th>' . esc_html__( 'Old 1.x API addresses', 'wplicense-it' ) . '</th><td>' . esc_html( self::legacy_api_text() ) . '</td></tr>';
 		echo '</tbody></table>';
 	}
 

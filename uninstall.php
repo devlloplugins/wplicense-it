@@ -46,6 +46,8 @@ function wplit_uninstall_site() {
     delete_option("wplit_db_version");
     delete_option( 'wplit_delete_data_on_uninstall' );
     delete_option( 'wplit_problem_orders' );
+    delete_option( 'wplit_legacy_api_enabled' );
+    delete_option( 'wplit_legacy_api_usage' );
 }
 
 // On a network the plugin has tables and settings in every site, not only in the one that is current now.

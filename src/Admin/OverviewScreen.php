@@ -11,6 +11,8 @@ namespace Devllo\WPLicenseIt\Admin;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Devllo\WPLicenseIt\Api\LegacyGate;
+use Devllo\WPLicenseIt\Api\LegacyUsage;
 use Devllo\WPLicenseIt\Files\ProtectedStorage;
 use Devllo\WPLicenseIt\Licenses\License;
 use Devllo\WPLicenseIt\Licenses\LicenseQuery;
@@ -73,6 +75,7 @@ final class OverviewScreen {
 		echo '<div class="wplit-grid">';
 		$this->render_checklist( OverviewReport::checklist( $facts ) );
 		$this->render_numbers( $counts );
+		$this->render_legacy_api();
 		$this->render_licenses(
 			sprintf(
 				/* translators: %d: number of days. */
@@ -313,6 +316,25 @@ final class OverviewScreen {
 		}
 
 		echo '</div><p><a href="' . esc_url( Urls::list() ) . '">' . esc_html__( 'All licenses', 'wplicense-it' ) . '</a></p></section>';
+	}
+
+	/**
+	 * How much the old 1.x API addresses are used. Shown on sites that came from 1.x, or where the addresses were called or switched off.
+	 */
+	private function render_legacy_api(): void {
+		$state = get_option( LegacyUsage::OPTION, array() );
+		$used  = LegacyUsage::summary( is_array( $state ) ? $state : array(), time() )['calls'] > 0;
+
+		$migration = ( new OptionStateStore() )->load();
+		$from_1x   = $migration->licenses_migrated + $migration->licenses_skipped + $migration->orders_migrated > 0;
+
+		if ( ! $used && ! $from_1x && LegacyGate::enabled() ) {
+			return;
+		}
+
+		echo '<section class="wplit-panel" aria-labelledby="wplit-legacy-title"><h2 id="wplit-legacy-title">' . esc_html__( 'Old 1.x API addresses', 'wplicense-it' ) . '</h2>';
+		echo '<p>' . esc_html( SettingsScreen::legacy_api_text() ) . '</p>';
+		echo '<p>' . esc_html__( 'Plugins and themes released with WPLicense It 1.x call these addresses with the license key in the address. When no more calls come, switch them off.', 'wplicense-it' ) . ' <a href="' . esc_url( Urls::settings() ) . '">' . esc_html__( 'Licensing settings', 'wplicense-it' ) . '</a></p></section>';
 	}
 
 	/**

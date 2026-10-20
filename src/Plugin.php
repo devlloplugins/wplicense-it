@@ -22,6 +22,7 @@ use Devllo\WPLicenseIt\Api\ApiService;
 use Devllo\WPLicenseIt\Api\DownloadSigner;
 use Devllo\WPLicenseIt\Api\LegacyApi;
 use Devllo\WPLicenseIt\Api\LegacyEndpoint;
+use Devllo\WPLicenseIt\Api\LegacyGate;
 use Devllo\WPLicenseIt\Api\RestController;
 use Devllo\WPLicenseIt\Api\TransientRateLimiter;
 use Devllo\WPLicenseIt\Api\WpProductCatalog;
@@ -154,6 +155,9 @@ final class Plugin {
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'wplit migration', Command::class );
 		}
+
+		// Counts calls to the 1.x API addresses, can switch them off, and limits wrong keys before the migration.
+		( new LegacyGate( $this->limiter(), self::legacy_data_migrated() ) )->register();
 
 		if ( self::legacy_data_migrated() ) {
 			$this->legacy_endpoint()->register();

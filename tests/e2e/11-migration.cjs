@@ -45,6 +45,29 @@ function checksums() {
 	let r = await oldApi( 'status', good );
 	check( r.text === '"active"', 'before the migration the old status URL says active, got ' + r.text );
 
+	// Calls to the old URLs are counted, so the owner can see when nobody uses them any more.
+	const usage = () => JSON.parse( onServer( 'echo wp_json_encode( get_option( "wplit_legacy_api_usage" ) );' ) || 'null' );
+	const calls = ( u ) => u && u.days ? Object.values( u.days ).reduce( ( sum, day ) => sum + ( day[ seed.yearly ] || 0 ), 0 ) : 0;
+	const counted = calls( usage() );
+	await oldApi( 'info', good );
+	check( calls( usage() ) === counted + 1, 'a call to an old URL is counted for its product (' + counted + ' then ' + calls( usage() ) + ')' );
+
+	// Before the migration the 1.x code answers, and a client that sends too many wrong keys is stopped too.
+	const limits = { failures: sql( "SELECT option_value FROM wp_options WHERE option_name='wplit_rate_limit_failures'" ) };
+	sql( "DELETE FROM wp_options WHERE option_name='wplit_rate_limit_failures'" );
+	sql( "INSERT INTO wp_options (option_name, option_value, autoload) VALUES ('wplit_rate_limit_failures', '3', 'yes')" );
+	onServer( 'delete_transient( "wplit_rl_" . md5( "127.0.0.1" ) );' );
+	for ( let i = 0; i < 3; i++ ) {
+		await oldApi( 'status', { ...good, l: 'LEG-WRONG-KEY-' + i } );
+	}
+	r = await oldApi( 'status', good );
+	check( 429 === r.status, 'before the migration, 3 wrong keys stop the client: the right key now gets ' + r.status + ' ' + r.text.slice( 0, 80 ) );
+	onServer( 'delete_transient( "wplit_rl_" . md5( "127.0.0.1" ) );' );
+	r = await oldApi( 'status', good );
+	check( 200 === r.status && r.text === '"active"', 'and it works again once the block is lifted' );
+	sql( "DELETE FROM wp_options WHERE option_name='wplit_rate_limit_failures'" );
+	if ( '' !== limits.failures ) { sql( "INSERT INTO wp_options (option_name, option_value, autoload) VALUES ('wplit_rate_limit_failures', '" + limits.failures + "', 'yes')" ); }
+
 	// The admin sees the migration notice.
 	await page.goto( BASE + '/wp-admin/' );
 	check( /moving your licenses to the new 2\.0 format/i.test( await page.locator( 'body' ).innerText() ), 'the admin notice says the licenses are being moved' );

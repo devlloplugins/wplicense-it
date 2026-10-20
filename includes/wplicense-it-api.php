@@ -121,6 +121,8 @@ if ( ! defined( 'ABSPATH' ) ) {
             $product_post = $this->get_published_product( $product_id );
 
             if ( ! $product_post ) {
+                // Counted by the wrong-key limiter (Devllo\WPLicenseIt\Api\LegacyGate).
+                do_action( 'wplicense_it_legacy_wrong_key' );
                 return $this->error_response( 'Product not found.' );
             }
 
@@ -145,6 +147,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             $product_post = $this->get_published_product( $product_id );
 
             if ( ! $product_post ) {
+                do_action( 'wplicense_it_legacy_wrong_key' );
                 return 'inactive';
             }
 
@@ -308,6 +311,8 @@ if ( ! defined( 'ABSPATH' ) ) {
         private function verify_license( $product_id, $email, $license_key, $product_api_key ) {
             $license = $this->find_license( $product_id, $email, $license_key, $product_api_key );
             if ( ! $license ) {
+                // A wrong key (an expired right key is not counted), for the limiter in Devllo\WPLicenseIt\Api\LegacyGate.
+                do_action( 'wplicense_it_legacy_wrong_key' );
                 return false;
             }
 

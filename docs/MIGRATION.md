@@ -81,5 +81,7 @@ prepared, do these together, and only if the site has switched over (`wplit_db_v
 4. Update `uninstall.php` (it still drops the 1.x tables and options), `UpgradeNotice`, `LegacyShortcodes`, and the
    readme's "old API addresses keep working" and `UPGRADING.md` sentences to match.
 5. Keep the old `/api/wplicense-it-api/v1/` addresses working for as long as customers' sites still run a client
-   that uses them. Removing the 2.0 `LegacyEndpoint` is a separate decision, not part of this one.
+   that uses them. Removing the 2.0 `LegacyEndpoint` is a separate decision, not part of this one. Since 2.0 the site owner
+   can see how many calls they get (Licensing settings > Status) and switch them off there; removing the code is safe once
+   they have been off, or have had no calls, for a while.
 

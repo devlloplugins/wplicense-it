@@ -55,6 +55,11 @@ license is checked again when it is used, so revoking a license stops downloads 
 the 1.x data has been migrated, until then by the 1.x code. They do not record sites and ignore
 activation limits, because 1.x clients send no site. New integrations should use the routes above.
 
+Before and after the migration, wrong keys count against the client's limit (an expired right key does not), calls are counted
+per product for the last 30 days (shown in **Licensing settings > Status** and on the Overview), and the site owner can switch
+the addresses off (**Licensing settings > API protection > Old 1.x API addresses**). Switched off, every 1.x address answers
+`410 Gone` with `{"error":"This address is no longer available. Update the plugin or theme to keep receiving updates."}`.
+
 ## Configuration
 
 - `wplicense_it_client_ip` filter: return the real client IP when the site is behind a trusted proxy
