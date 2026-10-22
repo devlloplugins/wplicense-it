@@ -15,6 +15,7 @@ use Devllo\WPLicenseIt\Api\ProductCatalog;
 use Devllo\WPLicenseIt\Licenses\License;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Licenses\Status;
+use Devllo\WPLicenseIt\Reminders\OptOut;
 
 /**
  * Lets customers see their licenses, download the package, renew, and free a site.
@@ -23,6 +24,7 @@ final class AccountPage {
 
 	public const ENDPOINT           = 'licenses';
 	private const DEACTIVATE_ACTION = 'wplit_deactivate_site';
+	private const REMINDERS_ACTION  = 'wplit_account_reminders';
 	private const FLUSH_OPTION      = 'wplit_woo_endpoint_version';
 
 	/**
@@ -47,6 +49,7 @@ final class AccountPage {
 		add_filter( 'woocommerce_account_menu_items', array( $this, 'add_menu_item' ) );
 		add_action( 'woocommerce_account_' . self::ENDPOINT . '_endpoint', array( $this, 'render' ) );
 		add_action( 'admin_post_' . self::DEACTIVATE_ACTION, array( $this, 'handle_deactivate' ) );
+		add_action( 'admin_post_' . self::REMINDERS_ACTION, array( $this, 'handle_reminders' ) );
 		add_action( 'wp_loaded', array( $this, 'maybe_flush_rewrite_rules' ) );
 	}
 
@@ -106,6 +109,10 @@ final class AccountPage {
 			wc_print_notice( __( 'The site was deactivated. You can use the license on another site.', 'wplicense-it' ), 'success' );
 		} elseif ( 'failed' === $notice ) {
 			wc_print_notice( __( 'That site could not be deactivated.', 'wplicense-it' ), 'error' );
+		} elseif ( 'reminders_on' === $notice ) {
+			wc_print_notice( __( 'You will get an email before a license expires.', 'wplicense-it' ), 'success' );
+		} elseif ( 'reminders_off' === $notice ) {
+			wc_print_notice( __( 'You will get no more reminder emails about your licenses.', 'wplicense-it' ), 'success' );
 		}
 
 		$licenses = $this->licenses->licenses_for_user( get_current_user_id() );
@@ -119,6 +126,65 @@ final class AccountPage {
 		foreach ( $licenses as $license ) {
 			$this->render_license( $license );
 		}
+
+		$this->render_reminders( $licenses );
+	}
+
+	/**
+	 * The switch for reminder emails, for every address the customer's licenses use.
+	 *
+	 * @param License[] $licenses The customer's licenses.
+	 */
+	private function render_reminders( array $licenses ): void {
+		$on = array() === array_filter( $this->addresses( $licenses ), array( OptOut::class, 'is_out' ) );
+
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="wplit-reminders" id="wplit-account-reminders">';
+		echo '<h3>' . esc_html__( 'Reminder emails', 'wplicense-it' ) . '</h3>';
+		echo '<input type="hidden" name="action" value="' . esc_attr( self::REMINDERS_ACTION ) . '">';
+		wp_nonce_field( self::REMINDERS_ACTION );
+		echo '<p><label><input type="checkbox" name="reminders" value="1"' . checked( $on, true, false ) . '> ' . esc_html__( 'Email me before a license expires, and once after it expired', 'wplicense-it' ) . '</label></p>';
+		echo '<p><button type="submit" class="button">' . esc_html__( 'Save', 'wplicense-it' ) . '</button></p>';
+		echo '</form>';
+	}
+
+	/**
+	 * Saves the reminder switch.
+	 */
+	public function handle_reminders(): void {
+		check_admin_referer( self::REMINDERS_ACTION );
+
+		$user_id = get_current_user_id();
+		$on      = isset( $_POST['reminders'] );
+
+		if ( $user_id > 0 ) {
+			foreach ( $this->addresses( $this->licenses->licenses_for_user( $user_id ) ) as $email ) {
+				if ( $on ) {
+					OptOut::resume( $email );
+				} else {
+					OptOut::stop( $email, OptOut::VIA_ACCOUNT );
+				}
+			}
+		}
+
+		wp_safe_redirect( add_query_arg( 'wplit_notice', $on ? 'reminders_on' : 'reminders_off', wc_get_account_endpoint_url( self::ENDPOINT ) ) );
+		exit;
+	}
+
+	/**
+	 * The addresses reminders would go to for this customer: those of their licenses, and their account's.
+	 *
+	 * @param License[] $licenses The customer's licenses.
+	 * @return string[]
+	 */
+	private function addresses( array $licenses ): array {
+		$emails = array_map( static fn( License $license ): string => OptOut::key( $license->email ), $licenses );
+		$user   = wp_get_current_user();
+
+		if ( $user->exists() ) {
+			$emails[] = OptOut::key( (string) $user->user_email );
+		}
+
+		return array_values( array_unique( array_filter( $emails ) ) );
 	}
 
 	/**

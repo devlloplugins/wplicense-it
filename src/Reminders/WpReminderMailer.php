@@ -85,11 +85,22 @@ final class WpReminderMailer implements ReminderMailer {
 			);
 		}//end if
 
+		$stop     = OptOut::url( $license->email );
+		$message .= "\n--\n" . sprintf(
+			/* translators: %s: address of the page that stops these emails. */
+			__( "Don't want these reminders? Stop them here:\n%s\n", 'wplicense-it' ),
+			$stop
+		);
+
 		$email = array(
 			'to'      => $license->email,
 			'subject' => $subject,
 			'message' => $message,
-			'headers' => array(),
+			// Mail programs show their own unsubscribe button for these (RFC 2369 and 8058).
+			'headers' => array(
+				'List-Unsubscribe: <' . $stop . '>',
+				'List-Unsubscribe-Post: List-Unsubscribe=One-Click',
+			),
 		);
 
 		/**

@@ -16,6 +16,7 @@ use Devllo\WPLicenseIt\Api\RestController;
 use Devllo\WPLicenseIt\Migration\MigrationState;
 use Devllo\WPLicenseIt\Migration\OptionStateStore;
 use Devllo\WPLicenseIt\Api\WpProductCatalog;
+use Devllo\WPLicenseIt\Reminders\OptOut;
 use Devllo\WPLicenseIt\Reminders\ReminderService;
 use Devllo\WPLicenseIt\Reminders\ReminderSettings;
 use Devllo\WPLicenseIt\Reminders\TestReminder;
@@ -32,6 +33,8 @@ final class SettingsScreen {
 	private const PAGE  = 'wplit-licensing';
 
 	public const TEST_REMINDER_ACTION = 'wplit_test_reminder';
+	public const RESUME_ACTION        = 'wplit_resume_reminders';
+	private const OPTOUTS_SHOWN       = 100;
 
 	public const OPTION_FAILURES            = 'wplit_rate_limit_failures';
 	public const OPTION_WINDOW              = 'wplit_rate_limit_minutes';
@@ -44,6 +47,7 @@ final class SettingsScreen {
 	public function register(): void {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_post_' . self::TEST_REMINDER_ACTION, array( $this, 'send_test_reminder' ) );
+		add_action( 'admin_post_' . self::RESUME_ACTION, array( $this, 'resume_reminders' ) );
 	}
 
 	/**
@@ -210,6 +214,7 @@ final class SettingsScreen {
 		add_settings_field( ReminderSettings::OPTION_DAYS, __( 'Days before expiry', 'wplicense-it' ), array( $this, 'field_reminder_days' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_DAYS ) );
 		add_settings_field( ReminderSettings::OPTION_AFTER_ENABLED, __( 'After expiry', 'wplicense-it' ), array( $this, 'field_reminder_after' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_AFTER_DAYS ) );
 		add_settings_field( ReminderSettings::OPTION_URL, __( 'Renewal address', 'wplicense-it' ), array( $this, 'field_reminder_url' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_URL ) );
+		add_settings_field( 'wplit_reminder_optouts', __( 'Stopped by customers', 'wplicense-it' ), array( $this, 'field_optouts' ), self::PAGE, 'wplit_reminders' );
 		add_settings_field( 'wplit_test_reminder', __( 'Test email', 'wplicense-it' ), array( $this, 'field_test_reminder' ), self::PAGE, 'wplit_reminders' );
 
 		add_settings_section( 'wplit_api', __( 'API protection', 'wplicense-it' ), array( $this, 'section_api' ), self::PAGE );
@@ -356,6 +361,66 @@ final class SettingsScreen {
 	}
 
 	/**
+	 * The addresses that stopped the reminder emails, newest first, each with a way to turn them back on.
+	 */
+	public function field_optouts(): void {
+		$list = OptOut::all();
+
+		echo '<p class="description">' . esc_html__( 'Every reminder email has a link to stop them, and customers with an account have a switch on the Licenses page of My Account. It covers every license with that address, before and after expiry.', 'wplicense-it' ) . '</p>';
+
+		if ( array() === $list ) {
+			echo '<p id="wplit-optouts-none">' . esc_html__( 'No customer has stopped them.', 'wplicense-it' ) . '</p>';
+
+			return;
+		}
+
+		/* translators: %d: number of email addresses. */
+		echo '<p>' . esc_html( sprintf( _n( '%d address gets no reminder emails.', '%d addresses get no reminder emails.', count( $list ), 'wplicense-it' ), count( $list ) ) ) . '</p>';
+		echo '<table class="widefat striped" id="wplit-optouts" style="max-width:760px"><thead><tr><th>' . esc_html__( 'Email address', 'wplicense-it' ) . '</th><th>' . esc_html__( 'Since', 'wplicense-it' ) . '</th><th>' . esc_html__( 'How', 'wplicense-it' ) . '</th><th></th></tr></thead><tbody>';
+
+		foreach ( array_slice( $list, 0, self::OPTOUTS_SHOWN, true ) as $email => $entry ) {
+			$since  = strtotime( (string) $entry['at'] . ' UTC' );
+			$resume = wp_nonce_url(
+				add_query_arg(
+					array(
+						'action' => self::RESUME_ACTION,
+						'email'  => rawurlencode( (string) $email ),
+					),
+					admin_url( 'admin-post.php' )
+				),
+				self::RESUME_ACTION . '_' . $email
+			);
+
+			echo '<tr><td>' . esc_html( (string) $email ) . '</td>';
+			echo '<td>' . esc_html( false === $since ? '' : wp_date( (string) get_option( 'date_format' ), $since ) ) . '</td>';
+			echo '<td>' . esc_html( OptOut::VIA_ACCOUNT === $entry['via'] ? __( 'In My Account', 'wplicense-it' ) : __( 'From an email', 'wplicense-it' ) ) . '</td>';
+			echo '<td><a href="' . esc_url( $resume ) . '">' . esc_html__( 'Turn back on', 'wplicense-it' ) . '</a></td></tr>';
+		}
+
+		echo '</tbody></table>';
+
+		if ( count( $list ) > self::OPTOUTS_SHOWN ) {
+			/* translators: %d: number of addresses shown. */
+			echo '<p class="description">' . esc_html( sprintf( __( 'The newest %d are shown.', 'wplicense-it' ), self::OPTOUTS_SHOWN ) ) . '</p>';
+		}
+	}
+
+	/**
+	 * Turns the reminder emails back on for an address, at the owner's request.
+	 */
+	public function resume_reminders(): void {
+		Capabilities::require_manage();
+
+		$email = isset( $_GET['email'] ) ? OptOut::key( sanitize_email( wp_unslash( $_GET['email'] ) ) ) : '';
+		check_admin_referer( self::RESUME_ACTION . '_' . $email );
+
+		OptOut::resume( $email );
+
+		wp_safe_redirect( add_query_arg( 'wplit_test_mail', 'resumed', Urls::settings() ) );
+		exit;
+	}
+
+	/**
 	 * The test email button. A link, because this whole section sits inside the settings form.
 	 */
 	public function field_test_reminder(): void {
@@ -407,7 +472,9 @@ final class SettingsScreen {
 		$result = isset( $_GET['wplit_test_mail'] ) ? sanitize_key( wp_unslash( $_GET['wplit_test_mail'] ) ) : '';
 		$email  = wp_get_current_user()->user_email;
 
-		if ( 'sent' === $result ) {
+		if ( 'resumed' === $result ) {
+			printf( '<div class="notice notice-success is-dismissible" role="status"><p>%s</p></div>', esc_html__( 'Reminder emails go to that address again.', 'wplicense-it' ) );
+		} elseif ( 'sent' === $result ) {
 			/* translators: %s: email address. */
 			printf( '<div class="notice notice-success is-dismissible" role="status"><p>%s</p></div>', esc_html( sprintf( __( 'A test reminder was sent to %s. If it does not arrive, check the spam folder and your site\'s email setup.', 'wplicense-it' ), $email ) ) );
 		} elseif ( 'failed' === $result ) {

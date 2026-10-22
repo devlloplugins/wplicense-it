@@ -194,6 +194,77 @@ const mails = () => woo( { op: 'mail' } ).mail;
 	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit' ) ] );
 	check( ! /javascript:/i.test( await page.inputValue( '#wplit_reminder_url' ) ), 'a javascript: renewal address is not kept, got "' + await page.inputValue( '#wplit_reminder_url' ) + '"' );
 
+	// 10. Card 141: customers stop the emails, from the email or in My Account; the owner sees who and can turn them back on.
+	sql( "DELETE FROM wp_options WHERE option_name='wplit_reminder_optouts'" );
+	await page.goto( SETTINGS );
+	await page.fill( '#wplit_reminder_url', '' );
+	await page.fill( '#wplit_reminder_days', '30, 7' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit' ) ] );
+	check( 1 === await page.locator( '#wplit-optouts-none' ).count(), 'the settings say no customer has stopped the emails yet' );
+	const optEmail = 'optout-' + stamp + '@example.com';
+	const opt = helper( 'license', optEmail, '20' );
+	woo( { op: 'clear_mail' } );
+	helper( 'run' );
+	const first = mails().filter( ( m ) => String( m.to ) === optEmail );
+	const link = helper( 'optout', optEmail ).url;
+	check( 1 === first.length && String( first[ 0 ].message ).includes( "Don't want these reminders? Stop them here:\n" + link ), 'every reminder ends with a link to stop them' );
+	check( first.length > 0 && JSON.stringify( first[ 0 ].headers ).includes( 'List-Unsubscribe: <' + link + '>' ) && JSON.stringify( first[ 0 ].headers ).includes( 'List-Unsubscribe-Post: List-Unsubscribe=One-Click' ), 'and the headers mail programs use for their own unsubscribe button' );
+
+	const visitor = await env.browser.newContext();
+	const vpage = await visitor.newPage();
+	await vpage.goto( link );
+	await shot( vpage, '16-unsubscribe-ask' );
+	check( /Stop the emails that remind/.test( await vpage.locator( '#wplit-reminders-state' ).innerText() ) && null === helper( 'optout', optEmail ).entry, 'opening the link, without logging in, only asks: a mail scanner opening it stops nothing' );
+	await Promise.all( [ vpage.waitForNavigation( { waitUntil: 'load' } ), vpage.click( '#wplit-reminders-stop' ) ] );
+	await shot( vpage, '16-unsubscribe-done' );
+	check( /will get no more reminder emails/.test( await vpage.locator( '#wplit-reminders-state' ).innerText() ) && 1 === await vpage.locator( '#wplit-reminders-resume' ).count(), 'the Stop button stops them, and the page offers to turn them back on' );
+	check( 'email' === ( helper( 'optout', optEmail ).entry || {} ).via, 'the address is on the list, stopped from an email' );
+	const wrongCode = await visitor.request.get( link.replace( /c=[a-f0-9]+/, 'c=' + '0'.repeat( 32 ) ) );
+	check( 403 === wrongCode.status(), "a link with a wrong code is refused: " + wrongCode.status() );
+	sql( 'UPDATE wp_wplit_licenses SET expires_at = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 DAY) WHERE id=' + opt.id );
+	mark = mails().length;
+	helper( 'run' );
+	check( ! mails().slice( mark ).some( ( m ) => String( m.to ) === optEmail ), 'the 7-day reminder is not sent to an address that stopped them' );
+
+	await page.goto( SETTINGS );
+	await shot( page, '16-optouts' );
+	const row = page.locator( '#wplit-optouts tr', { hasText: optEmail } );
+	check( 1 === await row.count() && /From an email/.test( await row.innerText() ), 'the owner sees the address, when and how it stopped them' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), row.locator( 'a', { hasText: 'Turn back on' } ).click() ] );
+	check( null === helper( 'optout', optEmail ).entry && /go to that address again/.test( await page.locator( '.notice-success' ).innerText() ), 'and can turn them back on' );
+	mark = mails().length;
+	helper( 'run' );
+	check( 1 === mails().slice( mark ).filter( ( m ) => String( m.to ) === optEmail ).length, 'then the 7-day reminder goes out' );
+
+	const oneClick = await visitor.request.post( link, { form: { 'List-Unsubscribe': 'One-Click' }, maxRedirects: 0 } );
+	check( 200 === oneClick.status() && 'email' === ( helper( 'optout', optEmail ).entry || {} ).via, 'a mail program\'s one-click unsubscribe stops them at once: ' + oneClick.status() );
+	await visitor.close();
+
+	const exported = helper( 'optout', optEmail, 'erase' );
+	check( 1 === exported.exported.length && /from an email/.test( JSON.stringify( exported.exported ) ), 'the personal data export says the address stopped reminder emails, and when' );
+	check( null === exported.after && true === exported.erase.items_removed, 'erasing the person\'s data removes the address from the list' );
+
+	// My Account: the customer with an account switches them off and on.
+	const shopper = await env.browser.newContext();
+	const spage = await shopper.newPage();
+	await spage.goto( BASE + '/my-account/' );
+	await spage.fill( '#username', 'reminded' + stamp );
+	await spage.fill( '#password', 'pw-reminded-1' );
+	await Promise.all( [ spage.waitForNavigation( { waitUntil: 'load' } ), spage.click( 'button[name="login"]' ) ] );
+	await spage.goto( BASE + '/my-account/licenses/' );
+	const box2 = spage.locator( '#wplit-account-reminders input[name="reminders"]' );
+	check( 1 === await box2.count() && await box2.isChecked(), 'My Account > Licenses has a reminder switch, on' );
+	await box2.uncheck();
+	await Promise.all( [ spage.waitForNavigation( { waitUntil: 'load' } ), spage.click( '#wplit-account-reminders button' ) ] );
+	await shot( spage, '16-account-reminders-off' );
+	check( /You will get no more reminder emails about your licenses/.test( await spage.locator( 'body' ).innerText() ) && ! ( await spage.locator( '#wplit-account-reminders input[name="reminders"]' ).isChecked() ), 'switching it off is saved and said' );
+	check( 'account' === ( helper( 'optout', accountEmail ).entry || {} ).via, 'the address is on the list, stopped in My Account' );
+	await spage.locator( '#wplit-account-reminders input[name="reminders"]' ).check();
+	await Promise.all( [ spage.waitForNavigation( { waitUntil: 'load' } ), spage.click( '#wplit-account-reminders button' ) ] );
+	check( null === helper( 'optout', accountEmail ).entry, 'switching it on again takes the address off the list' );
+	await shopper.close();
+	sql( "DELETE FROM wp_options WHERE option_name='wplit_reminder_optouts'" );
+
 	// Put everything back.
 	woo( { op: 'clear_mail' } );
 	sql( "DELETE FROM wp_options WHERE option_name IN ('wplit_reminders_enabled','wplit_reminder_days','wplit_reminder_url','wplit_reminder_after_enabled','wplit_reminder_after_days')" );

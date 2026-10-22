@@ -309,4 +309,17 @@ final class ReminderServiceTest extends TestCase {
 
 		$this->assertSame( 0, $this->service->send_after( 0 ) );
 	}
+
+	// Stopped by the customer (card 141).
+
+	public function test_an_address_that_stopped_the_emails_gets_neither_reminder(): void {
+		$service = new ReminderService( $this->licenses, $this->events, $this->mailer, $this->clock, static fn( string $email ): bool => 'stopped@example.com' === strtolower( $email ) );
+		$this->license( '+10 days', Status::ACTIVE, 'Stopped@Example.com' );
+		$this->license( '-4 days', Status::EXPIRED, 'stopped@example.com' );
+		$kept = $this->license( '+10 days' );
+
+		$this->assertSame( 1, $service->send_due( array( 30, 7 ) ) );
+		$this->assertSame( 0, $service->send_after( 3 ) );
+		$this->assertSame( array( $kept->id ), array_column( $this->mailer->sent, 'id' ) );
+	}
 }

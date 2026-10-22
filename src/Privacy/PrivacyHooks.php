@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace Devllo\WPLicenseIt\Privacy;
 
+use Devllo\WPLicenseIt\Reminders\OptOut;
 use Devllo\WPLicenseIt\Reminders\ReminderSettings;
 
 /**
@@ -64,7 +65,25 @@ final class PrivacyHooks {
 	 * @return array{data:array<int,array<string,mixed>>,done:bool}
 	 */
 	public function export( $email, $page = 1 ): array {
-		return $this->service()->export( (string) $email, $this->user_id( (string) $email ), (int) $page );
+		$result = $this->service()->export( (string) $email, $this->user_id( (string) $email ), (int) $page );
+		$entry  = 1 === (int) $page ? OptOut::entry( (string) $email ) : null;
+
+		// That the person stopped reminder emails, and when.
+		if ( null !== $entry ) {
+			$result['data'][] = array(
+				'group_id'    => 'wplit-reminders',
+				'group_label' => __( 'License reminder emails', 'wplicense-it' ),
+				'item_id'     => 'wplit-reminders-stopped',
+				'data'        => array(
+					array(
+						'name'  => __( 'Reminder emails stopped', 'wplicense-it' ),
+						'value' => $entry['at'] . ' UTC (' . ( OptOut::VIA_ACCOUNT === $entry['via'] ? __( 'in My Account', 'wplicense-it' ) : __( 'from an email', 'wplicense-it' ) ) . ')',
+					),
+				),
+			);
+		}
+
+		return $result;
 	}
 
 	/**
@@ -75,7 +94,14 @@ final class PrivacyHooks {
 	 * @return array{items_removed:bool,items_retained:bool,messages:string[],done:bool}
 	 */
 	public function erase( $email, $page = 1 ): array {
-		return $this->service()->erase( (string) $email, $this->user_id( (string) $email ), (int) $page );
+		$result = $this->service()->erase( (string) $email, $this->user_id( (string) $email ), (int) $page );
+
+		// The address leaves the list of those who stopped reminders. Its licenses no longer carry it, so nothing is emailed.
+		if ( OptOut::resume( (string) $email ) ) {
+			$result['items_removed'] = true;
+		}
+
+		return $result;
 	}
 
 	/**
@@ -98,8 +124,8 @@ final class PrivacyHooks {
 				/* translators: %d: number of years. */
 				: sprintf( _n( 'The history of each license (activations, renewals and changes) is deleted after %d year.', 'The history of each license (activations, renewals and changes) is deleted after %d years.', $years, 'wplicense-it' ), $years )
 		) . '</p>';
-		if ( ReminderSettings::enabled() ) {
-			$text .= '<p>' . esc_html__( 'Before a license expires we email the address it was issued to, with a link to renew it.', 'wplicense-it' ) . '</p>';
+		if ( ReminderSettings::enabled() || ReminderSettings::after_enabled() ) {
+			$text .= '<p>' . esc_html__( 'Before a license expires we email the address it was issued to, with a link to renew it. Every such email has a link to stop them; if you use it, we keep your email address and the date to remember that.', 'wplicense-it' ) . '</p>';
 		}
 		$text .= '<p>' . esc_html__( 'On request we remove your name, email address and account from the licenses and orders. The license key, product, dates, activated site addresses and order totals are kept because they are needed to support the license and for accounting.', 'wplicense-it' ) . '</p>';
 

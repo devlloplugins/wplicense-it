@@ -39,12 +39,14 @@ final class ReminderService {
 	 * @param EventLog          $events   License history.
 	 * @param ReminderMailer    $mailer   Sends the email.
 	 * @param callable|null     $clock    Returns the current time (UTC). Tests pass a fixed one.
+	 * @param callable|null     $stopped  Given an address, says whether it asked for no more reminders (see OptOut).
 	 */
 	public function __construct(
 		private LicenseRepository $licenses,
 		private EventLog $events,
 		private ReminderMailer $mailer,
-		private $clock = null
+		private $clock = null,
+		private $stopped = null
 	) {
 	}
 
@@ -175,12 +177,14 @@ final class ReminderService {
 	}
 
 	/**
-	 * Whether a license has an address that may be emailed.
+	 * Whether a license has an address that may be emailed: a real one, not erased, and not one that stopped the emails.
 	 *
 	 * @param License $license The license.
 	 */
 	private function mailable( License $license ): bool {
-		return false !== filter_var( trim( $license->email ), FILTER_VALIDATE_EMAIL ) && ! PrivacyService::is_placeholder( trim( $license->email ) );
+		return false !== filter_var( trim( $license->email ), FILTER_VALIDATE_EMAIL )
+			&& ! PrivacyService::is_placeholder( trim( $license->email ) )
+			&& ( null === $this->stopped || ! ( $this->stopped )( $license->email ) );
 	}
 
 	/**

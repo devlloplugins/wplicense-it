@@ -29,7 +29,11 @@ pages of 25.
 The Import and export screen (and the Licenses list's export link) writes a CSV of licenses with customers' email
 addresses. It is only available to users who can manage licenses; treat the downloaded file as personal data.
 
+If the person stopped reminder emails (from an email or in My Account), the export also says so, with the date.
+
 ## Erasing
+
+Erasing also takes the address off the list of those who stopped reminder emails.
 
 Erasing **removes the identity and keeps the license**:
 

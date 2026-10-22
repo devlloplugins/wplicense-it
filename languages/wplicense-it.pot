@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-22T14:24:25+00:00\n"
+"POT-Creation-Date: 2026-10-22T15:02:31+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -258,8 +258,8 @@ msgstr ""
 #: src/Admin/LicensesScreen.php:86
 #: src/Admin/OverviewScreen.php:312
 #: src/Privacy/PrivacyService.php:201
-#: src/WooCommerce/AccountPage.php:76
-#: src/WooCommerce/AccountPage.php:82
+#: src/WooCommerce/AccountPage.php:79
+#: src/WooCommerce/AccountPage.php:85
 msgid "Licenses"
 msgstr ""
 
@@ -274,7 +274,7 @@ msgstr ""
 
 #: src/Admin/AdminMenu.php:64
 #: src/Admin/OverviewScreen.php:337
-#: src/Admin/SettingsScreen.php:254
+#: src/Admin/SettingsScreen.php:259
 msgid "Licensing settings"
 msgstr ""
 
@@ -409,7 +409,7 @@ msgstr ""
 #: src/Admin/LicenseView.php:78
 #: src/Compat/LegacyShortcodes.php:74
 #: src/Privacy/PrivacyService.php:177
-#: src/WooCommerce/AccountPage.php:142
+#: src/WooCommerce/AccountPage.php:208
 #: src/WooCommerce/LicenseDisplay.php:124
 #: src/WooCommerce/OrderLicensesBox.php:170
 msgid "Never"
@@ -461,11 +461,11 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:82
 #: src/Admin/LicenseView.php:72
-#: src/Admin/SettingsScreen.php:543
+#: src/Admin/SettingsScreen.php:601
 #: src/Admin/TransferScreen.php:261
 #: src/Privacy/PrivacyService.php:168
 #: src/Privacy/PrivacyService.php:229
-#: src/WooCommerce/AccountPage.php:141
+#: src/WooCommerce/AccountPage.php:207
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "Status"
 msgstr ""
@@ -475,7 +475,7 @@ msgstr ""
 #: src/Admin/OverviewScreen.php:362
 #: src/Compat/LegacyShortcodes.php:74
 #: src/Privacy/PrivacyService.php:176
-#: src/WooCommerce/AccountPage.php:142
+#: src/WooCommerce/AccountPage.php:208
 #: src/WooCommerce/LicenseDisplay.php:53
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "Expires"
@@ -484,7 +484,7 @@ msgstr ""
 #. translators: 1: sites in use, 2: sites allowed.
 #: src/Admin/LicensesTable.php:84
 #: src/Admin/LicenseView.php:79
-#: src/WooCommerce/AccountPage.php:144
+#: src/WooCommerce/AccountPage.php:210
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "Sites"
 msgstr ""
@@ -500,7 +500,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:113
 #: src/Admin/LicensesTable.php:311
 #: src/Admin/OverviewScreen.php:306
-#: src/WooCommerce/AccountPage.php:168
+#: src/WooCommerce/AccountPage.php:234
 msgid "Active"
 msgstr ""
 
@@ -508,7 +508,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:312
 #: src/Admin/LicenseView.php:216
 #: src/Admin/OverviewScreen.php:307
-#: src/WooCommerce/AccountPage.php:179
+#: src/WooCommerce/AccountPage.php:245
 msgid "Expired"
 msgstr ""
 
@@ -516,7 +516,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:313
 #: src/Admin/LicenseView.php:217
 #: src/Admin/OverviewScreen.php:308
-#: src/WooCommerce/AccountPage.php:176
+#: src/WooCommerce/AccountPage.php:242
 msgid "Revoked"
 msgstr ""
 
@@ -524,7 +524,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:314
 #: src/Admin/LicenseView.php:218
 #: src/Admin/OverviewScreen.php:309
-#: src/WooCommerce/AccountPage.php:172
+#: src/WooCommerce/AccountPage.php:238
 msgid "Refunded"
 msgstr ""
 
@@ -590,7 +590,7 @@ msgstr ""
 #: src/Compat/LegacyShortcodes.php:73
 #: src/Privacy/PrivacyService.php:156
 #: src/Privacy/PrivacyService.php:270
-#: src/WooCommerce/AccountPage.php:140
+#: src/WooCommerce/AccountPage.php:206
 #: src/WooCommerce/LicenseDisplay.php:53
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "License key"
@@ -613,7 +613,7 @@ msgid "Renew for"
 msgstr ""
 
 #: src/Admin/LicenseView.php:118
-#: src/WooCommerce/AccountPage.php:155
+#: src/WooCommerce/AccountPage.php:221
 msgid "Renew"
 msgstr ""
 
@@ -664,7 +664,7 @@ msgid "local or staging, not counted"
 msgstr ""
 
 #: src/Admin/LicenseView.php:172
-#: src/WooCommerce/AccountPage.php:202
+#: src/WooCommerce/AccountPage.php:268
 msgid "Deactivate"
 msgstr ""
 
@@ -920,8 +920,8 @@ msgid "Turn on renewal invoices"
 msgstr ""
 
 #: src/Admin/OverviewScreen.php:335
-#: src/Admin/SettingsScreen.php:219
-#: src/Admin/SettingsScreen.php:546
+#: src/Admin/SettingsScreen.php:224
+#: src/Admin/SettingsScreen.php:604
 msgid "Old 1.x API addresses"
 msgstr ""
 
@@ -1393,270 +1393,324 @@ msgstr ""
 msgid "The release was removed from the list, but its file stays on the server:"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:201
+#: src/Admin/SettingsScreen.php:205
 msgid "Selling with WooCommerce"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:202
+#: src/Admin/SettingsScreen.php:206
 msgid "Issue licenses when an order is"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:204
+#: src/Admin/SettingsScreen.php:208
 msgid "Renewal invoices"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:205
+#: src/Admin/SettingsScreen.php:209
 msgid "Invoice customers"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:206
 #: src/Admin/SettingsScreen.php:210
+#: src/Admin/SettingsScreen.php:214
 msgid "Days before expiry"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:208
+#: src/Admin/SettingsScreen.php:212
 msgid "Expiry reminders"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:209
+#: src/Admin/SettingsScreen.php:213
 msgid "Email customers"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:211
+#: src/Admin/SettingsScreen.php:215
 msgid "After expiry"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:212
+#: src/Admin/SettingsScreen.php:216
 msgid "Renewal address"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:213
-msgid "Test email"
-msgstr ""
-
-#: src/Admin/SettingsScreen.php:215
-msgid "API protection"
-msgstr ""
-
-#: src/Admin/SettingsScreen.php:216
-msgid "Failed lookups allowed"
-msgstr ""
-
 #: src/Admin/SettingsScreen.php:217
-msgid "Time window (minutes)"
+msgid "Stopped by customers"
 msgstr ""
 
 #: src/Admin/SettingsScreen.php:218
-#: src/Admin/SettingsScreen.php:459
-msgid "Visitors reach this site"
+msgid "Test email"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:220
+msgid "API protection"
 msgstr ""
 
 #: src/Admin/SettingsScreen.php:221
-msgid "Data"
+msgid "Failed lookups allowed"
 msgstr ""
 
 #: src/Admin/SettingsScreen.php:222
-msgid "Keep license history for (years)"
+msgid "Time window (minutes)"
 msgstr ""
 
 #: src/Admin/SettingsScreen.php:223
+#: src/Admin/SettingsScreen.php:517
+msgid "Visitors reach this site"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:226
+msgid "Data"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:227
+msgid "Keep license history for (years)"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:228
 msgid "Billing details from 1.x orders"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:224
+#: src/Admin/SettingsScreen.php:229
 msgid "When the plugin is deleted"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:276
+#: src/Admin/SettingsScreen.php:281
 msgid "WooCommerce is not active. Install it to sell licenses from your store."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:280
+#: src/Admin/SettingsScreen.php:285
 msgid "Completed (after you or WooCommerce complete it)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:281
+#: src/Admin/SettingsScreen.php:286
 msgid "Processing (as soon as payment is received)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:283
+#: src/Admin/SettingsScreen.php:288
 msgid "Orders paid online (by card or PayPal, for example) that hold only licenses and other virtual and downloadable products are completed automatically, so \"Completed\" is right for most stores. Orders paid by bank transfer, check or cash on delivery wait until you complete them, and so do orders with something to ship."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:290
+#: src/Admin/SettingsScreen.php:295
 msgid "Some days before a license expires, create an order for its renewal and email the customer WooCommerce's invoice with a link to pay it. The customer pays with any payment method your store offers, and the license is renewed when the order is paid and completed. Needs WooCommerce and a product that sells the license."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:297
+#: src/Admin/SettingsScreen.php:302
 msgid "Send renewal invoices"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:298
+#: src/Admin/SettingsScreen.php:303
 msgid "Off until you turn it on. One invoice is made per expiry date and recorded in the license history. An unpaid invoice is cancelled if the license is renewed another way. Licenses that never expire, or whose product has no price, are skipped."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:312
+#: src/Admin/SettingsScreen.php:317
 msgid "Email a customer before their license expires, with a link to renew. The check runs once a day. Each reminder is sent once per expiry date, and a renewal starts over. It is recorded in the license history."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:319
+#: src/Admin/SettingsScreen.php:324
 msgid "Send expiry reminders"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:320
+#: src/Admin/SettingsScreen.php:325
 msgid "Off until you turn it on, so nobody is emailed by surprise. Licenses that never expire, and revoked or refunded licenses, get nothing."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:328
+#: src/Admin/SettingsScreen.php:333
 msgid "Up to five numbers of days, separated by commas. 30, 7 sends one email within 30 days of expiry and another within 7 days."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:335
+#: src/Admin/SettingsScreen.php:340
 msgid "Also email once after a license has expired"
 msgstr ""
 
 #. translators: %s: number field.
-#: src/Admin/SettingsScreen.php:338
+#: src/Admin/SettingsScreen.php:343
 #, php-format
 msgid "%s days after the expiry date"
 msgstr ""
 
 #. translators: %d: number of days.
-#: src/Admin/SettingsScreen.php:344
+#: src/Admin/SettingsScreen.php:349
 #, php-format
 msgid "Says the license expired, and links to renew. Off until you turn it on, separately from the reminders before expiry. Each expiry date gets it once, recorded in the license history. Only licenses that reached that day in the last %d days are emailed, so turning it on does not write to customers whose license ran out long ago."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:355
+#: src/Admin/SettingsScreen.php:360
 msgid "Where the email sends customers. Leave empty to use the Licenses page of My Account in your store (the customer logs in and presses Renew), or your home page when there is no store."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:364
+#: src/Admin/SettingsScreen.php:369
+msgid "Every reminder email has a link to stop them, and customers with an account have a switch on the Licenses page of My Account. It covers every license with that address, before and after expiry."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:372
+msgid "No customer has stopped them."
+msgstr ""
+
+#. translators: %d: number of email addresses.
+#: src/Admin/SettingsScreen.php:378
+#, php-format
+msgid "%d address gets no reminder emails."
+msgid_plural "%d addresses get no reminder emails."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/SettingsScreen.php:379
+msgid "Email address"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:379
+msgid "Since"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:379
+msgid "How"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:387
+msgid "In My Account"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:387
+msgid "From an email"
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:388
+msgid "Turn back on"
+msgstr ""
+
+#. translators: %d: number of addresses shown.
+#: src/Admin/SettingsScreen.php:395
+#, php-format
+msgid "The newest %d are shown."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:420
 msgid "Send me a test email"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:365
+#: src/Admin/SettingsScreen.php:421
 msgid "Send me the email after expiry"
 msgstr ""
 
 #. translators: %s: the administrator's email address.
-#: src/Admin/SettingsScreen.php:369
+#: src/Admin/SettingsScreen.php:425
 #, php-format
 msgid "Sends the reminder a customer would get to %s, for your first product and the first number of days above (or the email after expiry), with [Test] in the subject. It uses the saved settings, so save your changes first. It works while reminders are off, and nothing is recorded on any license."
 msgstr ""
 
+#: src/Admin/SettingsScreen.php:467
+msgid "Reminder emails go to that address again."
+msgstr ""
+
 #. translators: %s: email address.
-#: src/Admin/SettingsScreen.php:412
+#: src/Admin/SettingsScreen.php:470
 #, php-format
 msgid "A test reminder was sent to %s. If it does not arrive, check the spam folder and your site's email setup."
 msgstr ""
 
 #. translators: %s: email address.
-#: src/Admin/SettingsScreen.php:415
+#: src/Admin/SettingsScreen.php:473
 #, php-format
 msgid "WordPress could not send the test reminder to %s. Check your site's email setup (an SMTP plugin, for example)."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:423
+#: src/Admin/SettingsScreen.php:481
 msgid "Clients that send many wrong license keys are blocked for the rest of the time window. Right keys that are expired or revoked do not count."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:424
+#: src/Admin/SettingsScreen.php:482
 msgid "Clients are told apart by their address. If this site is behind Cloudflare or another proxy, choose so below; otherwise all customers would share the proxy's address and one counter, and one client sending wrong keys could block everyone."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:445
+#: src/Admin/SettingsScreen.php:503
 msgid "0 keeps it forever."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:454
+#: src/Admin/SettingsScreen.php:512
 msgid "Directly (no proxy or CDN in front of the site)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:455
+#: src/Admin/SettingsScreen.php:513
 msgid "Through Cloudflare (the CF-Connecting-IP header is used, only on requests that come from Cloudflare's addresses)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:456
+#: src/Admin/SettingsScreen.php:514
 msgid "Through another proxy or load balancer (the X-Forwarded-For header is used, only on requests from the proxies listed below)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:465
+#: src/Admin/SettingsScreen.php:523
 msgid "Addresses of your proxies (for the last choice), one address or range per line, for example 10.0.0.0/8"
 msgstr ""
 
 #. translators: 1: the address the request came from, 2: the address counted for it.
-#: src/Admin/SettingsScreen.php:472
+#: src/Admin/SettingsScreen.php:530
 #, php-format
 msgid "This page was requested from %1$s, and the plugin counts it as %2$s. If the second is not your own address, the choice above is not right for this site."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:483
+#: src/Admin/SettingsScreen.php:541
 msgid "Answer the old 1.x API addresses (/api/wplicense-it-api/v1/...)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:484
+#: src/Admin/SettingsScreen.php:542
 msgid "Plugins and themes released with WPLicense It 1.x check licenses and updates there, with the license key in the address, where web server logs can keep it. Switch this off when no more calls come (see Status below): those addresses then answer that they are gone, and copies of your plugins that still use them stop getting updates until they are updated by hand."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:494
+#: src/Admin/SettingsScreen.php:552
 msgid "On."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:494
+#: src/Admin/SettingsScreen.php:552
 msgid "Switched off: they answer that they are gone."
 msgstr ""
 
 #. translators: %d: number of days.
-#: src/Admin/SettingsScreen.php:499
+#: src/Admin/SettingsScreen.php:557
 #, php-format
 msgid "No calls in the last %d days."
 msgstr ""
 
 #. translators: 1: number of calls, 2: number of days, 3: date of the last call, 4: product names.
-#: src/Admin/SettingsScreen.php:513
+#: src/Admin/SettingsScreen.php:571
 #, php-format
 msgid "%1$s call in the last %2$d days, the last on %3$s (%4$s)."
 msgid_plural "%1$s calls in the last %2$d days, the last on %3$s (%4$s)."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/SettingsScreen.php:525
+#: src/Admin/SettingsScreen.php:583
 msgid "Delete all license data when the plugin is deleted"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:526
+#: src/Admin/SettingsScreen.php:584
 msgid "Off by default: deleting the plugin from the Plugins page keeps every license, activation, order record and setting, so installing it again picks up where you left off. Turn this on only if you want them gone for good; this cannot be undone. Products and uploaded release files are WordPress content and stay either way."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:533
+#: src/Admin/SettingsScreen.php:591
 msgid "Keep the address and phone number from migrated 1.x orders"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:534
+#: src/Admin/SettingsScreen.php:592
 msgid "Only used when the 1.x data is migrated. They contain personal data, and are covered by the WordPress personal data export and erase tools."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:544
+#: src/Admin/SettingsScreen.php:602
 msgid "API address"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:545
+#: src/Admin/SettingsScreen.php:603
 msgid "1.x data migration"
 msgstr ""
 
 #. translators: 1: licenses, 2: orders.
-#: src/Admin/SettingsScreen.php:559
+#: src/Admin/SettingsScreen.php:617
 #, php-format
 msgid "Finished. %1$d licenses and %2$d orders migrated."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:562
+#: src/Admin/SettingsScreen.php:620
 msgid "Needs attention. See the notice at the top of the admin screens."
 msgstr ""
 
 #. translators: 1: licenses, 2: orders.
-#: src/Admin/SettingsScreen.php:566
+#: src/Admin/SettingsScreen.php:624
 #, php-format
 msgid "In progress. %1$d licenses and %2$d orders so far."
 msgstr ""
@@ -1799,12 +1853,12 @@ msgid "Please log in to see your licenses."
 msgstr ""
 
 #: src/Compat/LegacyShortcodes.php:61
-#: src/WooCommerce/AccountPage.php:114
+#: src/WooCommerce/AccountPage.php:121
 msgid "You have no licenses yet."
 msgstr ""
 
 #: src/Compat/LegacyShortcodes.php:78
-#: src/WooCommerce/AccountPage.php:150
+#: src/WooCommerce/AccountPage.php:216
 msgid "Download"
 msgstr ""
 
@@ -2120,44 +2174,60 @@ msgstr ""
 msgid "The WooCommerce product no longer exists."
 msgstr ""
 
-#: src/Privacy/PrivacyHooks.php:37
-#: src/Privacy/PrivacyHooks.php:52
+#: src/Privacy/PrivacyHooks.php:38
+#: src/Privacy/PrivacyHooks.php:53
 msgid "WPLicense It licenses and orders"
 msgstr ""
 
-#: src/Privacy/PrivacyHooks.php:91
+#: src/Privacy/PrivacyHooks.php:75
+msgid "License reminder emails"
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:79
+msgid "Reminder emails stopped"
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:80
+msgid "in My Account"
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:80
+msgid "from an email"
+msgstr ""
+
+#: src/Privacy/PrivacyHooks.php:117
 msgid "Software licenses"
 msgstr ""
 
-#: src/Privacy/PrivacyHooks.php:92
+#: src/Privacy/PrivacyHooks.php:118
 msgid "Suggested text. Review it and adapt it to how you use WPLicense It."
 msgstr ""
 
-#: src/Privacy/PrivacyHooks.php:93
+#: src/Privacy/PrivacyHooks.php:119
 msgid "When you buy or are given a software license, we store the email address and account the license was issued to, the license key, the product, the dates and the sites the license is activated on. For orders we keep the order number, the total and the date. We use this to provide the license, to let you download updates, to support you and for our accounting."
 msgstr ""
 
-#: src/Privacy/PrivacyHooks.php:94
+#: src/Privacy/PrivacyHooks.php:120
 msgid "When a plugin or theme you installed checks for updates or activates its license, it sends the license key, the product, your site address and the installed version to our server. Nothing else about your site is sent. If our server is asked about a license that does not exist, your IP address is counted for a few minutes to stop key guessing, and is not stored in readable form."
 msgstr ""
 
-#: src/Privacy/PrivacyHooks.php:97
+#: src/Privacy/PrivacyHooks.php:123
 msgid "The history of each license (activations, renewals and changes) is kept for as long as the license exists."
 msgstr ""
 
 #. translators: %d: number of years.
-#: src/Privacy/PrivacyHooks.php:99
+#: src/Privacy/PrivacyHooks.php:125
 #, php-format
 msgid "The history of each license (activations, renewals and changes) is deleted after %d year."
 msgid_plural "The history of each license (activations, renewals and changes) is deleted after %d years."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Privacy/PrivacyHooks.php:102
-msgid "Before a license expires we email the address it was issued to, with a link to renew it."
+#: src/Privacy/PrivacyHooks.php:128
+msgid "Before a license expires we email the address it was issued to, with a link to renew it. Every such email has a link to stop them; if you use it, we keep your email address and the date to remember that."
 msgstr ""
 
-#: src/Privacy/PrivacyHooks.php:104
+#: src/Privacy/PrivacyHooks.php:130
 msgid "On request we remove your name, email address and account from the licenses and orders. The license key, product, dates, activated site addresses and order totals are kept because they are needed to support the license and for accounting."
 msgstr ""
 
@@ -2342,6 +2412,48 @@ msgstr ""
 msgid "That release no longer exists."
 msgstr ""
 
+#: src/Reminders/UnsubscribePage.php:43
+msgid "This link is not valid. Use the link from the most recent email, or contact us."
+msgstr ""
+
+#: src/Reminders/UnsubscribePage.php:43
+#: src/Reminders/UnsubscribePage.php:95
+#: src/WooCommerce/AccountPage.php:142
+msgid "Reminder emails"
+msgstr ""
+
+#. translators: 1: email address, 2: site name.
+#: src/Reminders/UnsubscribePage.php:74
+#, php-format
+msgid "Done. %1$s will get no more reminder emails about licenses from %2$s."
+msgstr ""
+
+#. translators: %s: email address.
+#: src/Reminders/UnsubscribePage.php:77
+#, php-format
+msgid "Done. %s will get reminder emails again before a license expires."
+msgstr ""
+
+#. translators: %s: email address.
+#: src/Reminders/UnsubscribePage.php:80
+#, php-format
+msgid "Reminder emails to %s are stopped."
+msgstr ""
+
+#. translators: 1: email address, 2: site name.
+#: src/Reminders/UnsubscribePage.php:83
+#, php-format
+msgid "Stop the emails that remind %1$s before a license from %2$s expires (and after it expired)? Your licenses keep working, and orders and invoices are still emailed."
+msgstr ""
+
+#: src/Reminders/UnsubscribePage.php:91
+msgid "Turn reminder emails back on"
+msgstr ""
+
+#: src/Reminders/UnsubscribePage.php:92
+msgid "Stop reminder emails"
+msgstr ""
+
 #: src/Reminders/WpReminderMailer.php:50
 msgid "your product"
 msgstr ""
@@ -2389,6 +2501,15 @@ msgid ""
 "\n"
 "Thank you,\n"
 "%4$s\n"
+""
+msgstr ""
+
+#. translators: %s: address of the page that stops these emails.
+#: src/Reminders/WpReminderMailer.php:91
+#, php-format
+msgid ""
+"Don't want these reminders? Stop them here:\n"
+"%s\n"
 ""
 msgstr ""
 
@@ -2705,20 +2826,36 @@ msgstr ""
 msgid "No WordPress user has this user_id. Leave it empty to import the license without an account."
 msgstr ""
 
-#: src/WooCommerce/AccountPage.php:106
+#: src/WooCommerce/AccountPage.php:109
 msgid "The site was deactivated. You can use the license on another site."
 msgstr ""
 
-#: src/WooCommerce/AccountPage.php:108
+#: src/WooCommerce/AccountPage.php:111
 msgid "That site could not be deactivated."
 msgstr ""
 
-#: src/WooCommerce/AccountPage.php:134
+#: src/WooCommerce/AccountPage.php:113
+msgid "You will get an email before a license expires."
+msgstr ""
+
+#: src/WooCommerce/AccountPage.php:115
+msgid "You will get no more reminder emails about your licenses."
+msgstr ""
+
+#: src/WooCommerce/AccountPage.php:145
+msgid "Email me before a license expires, and once after it expired"
+msgstr ""
+
+#: src/WooCommerce/AccountPage.php:146
+msgid "Save"
+msgstr ""
+
+#: src/WooCommerce/AccountPage.php:200
 msgid "unlimited"
 msgstr ""
 
 #. translators: 1: sites in use, 2: sites allowed.
-#: src/WooCommerce/AccountPage.php:144
+#: src/WooCommerce/AccountPage.php:210
 #, php-format
 msgid "%1$d of %2$s in use"
 msgstr ""

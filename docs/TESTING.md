@@ -86,7 +86,9 @@ history entry, no second invoice or email, a guest paying from the link, the acc
 paying with cash on delivery, the license renewed by a year only when the order is completed and no second license made, and an
 unpaid invoice cancelled when its license is renewed by another order.
 
-`tests/e2e/16-reminders.cjs` (59 checks) covers expiry reminder emails: off by default, the email after expiry (off by
+`tests/e2e/16-reminders.cjs` (77 checks) covers expiry reminder emails: off by default, stopping them (the link and headers in
+every email, the link only asks until Stop is pressed, a wrong code is refused, no more reminders to that address, the
+owner's list and Turn back on, the one-click request, the privacy export and erase, the My Account switch), the email after expiry (off by
 default, sent once to a license that ran out 4 days ago and not to one 40 days ago, recorded, its test button), the test email button (sent only to
 the administrator, while reminders are off, with the customer's subject marked [Test] and link, nothing recorded, refused
 without its security token), junk cleaned from the days setting, the

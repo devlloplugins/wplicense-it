@@ -204,6 +204,14 @@ expiry date, says what expiry means (no more updates) and links to the renewal a
   last 30 days are emailed, so turning it on does not write to customers whose license ran out long ago, and a day the job
   did not run is caught up. `wplicense_it_send_reminder` and `wplicense_it_reminder_email` get a negative number of days
   for this email (days since expiry).
+- **Stopping them:** every reminder ends with a link to stop them, and has `List-Unsubscribe` headers, so mail programs
+  show their own unsubscribe button (one click, RFC 8058). Opening the link only asks (mail scanners open links); the
+  **Stop reminder emails** button does it, and the page then offers to turn them back on. Customers with an account also
+  have a switch on My Account > Licenses. It is kept per email address (option `wplit_reminder_optouts`), so it covers
+  every license with that address, before and after expiry, now and later. **Stopped by customers** in the settings lists
+  the addresses, since when and how, with **Turn back on**. The WordPress personal data export includes it and erasing a
+  person removes it. Links carry a code made from the address with the site's secret keys; changing those keys makes old
+  links stop working.
 - **Test email:** **Send me a test email** (and **Send me the email after expiry**) sends you the email a customer would get, built by the same code, for your
   first product and the first number of days in the setting, with `[Test]` in the subject. It uses the saved settings and
   works while reminders are off. Nothing is recorded on any license.

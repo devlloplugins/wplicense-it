@@ -50,7 +50,7 @@ function wplit_uninstall_site() {
     delete_option( 'wplit_legacy_api_usage' );
     delete_option( 'wplit_client_ip_source' );
     delete_option( 'wplit_trusted_proxies' );
-    foreach ( array( 'wplit_reminders_enabled', 'wplit_reminder_days', 'wplit_reminder_url', 'wplit_reminder_after_enabled', 'wplit_reminder_after_days' ) as $option ) {
+    foreach ( array( 'wplit_reminders_enabled', 'wplit_reminder_days', 'wplit_reminder_url', 'wplit_reminder_after_enabled', 'wplit_reminder_after_days', 'wplit_reminder_optouts' ) as $option ) {
         delete_option( $option );
     }
 }

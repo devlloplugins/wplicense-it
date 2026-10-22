@@ -36,6 +36,7 @@ use Devllo\WPLicenseIt\Files\ProtectedStorage;
 use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Migration\Command;
+use Devllo\WPLicenseIt\Reminders\UnsubscribePage;
 use Devllo\WPLicenseIt\Migration\MigrationRunner;
 use Devllo\WPLicenseIt\Plans\PostMetaPlanRepository;
 use Devllo\WPLicenseIt\Products\ProductCleanup;
@@ -127,6 +128,7 @@ final class Plugin {
 
 		// Runs from WP-Cron, so it is not limited to admin requests.
 		Maintenance::register();
+		( new UnsubscribePage() )->register();
 
 		// WordPress runs the privacy tools in admin requests and from WP-Cron (the export and erase emails).
 		( new PrivacyHooks() )->register();

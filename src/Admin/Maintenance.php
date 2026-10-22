@@ -19,6 +19,7 @@ use Devllo\WPLicenseIt\Reminders\ReminderService;
 use Devllo\WPLicenseIt\Renewals\RenewalInvoiceService;
 use Devllo\WPLicenseIt\Renewals\RenewalSettings;
 use Devllo\WPLicenseIt\Reminders\ReminderSettings;
+use Devllo\WPLicenseIt\Reminders\OptOut;
 use Devllo\WPLicenseIt\Reminders\WpReminderMailer;
 use Devllo\WPLicenseIt\WooCommerce\OrderReader;
 use Devllo\WPLicenseIt\WooCommerce\WooRenewalOrderCreator;
@@ -61,7 +62,7 @@ final class Maintenance {
 
 		self::expire_all( $plugin->licenses() );
 
-		$reminders = new ReminderService( new WpdbLicenseRepository( $wpdb ), new WpdbEventLog( $wpdb ), new WpReminderMailer( new WpProductCatalog() ) );
+		$reminders = new ReminderService( new WpdbLicenseRepository( $wpdb ), new WpdbEventLog( $wpdb ), new WpReminderMailer( new WpProductCatalog() ), null, array( OptOut::class, 'is_out' ) );
 
 		if ( ReminderSettings::enabled() ) {
 			$reminders->send_due( ReminderSettings::days() );

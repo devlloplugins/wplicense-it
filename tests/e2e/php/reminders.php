@@ -7,6 +7,8 @@
  *   php tests/e2e/php/reminders.php due            makes the daily maintenance event due now (for wp-cron.php to run)
  *   php tests/e2e/php/reminders.php state          what WordPress holds about the job and the reminders (for a failure message)
  *   php tests/e2e/php/reminders.php lapsed         two licenses that ran out: 4 days ago, and 40 days ago
+ *   php tests/e2e/php/reminders.php license EMAIL DAYS   a license for the reminder product that expires in DAYS days
+ *   php tests/e2e/php/reminders.php optout EMAIL   the stop link for an address, its entry in the list, and what the privacy tools say
  */
 
 declare( strict_types=1 );
@@ -80,6 +82,29 @@ if ( 'due' === $op ) {
 	wp_clear_scheduled_hook( \Devllo\WPLicenseIt\Admin\Maintenance::HOOK );
 	wp_schedule_event( time() - 60, 'daily', \Devllo\WPLicenseIt\Admin\Maintenance::HOOK );
 	echo wp_json_encode( array( 'ok' => true ) );
+	exit( 0 );
+}
+
+if ( 'license' === $op ) {
+	$product = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type='wplit_product' AND post_title='Reminder Product' ORDER BY ID DESC LIMIT 1" );
+	$license = \Devllo\WPLicenseIt\Plugin::instance()->licenses()->issue_license( $product, (string) $argv[2], null, null, 1, new DateTimeImmutable( '+' . (int) $argv[3] . ' days', new DateTimeZone( 'UTC' ) ) );
+	echo wp_json_encode( array( 'id' => $license->id ) );
+	exit( 0 );
+}
+
+if ( 'optout' === $op ) {
+	$email  = (string) $argv[2];
+	$hooks  = new \Devllo\WPLicenseIt\Privacy\PrivacyHooks();
+	$export = $hooks->export( $email, 1 );
+	echo wp_json_encode(
+		array(
+			'url'      => \Devllo\WPLicenseIt\Reminders\OptOut::url( $email ),
+			'entry'    => \Devllo\WPLicenseIt\Reminders\OptOut::entry( $email ),
+			'exported' => array_values( array_filter( $export['data'], static fn( $item ) => 'wplit-reminders' === $item['group_id'] ) ),
+			'erase'    => 'erase' === ( $argv[3] ?? '' ) ? $hooks->erase( $email, 1 ) : null,
+			'after'    => \Devllo\WPLicenseIt\Reminders\OptOut::entry( $email ),
+		)
+	);
 	exit( 0 );
 }
 
