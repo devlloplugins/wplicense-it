@@ -95,6 +95,7 @@ Please post it in the [WordPress support forum](https://wordpress.org/support/pl
 * Client SDK: a theme's "View version details" link now shows the version, requirements and what is new (it opened the seller's home page).
 * A demo store for test sites: wp wplit demo create makes products, plans, customers and orders with licenses in every state, and wp wplit demo remove deletes them again.
 * Export licenses to CSV and import them from CSV (for example from another licensing system), with a check that shows what will happen first.
+* Client SDK: WordPress's automatic updates work for licensed plugins and themes; a release that needs a newer PHP is not offered to sites on an older one; an expired license still sees the new version, with a Renew link, but cannot install it until renewed.
 * Requires PHP 8.0 and WordPress 6.2.
 
 = 1.0.2 =

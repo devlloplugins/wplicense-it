@@ -60,7 +60,10 @@ final class UpdateService {
 	 * @param bool         $force   Ignore the cache.
 	 */
 	public function latest( LicenseState $license, int $now, bool $force = false ): ?UpdateInfo {
-		if ( ! $license->is_active( $now ) ) {
+		// An expired license still learns what it is missing (shown, not installable). Other inactive ones learn nothing.
+		$expired = '' !== $license->key && ( LicenseState::EXPIRED === $license->status || ( LicenseState::ACTIVE === $license->status && ! $license->is_active( $now ) ) );
+
+		if ( ! $license->is_active( $now ) && ! $expired ) {
 			return null;
 		}
 
@@ -72,12 +75,25 @@ final class UpdateService {
 			}
 
 			$info = UpdateInfo::from_array( $cached );
-			if ( null !== $info ) {
+			// A cached answer from before the license expired (or was renewed) is asked again.
+			if ( null !== $info && $info->needs_renewal() === $expired ) {
 				return $info;
 			}
 		}
 
 		$result = $this->api->check_update( $license->key );
+
+		if ( ! $result->ok && 'expired' === $result->code && isset( $result->data['product'] ) && is_array( $result->data['product'] ) ) {
+			$info = UpdateInfo::from_response( $result->data );
+
+			if ( null !== $info ) {
+				$info->needs_renewal = '1';
+				$info->renew_url     = isset( $result->data['renew_url'] ) && is_string( $result->data['renew_url'] ) ? $result->data['renew_url'] : '';
+				$this->store->cache_set( 'update', $info->to_array(), self::CACHE_FOUND );
+
+				return $info;
+			}
+		}
 
 		if ( ! $result->ok ) {
 			// A definite "no" is remembered for a while. A temporary problem is not cached at all.

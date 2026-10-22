@@ -119,6 +119,12 @@ from their account, or you do.
   so copying a site cannot multiply a license.
 - **A silent server is reported, not punished.** After 7 days without an answer from your server the license keeps working,
   but the license page and a dismissible admin notice say updates may be missing, with **Check now**.
+- **An expired license still sees new versions.** The Plugins screen (or the theme's details page) says "Your license has
+  expired. Renew it to get version x", with a Renew link to the customer's account. The update cannot be installed until the
+  license is renewed, and automatic updates are paused for it meanwhile (the customer's own setting is kept).
+- **Automatic updates work.** WordPress's Enable auto-updates switch is there for your plugin or theme, and the background
+  update gets a fresh download link like the Update button. A release that needs a newer PHP (`Requires PHP` in your
+  readme or plugin header) is not offered to sites on an older PHP.
 - **A full license says where it is used.** When activation fails because every site is taken, the message lists the
   sites that use it and the link to free one in the customer's account.
 - **Several plugins can include the SDK.** Only the newest copy on the site is loaded (by the version at the end of

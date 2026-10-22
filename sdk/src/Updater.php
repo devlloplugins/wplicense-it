@@ -73,8 +73,33 @@ final class Updater {
 			add_action( 'wp_ajax_' . self::DETAILS_ACTION, array( $this, 'theme_details' ) );
 		}
 
+		add_filter( 'auto_update_' . $this->config->type, array( $this, 'no_auto_update_while_expired' ), 10, 2 );
 		add_filter( 'upgrader_pre_download', array( $this, 'download_package' ), 10, 4 );
 		add_filter( 'upgrader_source_selection', array( $this, 'fix_folder_name' ), 10, 4 );
+	}
+
+	/**
+	 * While the license has expired the update is shown but cannot be installed. WordPress's automatic update would try
+	 * anyway, fail, and email the site's administrator about it at every check; and the Plugins screen would say an update
+	 * is scheduled. So automatic updates are off for this item until the license is renewed. The administrator's own
+	 * setting is kept and applies again after renewing.
+	 *
+	 * @param mixed $update Whether to update (null: WordPress's own setting decides).
+	 * @param mixed $item   The update entry WordPress is looking at.
+	 * @return mixed
+	 */
+	public function no_auto_update_while_expired( $update, $item ) {
+		$id = is_object( $item ) ? ( 'plugin' === $this->config->type ? ( $item->plugin ?? null ) : ( $item->theme ?? null ) ) : null;
+		$me = 'plugin' === $this->config->type ? $this->config->basename : $this->config->slug;
+
+		if ( $me !== $id ) {
+			return $update;
+		}
+
+		$stored = get_site_transient( 'plugin' === $this->config->type ? 'update_plugins' : 'update_themes' );
+		$entry  = is_object( $stored ) ? (array) ( $stored->response[ $me ] ?? array() ) : array();
+
+		return isset( $entry['package'] ) && '' === $entry['package'] && in_array( $entry['url'] ?? null, array( $this->config->server, self::details_url( $this->config ) ), true ) ? false : $update;
 	}
 
 	/**
@@ -101,8 +126,23 @@ final class Updater {
 		if ( null !== $info && $info->is_newer_than( $this->config->version ) ) {
 			$transient->response[ $this->config->basename ] = self::plugin_entry( $this->config, $info );
 			unset( $transient->no_update[ $this->config->basename ] );
-		} elseif ( isset( $transient->response[ $this->config->basename ] ) && $this->config->package_marker() === $transient->response[ $this->config->basename ]->package ) {
-			unset( $transient->response[ $this->config->basename ] ); // An old entry that no longer applies.
+
+			return $transient;
+		}
+
+		// An old entry of ours that no longer applies (ours: the download marker, or no package and the server's address).
+		$old     = $transient->response[ $this->config->basename ] ?? null;
+		$package = is_object( $old ) ? ( $old->package ?? null ) : null;
+		$url     = is_object( $old ) ? ( $old->url ?? null ) : null;
+		if ( $this->config->package_marker() === $package || ( '' === $package && $url === $this->config->server ) ) {
+			unset( $transient->response[ $this->config->basename ] );
+		}
+
+		// Up to date: listed as such, which is what makes WordPress show the "Enable auto-updates" link.
+		if ( null !== $info && ! $info->needs_renewal() ) {
+			$entry              = self::plugin_entry( $this->config, $info );
+			$entry->new_version = $this->config->version;
+			$transient->no_update[ $this->config->basename ] = $entry;
 		}
 
 		return $transient;
@@ -123,6 +163,13 @@ final class Updater {
 
 		if ( null !== $info && $info->is_newer_than( $this->config->version ) ) {
 			$transient->response[ $this->config->slug ] = self::theme_entry( $this->config, $info );
+			unset( $transient->no_update[ $this->config->slug ] );
+		} elseif ( null !== $info && ! $info->needs_renewal() ) {
+			// Up to date: listed as such, so the theme can have automatic updates turned on.
+			$entry                                       = self::theme_entry( $this->config, $info );
+			$entry['new_version']                        = $this->config->version;
+			$transient->no_update[ $this->config->slug ] = $entry;
+			unset( $transient->response[ $this->config->slug ] );
 		}
 
 		return $transient;
@@ -135,17 +182,21 @@ final class Updater {
 	 * @param UpdateInfo $info   Latest version.
 	 */
 	public static function plugin_entry( Config $config, UpdateInfo $info ): stdClass {
-		$entry              = new stdClass();
-		$entry->id          = $config->server . '/' . $config->slug;
-		$entry->slug        = $config->slug;
-		$entry->plugin      = $config->basename;
-		$entry->new_version = $info->version;
-		$entry->url         = $config->server;
-		$entry->package     = $config->package_marker();
-		$entry->tested      = self::tested( $info->tested );
-		$entry->requires    = $info->requires;
-		$entry->icons       = array();
-		$entry->banners     = array_filter(
+		$entry               = new stdClass();
+		$entry->id           = $config->server . '/' . $config->slug;
+		$entry->slug         = $config->slug;
+		$entry->plugin       = $config->basename;
+		$entry->new_version  = $info->version;
+		$entry->url          = $config->server;
+		$entry->package      = $info->needs_renewal() ? '' : $config->package_marker();
+		$entry->tested       = self::tested( $info->tested );
+		$entry->requires     = $info->requires;
+		$entry->requires_php = $info->requires_php;
+		if ( $info->needs_renewal() ) {
+			$entry->upgrade_notice = 'Your license has expired. Renew it to install this version.';
+		}
+		$entry->icons   = array();
+		$entry->banners = array_filter(
 			array(
 				'low'  => $info->banner_low,
 				'high' => $info->banner_high,
@@ -167,9 +218,9 @@ final class Updater {
 			'theme'        => $config->slug,
 			'new_version'  => $info->version,
 			'url'          => self::details_url( $config ),
-			'package'      => $config->package_marker(),
+			'package'      => $info->needs_renewal() ? '' : $config->package_marker(),
 			'requires'     => $info->requires,
-			'requires_php' => '',
+			'requires_php' => $info->requires_php,
 		);
 	}
 
@@ -198,7 +249,8 @@ final class Updater {
 		$theme = isset( $_GET['theme'] ) && is_string( $_GET['theme'] ) ? sanitize_text_field( wp_unslash( $_GET['theme'] ) ) : '';
 
 		if ( $theme !== $this->config->slug ) {
-			return; // Another theme's, answered by its own copy of the SDK.
+			return;
+			// Another theme's, answered by its own copy of the SDK.
 		}
 
 		if ( ! current_user_can( 'update_themes' ) && ! current_user_can( 'switch_themes' ) ) {
@@ -235,17 +287,23 @@ final class Updater {
 			if ( '' !== $info->requires ) {
 				$body .= '<li><strong>Requires WordPress:</strong> ' . esc_html( $info->requires ) . '</li>';
 			}
+			if ( '' !== $info->requires_php ) {
+				$body .= '<li><strong>Requires PHP:</strong> ' . esc_html( $info->requires_php ) . '</li>';
+			}
 			if ( '' !== $info->tested ) {
 				$body .= '<li><strong>Tested up to:</strong> ' . esc_html( $info->tested ) . '</li>';
 			}
 			$body .= '</ul>';
+			if ( $info->needs_renewal() ) {
+				$body .= '<p class="renew"><strong>Your license has expired. Renew it to install this version.</strong>' . ( '' !== $info->renew_url ? ' <a href="' . esc_url( $info->renew_url ) . '" target="_blank" rel="noopener">Renew</a>' : '' ) . '</p>';
+			}
 			if ( '' !== trim( $info->changelog ) ) {
 				$body .= '<h2>What is new in ' . esc_html( $info->version ) . '</h2>' . wpautop( esc_html( $info->changelog ) );
 			}
 			if ( '' !== trim( $info->description ) ) {
 				$body .= '<h2>Description</h2>' . wpautop( esc_html( $info->description ) );
 			}
-		}
+		}//end if
 
 		return '<!DOCTYPE html><html lang="' . esc_attr( $lang ) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
 			. '<title>' . esc_html( $name . ( null !== $info ? ' ' . $info->version : '' ) ) . '</title>'
@@ -274,14 +332,15 @@ final class Updater {
 			return $result;
 		}
 
-		$details           = new stdClass();
-		$details->name     = '' !== $info->name ? $info->name : $this->config->name;
-		$details->slug     = $this->config->slug;
-		$details->version  = $info->version;
-		$details->requires = $info->requires;
-		$details->tested   = self::tested( $info->tested );
-		$details->homepage = $this->config->server;
-		$details->sections = array( 'description' => wpautop( esc_html( $info->description ) ) );
+		$details               = new stdClass();
+		$details->name         = '' !== $info->name ? $info->name : $this->config->name;
+		$details->slug         = $this->config->slug;
+		$details->version      = $info->version;
+		$details->requires     = $info->requires;
+		$details->requires_php = $info->requires_php;
+		$details->tested       = self::tested( $info->tested );
+		$details->homepage     = $this->config->server;
+		$details->sections     = array( 'description' => wpautop( esc_html( $info->description ) ) );
 		if ( '' !== trim( $info->changelog ) ) {
 			$details->sections['changelog'] = wpautop( esc_html( $info->changelog ) );
 		}
@@ -291,7 +350,7 @@ final class Updater {
 				'high' => $info->banner_high,
 			)
 		);
-		$details->download_link = $this->config->package_marker();
+		$details->download_link = $info->needs_renewal() ? '' : $this->config->package_marker();
 
 		return $details;
 	}
@@ -387,9 +446,22 @@ final class Updater {
 		global $wp_list_table;
 
 		$columns = $wp_list_table ? $wp_list_table->get_column_count() : 3;
+		$info    = $this->updates->latest( $this->manager->state(), time() );
 
-		echo '<tr class="plugin-update-tr active"><td colspan="' . esc_attr( (string) $columns ) . '" class="plugin-update colspanchange"><div class="update-message notice inline notice-warning notice-alt"><p>';
-		echo esc_html( sprintf( 'Enter your %s license key to receive updates.', $this->config->name ) );
+		echo '<tr class="plugin-update-tr active"><td colspan="' . esc_attr( (string) $columns ) . '" class="plugin-update colspanchange"><div class="update-message notice inline notice-warning notice-alt wplit-client-row"><p>';
+
+		if ( null !== $info && $info->needs_renewal() ) {
+			echo esc_html(
+				$info->is_newer_than( $this->config->version )
+					? sprintf( 'Your %1$s license has expired. Renew it to get version %2$s.', $this->config->name, $info->version )
+					: sprintf( 'Your %s license has expired. Renew it to keep receiving updates.', $this->config->name )
+			);
+			if ( '' !== $info->renew_url ) {
+				echo ' <a href="' . esc_url( $info->renew_url ) . '">' . esc_html( 'Renew' ) . '</a>';
+			}
+		} else {
+			echo esc_html( sprintf( 'Enter your %s license key to receive updates.', $this->config->name ) );
+		}
 
 		if ( '' !== $this->config->menu_parent ) {
 			echo ' <a href="' . esc_url( LicensePage::url( $this->config ) ) . '">' . esc_html( 'Manage license' ) . '</a>';

@@ -27,6 +27,7 @@ final class ProductInfo {
 	 * @param string $banner_url  Banner URL (used as the large banner).
 	 * @param bool   $has_package Whether a downloadable file has been uploaded.
 	 * @param string $changelog   What changed in this version, plain text lines, or ''.
+	 * @param string $requires_php Minimum PHP version from the release, or ''.
 	 */
 	public function __construct(
 		public int $id,
@@ -38,7 +39,8 @@ final class ProductInfo {
 		public string $logo_url,
 		public string $banner_url,
 		public bool $has_package,
-		public string $changelog = ''
+		public string $changelog = '',
+		public string $requires_php = ''
 	) {
 	}
 }

@@ -241,7 +241,25 @@ final class ApiService {
 		}
 
 		$result = $this->licenses->validate( $input['license_key'], $input['product_id'] );
-		$error  = $this->validation_error( $result->code, $client );
+
+		// An expired license is told what it is missing (the version and what is new) and where to renew, without a
+		// download: the customer sees the update in WordPress and why it cannot be installed (decision 31).
+		if ( ValidationResult::EXPIRED === $result->code ) {
+			$product = $this->products->find( $input['product_id'] );
+
+			return new ApiResponse(
+				403,
+				array(
+					'success'   => false,
+					'code'      => 'expired',
+					'message'   => 'This license has expired.',
+					'product'   => null === $product ? null : $this->product_body( $product ),
+					'renew_url' => function_exists( 'wc_get_account_endpoint_url' ) ? (string) wc_get_account_endpoint_url( 'licenses' ) : '',
+				)
+			);
+		}
+
+		$error = $this->validation_error( $result->code, $client );
 		if ( null !== $error ) {
 			return $error;
 		}
@@ -258,23 +276,34 @@ final class ApiService {
 			200,
 			array(
 				'success'          => true,
-				'product'          => array(
-					'id'          => $product->id,
-					'name'        => $product->name,
-					'version'     => $product->version,
-					'requires'    => $product->requires,
-					'tested'      => $product->tested,
-					'description' => $product->description,
-					'changelog'   => $product->changelog,
-					'banners'     => array(
-						'low'  => $product->logo_url,
-						'high' => $product->banner_url,
-					),
-				),
+				'product'          => $this->product_body( $product ),
 				'update_available' => '' === $current ? null : version_compare( $product->version, $current, '>' ),
 				'download_url'     => ( $this->download_url )( $token ),
 				'expires_in'       => self::DOWNLOAD_TTL,
 			)
+		);
+	}
+
+	/**
+	 * What a client is told about a product's current release.
+	 *
+	 * @param ProductInfo $product Product.
+	 * @return array<string, mixed>
+	 */
+	private function product_body( ProductInfo $product ): array {
+		return array(
+			'id'           => $product->id,
+			'name'         => $product->name,
+			'version'      => $product->version,
+			'requires'     => $product->requires,
+			'requires_php' => $product->requires_php,
+			'tested'       => $product->tested,
+			'description'  => $product->description,
+			'changelog'    => $product->changelog,
+			'banners'      => array(
+				'low'  => $product->logo_url,
+				'high' => $product->banner_url,
+			),
 		);
 	}
 

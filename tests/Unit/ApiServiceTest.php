@@ -420,16 +420,18 @@ final class ApiServiceTest extends TestCase {
 		$valid   = $this->license();
 		$this->clock->advance( '+2 months' );
 
-		$this->assertSame(
-			403,
-			$this->api->check_update(
-				array(
-					'license_key' => $expired->license_key,
-					'product_id'  => 7,
-				),
-				self::CLIENT
-			)->status
+		$late = $this->api->check_update(
+			array(
+				'license_key' => $expired->license_key,
+				'product_id'  => 7,
+			),
+			self::CLIENT
 		);
+		$this->assertSame( 403, $late->status );
+		$this->assertSame( 'expired', $late->body['code'] );
+		$this->assertSame( '2.0.0', $late->body['product']['version'], 'an expired license is told what it is missing' );
+		$this->assertArrayNotHasKey( 'download_url', $late->body, 'but gets no download' );
+		$this->assertArrayHasKey( 'renew_url', $late->body );
 
 		$this->products->package = null;
 		$no_package              = $this->api->check_update(

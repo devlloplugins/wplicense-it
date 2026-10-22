@@ -21,7 +21,7 @@ function zip( cwd, out, ...items ) {
 }
 
 /** The sample plugin (folder wplit-sample) as a zip. changelog is the readme text under "== Changelog ==". */
-function samplePlugin( version, changelog ) {
+function samplePlugin( version, changelog, requiresPhp ) {
 	const root = path.join( DIR, 'build-' + version );
 	fs.rmSync( root, { recursive: true, force: true } );
 	const plugin = path.join( root, 'wplit-sample' );
@@ -31,7 +31,7 @@ Plugin Name: WPLit Sample
 Description: A tiny plugin for trying WPLicense It.
 Version: ${ version }
 Requires at least: 6.2
-Requires PHP: 7.4
+Requires PHP: ${ requiresPhp || '7.4' }
 Text Domain: wplit-sample
 */
 defined( 'ABSPATH' ) || exit;
@@ -45,7 +45,7 @@ add_action( 'admin_notices', function () {
 	write( path.join( plugin, 'readme.txt' ), `=== WPLit Sample ===
 Requires at least: 6.2
 Tested up to: 6.7
-Requires PHP: 7.4
+Requires PHP: ${ requiresPhp || '7.4' }
 Stable tag: ${ version }
 
 == Description ==
@@ -57,7 +57,7 @@ Sample.
 ${ changelog || '= ' + version + ' =\n* Release ' + version + '.\n' }`
 	);
 	fs.cpSync( path.join( REPO, 'sdk' ), path.join( plugin, 'vendor/wplicense-it-client' ), { recursive: true, filter: ( src ) => ! /phpcs\.xml\.dist$/.test( src ) } );
-	return zip( root, path.join( DIR, 'wplit-sample-' + version + '.zip' ), 'wplit-sample' );
+	return zip( root, path.join( DIR, 'wplit-sample-' + version + ( requiresPhp ? '-php' + requiresPhp : '' ) + '.zip' ), 'wplit-sample' );
 }
 
 /**

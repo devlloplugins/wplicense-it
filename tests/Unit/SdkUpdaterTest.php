@@ -453,4 +453,116 @@ final class SdkUpdaterTest extends TestCase {
 			'nothing stated'                       => array( '', '6.7.1', '' ),
 		);
 	}
+
+	// Card 102: the PHP requirement, expired licenses, automatic updates.
+
+	public function test_the_php_requirement_reaches_wordpress(): void {
+		$response                            = $this->update_response( '2.0.0' );
+		$response['product']['requires_php'] = '8.1';
+		$this->transport->reply( 200, $response );
+
+		$entry = $this->updater->add_plugin_update( (object) array( 'response' => array() ) )->response['great-plugin/great-plugin.php'];
+		$this->assertSame( '8.1', $entry->requires_php, 'WordPress does not offer the update to a site on older PHP' );
+		$this->assertSame( '8.1', Updater::theme_entry( $this->config, UpdateInfo::from_response( $response ) )['requires_php'] );
+		$this->assertStringContainsString( '<strong>Requires PHP:</strong> 8.1', Updater::details_page( $this->config, UpdateInfo::from_response( $response ), 'en' ) );
+	}
+
+	public function test_an_expired_license_sees_the_update_but_cannot_install_it(): void {
+		$state         = $this->store->load();
+		$state->status = LicenseState::EXPIRED;
+		$this->store->save( $state );
+		$this->transport->reply(
+			403,
+			array(
+				'success'   => false,
+				'code'      => 'expired',
+				'product'   => $this->update_response( '2.0.0' )['product'],
+				'renew_url' => 'https://shop.example.com/my-account/licenses/',
+			)
+		);
+
+		$entry = $this->updater->add_plugin_update( (object) array( 'response' => array() ) )->response['great-plugin/great-plugin.php'];
+
+		$this->assertSame( '2.0.0', $entry->new_version );
+		$this->assertSame( '', $entry->package, 'no package: WordPress says automatic update is unavailable' );
+		$this->assertStringContainsString( 'Renew it', $entry->upgrade_notice );
+		$details = $this->updater->plugin_information( false, 'plugin_information', (object) array( 'slug' => 'great-plugin' ) );
+		$this->assertSame( '', $details->download_link );
+	}
+
+	public function test_a_revoked_license_learns_nothing(): void {
+		$state         = $this->store->load();
+		$state->status = LicenseState::REVOKED;
+		$this->store->save( $state );
+
+		$this->assertSame( array(), $this->updater->add_plugin_update( (object) array( 'response' => array() ) )->response );
+		$this->assertSame( array(), $this->transport->requests, 'the server is not even asked' );
+	}
+
+	public function test_an_answer_from_before_the_license_expired_is_not_reused(): void {
+		$this->transport->reply( 200, $this->update_response( '2.0.0' ) );
+		$this->updater->add_plugin_update( (object) array( 'response' => array() ) );
+
+		$state         = $this->store->load();
+		$state->status = LicenseState::EXPIRED;
+		$this->store->save( $state );
+		$this->transport->reply(
+			403,
+			array(
+				'success' => false,
+				'code'    => 'expired',
+				'product' => $this->update_response( '2.0.0' )['product'],
+			)
+		);
+
+		$entry = $this->updater->add_plugin_update( (object) array( 'response' => array() ) )->response['great-plugin/great-plugin.php'];
+		$this->assertSame( '', $entry->package );
+	}
+
+	public function test_an_up_to_date_product_is_listed_so_automatic_updates_can_be_turned_on(): void {
+		$this->transport->reply( 200, $this->update_response( '1.2.0' ) );
+
+		$result = $this->updater->add_plugin_update(
+			(object) array(
+				'response'  => array(),
+				'no_update' => array(),
+			)
+		);
+
+		$this->assertSame( array(), $result->response );
+		$this->assertSame( '1.2.0', $result->no_update['great-plugin/great-plugin.php']->new_version );
+		$this->assertSame( 'great-plugin/great-plugin.php', $result->no_update['great-plugin/great-plugin.php']->plugin );
+	}
+
+	public function test_automatic_updates_are_off_while_the_license_is_expired(): void {
+		$state         = $this->store->load();
+		$state->status = LicenseState::EXPIRED;
+		$this->store->save( $state );
+		$this->transport->reply(
+			403,
+			array(
+				'success' => false,
+				'code'    => 'expired',
+				'product' => $this->update_response( '2.0.0' )['product'],
+			)
+		);
+		$stored = $this->updater->add_plugin_update( (object) array( 'response' => array() ) );
+		$GLOBALS['wplit_test_site_transients']['update_plugins'] = $stored;
+		$item = $stored->response['great-plugin/great-plugin.php'];
+
+		$this->assertFalse( $this->updater->no_auto_update_while_expired( null, $item ), 'WordPress would try, fail and email the administrator' );
+		$this->assertNull( $this->updater->no_auto_update_while_expired( null, (object) array( 'plugin' => 'other/other.php' ) ), 'other plugins are left alone' );
+
+		// Renewed: the entry has a package again and the administrator's own setting applies.
+		$GLOBALS['wplit_test_site_transients']['update_plugins'] = (object) array(
+			'response' => array(
+				'great-plugin/great-plugin.php' => (object) array(
+					'package' => 'marker',
+					'url'     => $item->url,
+				),
+			),
+		);
+		$this->assertTrue( $this->updater->no_auto_update_while_expired( true, $item ) );
+		unset( $GLOBALS['wplit_test_site_transients'] );
+	}
 }

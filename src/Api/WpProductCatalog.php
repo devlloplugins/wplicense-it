@@ -40,7 +40,8 @@ final class WpProductCatalog implements ProductCatalog {
 			(string) get_post_meta( $product_id, 'wplit_product_logo_url', true ),
 			(string) get_post_meta( $product_id, 'wplit_product_banner_url', true ),
 			null !== $this->package_file( $product_id ),
-			(string) get_post_meta( $product_id, 'wplit_changelog', true )
+			(string) get_post_meta( $product_id, 'wplit_changelog', true ),
+			(string) get_post_meta( $product_id, 'wplit_required_php_version', true )
 		);
 	}
 

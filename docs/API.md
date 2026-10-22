@@ -42,7 +42,12 @@ limit it returns 403 `limit_reached`, with `sites` (the addresses that use a slo
 ### `POST /updates/check`
 `license_key`, `product_id`, `current_version` (optional). For a valid license returns the product
 (`name`, `version`, `requires`, `tested`, `description`, `changelog` (plain text lines for this version, empty if none), `banners`), `update_available` (`null` if no
-`current_version` was sent), a `download_url` valid for 15 minutes, and `expires_in`.
+`current_version` was sent), a `download_url` valid for 15 minutes, and `expires_in`. The product also has
+`requires_php` (empty if not set).
+
+For an expired license the answer is `403` with `code` `expired`, and it still has the `product` (so the customer can be
+told which version they would get) and a `renew_url` (My Account, Licenses), but no `download_url`. Other unusable
+licenses get the plain `403` without the product.
 
 ### `GET /download?token=...`
 Streams the zip. The token comes from `/updates/check`. It is signed, expires after 15 minutes, and the

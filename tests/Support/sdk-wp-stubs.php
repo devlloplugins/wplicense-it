@@ -50,3 +50,7 @@ if ( ! function_exists( 'esc_url' ) ) {
 if ( ! function_exists( 'esc_attr' ) ) {
 	function esc_attr( $text ) { return htmlspecialchars( (string) $text, ENT_QUOTES ); }
 }
+
+if ( ! function_exists( 'get_site_transient' ) ) {
+	function get_site_transient( $name ) { return $GLOBALS['wplit_test_site_transients'][ $name ] ?? false; }
+}

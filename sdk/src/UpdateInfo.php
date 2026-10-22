@@ -58,6 +58,27 @@ final class UpdateInfo {
 	public $changelog = '';
 
 	/**
+	 * Minimum PHP version, or ''. WordPress does not offer the update to a site with an older PHP.
+	 *
+	 * @var string
+	 */
+	public $requires_php = '';
+
+	/**
+	 * '1' when the license has expired: the update is shown but cannot be installed until the license is renewed.
+	 *
+	 * @var string
+	 */
+	public $needs_renewal = '';
+
+	/**
+	 * Where to renew, for an expired license (from the server), or ''.
+	 *
+	 * @var string
+	 */
+	public $renew_url = '';
+
+	/**
 	 * Small banner URL.
 	 *
 	 * @var string
@@ -87,14 +108,15 @@ final class UpdateInfo {
 		$banners = isset( $product['banners'] ) && is_array( $product['banners'] ) ? $product['banners'] : array();
 		$info    = new self();
 
-		$info->name        = (string) ( $product['name'] ?? '' );
-		$info->version     = (string) $product['version'];
-		$info->requires    = (string) ( $product['requires'] ?? '' );
-		$info->tested      = (string) ( $product['tested'] ?? '' );
-		$info->description = (string) ( $product['description'] ?? '' );
-		$info->changelog   = (string) ( $product['changelog'] ?? '' );
-		$info->banner_low  = (string) ( $banners['low'] ?? '' );
-		$info->banner_high = (string) ( $banners['high'] ?? '' );
+		$info->name         = (string) ( $product['name'] ?? '' );
+		$info->version      = (string) $product['version'];
+		$info->requires     = (string) ( $product['requires'] ?? '' );
+		$info->tested       = (string) ( $product['tested'] ?? '' );
+		$info->requires_php = (string) ( $product['requires_php'] ?? '' );
+		$info->description  = (string) ( $product['description'] ?? '' );
+		$info->changelog    = (string) ( $product['changelog'] ?? '' );
+		$info->banner_low   = (string) ( $banners['low'] ?? '' );
+		$info->banner_high  = (string) ( $banners['high'] ?? '' );
 
 		return $info;
 	}
@@ -120,11 +142,18 @@ final class UpdateInfo {
 
 		$info = new self();
 
-		foreach ( array( 'name', 'version', 'requires', 'tested', 'description', 'changelog', 'banner_low', 'banner_high' ) as $field ) {
+		foreach ( array( 'name', 'version', 'requires', 'tested', 'description', 'changelog', 'banner_low', 'banner_high', 'requires_php', 'needs_renewal', 'renew_url' ) as $field ) {
 			$info->$field = isset( $data[ $field ] ) ? (string) $data[ $field ] : '';
 		}
 
 		return $info;
+	}
+
+	/**
+	 * Whether the license has to be renewed before this version can be installed.
+	 */
+	public function needs_renewal(): bool {
+		return '1' === $this->needs_renewal;
 	}
 
 	/**
