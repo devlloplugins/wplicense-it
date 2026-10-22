@@ -233,6 +233,10 @@ final class WooAdapter {
 			/* translators: %d: number of licenses. */
 			$parts[] = sprintf( _n( 'ended %d license', 'ended %d licenses', $report->revoked, 'wplicense-it' ), $report->revoked );
 		}
+		if ( $report->taken_back > 0 ) {
+			/* translators: %d: number of licenses. */
+			$parts[] = sprintf( _n( 'took back the renewal of %d license', 'took back the renewal of %d licenses', $report->taken_back, 'wplicense-it' ), $report->taken_back );
+		}
 
 		$note = 'WPLicense It' . ( array() === $parts ? '' : ': ' . implode( ', ', $parts ) . '.' );
 

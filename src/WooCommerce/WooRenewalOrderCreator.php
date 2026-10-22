@@ -55,7 +55,7 @@ final class WooRenewalOrderCreator implements RenewalOrderCreator {
 	 * @param License $license The license.
 	 */
 	public function create( License $license ): ?int {
-		$product = wc_get_product( RenewalProduct::find( $license->product_id ) );
+		$product = wc_get_product( RenewalProduct::for_license( $license ) );
 
 		if ( ! $product || (float) $product->get_price() <= 0 || null === $license->expires_at ) {
 			return null;

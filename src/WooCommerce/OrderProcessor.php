@@ -98,7 +98,7 @@ final class OrderProcessor {
 
 			if ( null !== $renewal ) {
 				try {
-					$renewed = null === $interval ? $renewal : $this->licenses->renew_license( $renewal->id, $interval );
+					$renewed = null === $interval ? $renewal : $this->licenses->renew_license( $renewal->id, $interval, self::context( $order ) );
 					$this->store->append( $item->item_id, $renewed->id );
 					++$report->renewed;
 					--$owed;
@@ -151,7 +151,8 @@ final class OrderProcessor {
 	}
 
 	/**
-	 * Ends every license of an order, for a refund or cancellation.
+	 * Ends every license of an order, for a refund or cancellation. A license this order renewed is not ended: only the
+	 * time the renewal added is taken back, because the time before it was paid for by another order.
 	 *
 	 * @param OrderData $order  Order.
 	 * @param string    $status Status::REFUNDED or Status::REVOKED.
@@ -161,7 +162,7 @@ final class OrderProcessor {
 
 		foreach ( $order->items as $item ) {
 			foreach ( $item->license_ids as $license_id ) {
-				$report->revoked += $this->end_license( $license_id, $status, $report, self::context( $order ) );
+				$this->end_or_take_back( $license_id, $status, $report, $order );
 			}
 		}
 
@@ -194,7 +195,7 @@ final class OrderProcessor {
 					continue;
 				}
 
-				if ( in_array( $license->status, Status::terminal(), true ) ) {
+				if ( in_array( $license->status, Status::terminal(), true ) || $this->licenses->renewal_taken_back( $license_id, self::context( $order )['order'] ) ) {
 					++$already_ended;
 				} else {
 					$still_open[] = $license_id;
@@ -204,7 +205,7 @@ final class OrderProcessor {
 			$to_end = min( $item->refunded_quantity - $already_ended, count( $still_open ) );
 
 			for ( $i = 0; $i < $to_end; $i++ ) {
-				$report->revoked += $this->end_license( $still_open[ $i ], Status::REFUNDED, $report, self::context( $order ) );
+				$this->end_or_take_back( $still_open[ $i ], Status::REFUNDED, $report, $order );
 			}
 		}//end foreach
 
@@ -229,7 +230,16 @@ final class OrderProcessor {
 
 			foreach ( $item->license_ids as $license_id ) {
 				$license = $this->licenses->find( $license_id );
-				if ( null === $license || ! in_array( $license->status, Status::terminal(), true ) ) {
+				if ( null === $license ) {
+					continue;
+				}
+
+				if ( $this->licenses->renewal_taken_back( $license_id, $reference ) ) {
+					$ended[] = $license_id;
+					continue;
+				}
+
+				if ( ! in_array( $license->status, Status::terminal(), true ) ) {
 					continue;
 				}
 
@@ -245,6 +255,12 @@ final class OrderProcessor {
 
 			foreach ( $back as $license_id ) {
 				try {
+					if ( $this->licenses->renewal_taken_back( $license_id, $reference ) ) {
+						$this->renew_again( $license_id, $item, $order, $report );
+						++$restored;
+						continue;
+					}
+
 					$this->licenses->reinstate_license( $license_id, self::context( $order ) );
 					++$report->reinstated;
 					++$restored;
@@ -258,12 +274,21 @@ final class OrderProcessor {
 				}
 			}
 
-			if ( $keep > 0 ) {
+			$kept_renewals = count( array_filter( array_slice( $ended, count( $ended ) - $keep ), fn( int $id ): bool => $this->licenses->renewal_taken_back( $id, $reference ) ) );
+			if ( $kept_renewals > 0 ) {
 				$report->notes[] = sprintf(
 					/* translators: 1: order line name, 2: number of licenses. */
-					_n( '%1$s: %2$d license stays refunded, because its unit is still refunded.', '%1$s: %2$d licenses stay refunded, because their units are still refunded.', $keep, 'wplicense-it' ),
+					_n( '%1$s: %2$d license\'s renewal stays taken back, because its unit is still refunded.', '%1$s: %2$d licenses\' renewals stay taken back, because their units are still refunded.', $kept_renewals, 'wplicense-it' ),
 					$item->name,
-					$keep
+					$kept_renewals
+				);
+			}
+			if ( $keep > $kept_renewals ) {
+				$report->notes[] = sprintf(
+					/* translators: 1: order line name, 2: number of licenses. */
+					_n( '%1$s: %2$d license stays refunded, because its unit is still refunded.', '%1$s: %2$d licenses stay refunded, because their units are still refunded.', $keep - $kept_renewals, 'wplicense-it' ),
+					$item->name,
+					$keep - $kept_renewals
 				);
 			}
 		}//end foreach
@@ -271,6 +296,76 @@ final class OrderProcessor {
 		if ( $restored > 0 ) {
 			$this->orders->set_status( $order->id, 'completed' );
 		}
+	}
+
+	/**
+	 * Applies a renewal again that a refund or cancellation of this order had taken back, now that it is paid after all.
+	 *
+	 * @param int           $license_id License ID.
+	 * @param OrderItemData $item       The renewal line.
+	 * @param OrderData     $order      Order.
+	 * @param ProcessReport $report     Report.
+	 * @throws LicenseException If the license cannot be renewed.
+	 */
+	private function renew_again( int $license_id, OrderItemData $item, OrderData $order, ProcessReport $report ): void {
+		try {
+			$interval = PeriodParser::parse( $item->period );
+		} catch ( InvalidArgumentException $e ) {
+			$interval = null;
+		}
+
+		if ( null === $interval ) {
+			return;
+		}
+
+		$renewed = $this->licenses->renew_license( $license_id, $interval, self::context( $order ) );
+		++$report->renewed;
+
+		if ( null !== $renewed->expires_at ) {
+			$report->notes[] = sprintf(
+				/* translators: 1: order line name, 2: license key, 3: new expiry date. */
+				__( '%1$s: renewed license %2$s again until %3$s.', 'wplicense-it' ),
+				$item->name,
+				$renewed->license_key,
+				$renewed->expires_at->format( 'Y-m-d' )
+			);
+		}
+	}
+
+	/**
+	 * Ends a license for a refund or cancellation, or, when this order renewed it, takes back only that renewal.
+	 *
+	 * @param int           $license_id License ID.
+	 * @param string        $status     Terminal status for a license this order issued.
+	 * @param ProcessReport $report     Report.
+	 * @param OrderData     $order      Order.
+	 */
+	private function end_or_take_back( int $license_id, string $status, ProcessReport $report, OrderData $order ): void {
+		$reference = self::context( $order )['order'];
+
+		if ( ! $this->licenses->renewed_by( $license_id, $reference ) ) {
+			$report->revoked += $this->end_license( $license_id, $status, $report, self::context( $order ) );
+
+			return;
+		}
+
+		try {
+			$license = $this->licenses->take_back_renewal( $license_id, $reference );
+		} catch ( LicenseException $e ) {
+			$license = null;
+		}
+
+		if ( null === $license ) {
+			return;
+		}
+
+		++$report->taken_back;
+		$report->notes[] = sprintf(
+			/* translators: 1: license key, 2: expiry date. */
+			__( 'License %1$s: the renewal is taken back; it expires on %2$s again.', 'wplicense-it' ),
+			$license->license_key,
+			null === $license->expires_at ? '' : $license->expires_at->format( 'Y-m-d' )
+		);
 	}
 
 	/**

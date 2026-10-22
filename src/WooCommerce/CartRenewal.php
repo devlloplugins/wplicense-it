@@ -88,8 +88,9 @@ final class CartRenewal {
 			return $cart_item_data;
 		}
 
-		$terms = $this->reader->current_terms( wc_get_product( $variation_id > 0 ? $variation_id : $product_id ), $variation_id > 0 ? $product_id : 0 );
-		if ( $terms['product'] !== $license->product_id ) {
+		// Only the plan the license renews with (see RenewalProduct::for_license()): another plan of the product would
+		// renew it at that plan's price while it keeps its own number of sites.
+		if ( $variation_id > 0 || RenewalProduct::for_license( $license ) !== $product_id ) {
 			return $cart_item_data;
 		}
 

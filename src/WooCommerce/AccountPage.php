@@ -216,7 +216,7 @@ final class AccountPage {
 			echo '<a class="button" href="' . esc_url( add_query_arg( 'token', rawurlencode( $token ), rest_url( 'wplicense-it/v1/download' ) ) ) . '">' . esc_html__( 'Download', 'wplicense-it' ) . '</a> ';
 		}
 
-		$woo_product = in_array( $license->status, Status::terminal(), true ) || null === $license->expires_at ? 0 : RenewalProduct::find( $license->product_id );
+		$woo_product = in_array( $license->status, Status::terminal(), true ) || null === $license->expires_at ? 0 : RenewalProduct::for_license( $license );
 		if ( $woo_product > 0 ) {
 			echo '<a class="button alt" href="' . esc_url( CartRenewal::renewal_url( $woo_product, $license->id ) ) . '">' . esc_html__( 'Renew', 'wplicense-it' ) . '</a>';
 		}

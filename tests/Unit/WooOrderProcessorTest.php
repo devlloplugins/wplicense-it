@@ -330,6 +330,91 @@ final class WooOrderProcessorTest extends TestCase {
 
 	// Refunds and cancellations.
 
+	public function test_refunding_a_renewal_takes_back_only_the_renewed_time(): void {
+		$first = $this->service->issue_license( 7, 'buyer@example.com', 5, null, 1, $this->clock->__invoke()->add( new DateInterval( 'P2M' ) ) );
+		$this->processor->issue( $this->order( array( 10 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 101 ) );
+
+		$report = $this->processor->revoke( $this->order( array( 10 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 101 ), Status::REFUNDED );
+
+		$license = $this->service->find( $first->id );
+		$this->assertSame( 0, $report->revoked, 'the license is not ended: the time before the renewal was paid by the first order' );
+		$this->assertSame( 1, $report->taken_back );
+		$this->assertSame( Status::ACTIVE, $license->status );
+		$this->assertSame( '2026-05-01', $license->expires_at->format( 'Y-m-d' ), 'back to the expiry before the renewal' );
+		$this->assertStringContainsString( 'expires on 2026-05-01 again', $report->notes[0] );
+
+		$again = $this->processor->revoke( $this->order( array( 10 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 101 ), Status::REVOKED );
+		$this->assertSame( 0, $again->taken_back, 'a cancellation after the refund takes nothing more' );
+		$this->assertSame( '2026-05-01', $this->service->find( $first->id )->expires_at->format( 'Y-m-d' ) );
+	}
+
+	public function test_a_refunded_renewal_whose_old_expiry_has_passed_leaves_the_license_expired(): void {
+		$first = $this->service->issue_license( 7, 'buyer@example.com', 5, null, 1, $this->clock->__invoke()->add( new DateInterval( 'P1M' ) ) );
+		$this->processor->issue( $this->order( array( 10 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 101 ) );
+		$this->clock->advance( '+2 months' );
+
+		$this->processor->revoke( $this->order( array( 10 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 101 ), Status::REFUNDED );
+
+		$license = $this->service->find( $first->id );
+		$this->assertSame( Status::EXPIRED, $license->status, 'expired, so the customer can renew again' );
+		$this->assertSame( '2026-04-01', $license->expires_at->format( 'Y-m-d' ) );
+	}
+
+	public function test_a_later_renewal_by_another_order_is_kept_when_an_earlier_one_is_refunded(): void {
+		$first = $this->service->issue_license( 7, 'buyer@example.com', 5, null, 1, $this->clock->__invoke()->add( new DateInterval( 'P1M' ) ) );
+		$this->processor->issue( $this->order( array( 10 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 101 ) );
+		$this->processor->issue( $this->order( array( 20 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 102 ) );
+		$this->assertSame( '2028-04-01', $this->service->find( $first->id )->expires_at->format( 'Y-m-d' ) );
+
+		$this->processor->revoke( $this->order( array( 10 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 101 ), Status::REFUNDED );
+
+		$this->assertSame( '2027-04-01', $this->service->find( $first->id )->expires_at->format( 'Y-m-d' ), 'one year off, the other renewal stays' );
+	}
+
+	public function test_a_partly_refunded_renewal_line_ends_the_extra_licenses_before_taking_back_the_renewal(): void {
+		$first = $this->service->issue_license( 7, 'buyer@example.com', 5, null, 1, $this->clock->__invoke()->add( new DateInterval( 'P1M' ) ) );
+		$line  = array(
+			'renew'    => $first->id,
+			'quantity' => 2,
+		);
+		$this->processor->issue( $this->order( array( 10 => $line ) ) );
+		$extra = $this->store->links[10][1];
+
+		$one = $this->processor->revoke_refunded_units( $this->order( array( 10 => $line + array( 'refunded' => 1 ) ) ) );
+		$this->assertSame( 1, $one->revoked );
+		$this->assertSame( Status::REFUNDED, $this->service->find( $extra )->status );
+		$this->assertSame( '2027-04-01', $this->service->find( $first->id )->expires_at->format( 'Y-m-d' ) );
+
+		$both = $this->processor->revoke_refunded_units( $this->order( array( 10 => $line + array( 'refunded' => 2 ) ) ) );
+		$this->assertSame( 1, $both->taken_back );
+		$this->assertSame( '2026-04-01', $this->service->find( $first->id )->expires_at->format( 'Y-m-d' ) );
+
+		$repeat = $this->processor->revoke_refunded_units( $this->order( array( 10 => $line + array( 'refunded' => 2 ) ) ) );
+		$this->assertFalse( $repeat->changed(), 'repeating the same refund changes nothing' );
+	}
+
+	public function test_a_renewal_order_paid_after_all_renews_again(): void {
+		$first = $this->service->issue_license( 7, 'buyer@example.com', 5, null, 1, $this->clock->__invoke()->add( new DateInterval( 'P1M' ) ) );
+		$order = fn() => $this->order( array( 10 => array( 'renew' => $first->id ) ), 5, 'buyer@example.com', 101 );
+		$this->processor->issue( $order() );
+		$this->processor->revoke( $order(), Status::REVOKED );
+
+		$report = $this->processor->issue( $order() );
+
+		$this->assertSame( 1, $report->renewed );
+		$this->assertSame( '2027-04-01', $this->service->find( $first->id )->expires_at->format( 'Y-m-d' ) );
+		$this->assertSame( 0, $this->processor->issue( $order() )->renewed, 'and only once' );
+	}
+
+	public function test_refunding_the_order_that_issued_a_license_still_ends_it(): void {
+		$this->processor->issue( $this->order( array( 10 => array() ), 5, 'buyer@example.com', 101 ) );
+
+		$report = $this->processor->revoke( $this->order( array( 10 => array() ), 5, 'buyer@example.com', 101 ), Status::REFUNDED );
+
+		$this->assertSame( 1, $report->revoked );
+		$this->assertSame( 0, $report->taken_back );
+	}
+
 	public function test_a_refund_ends_every_license_of_the_order(): void {
 		$this->processor->issue( $this->order( array( 10 => array( 'quantity' => 2 ) ) ) );
 

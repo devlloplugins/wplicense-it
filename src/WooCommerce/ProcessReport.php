@@ -43,6 +43,13 @@ final class ProcessReport {
 	public int $reinstated = 0;
 
 	/**
+	 * Licenses whose renewal by this order was taken back (a refunded or cancelled renewal order).
+	 *
+	 * @var int
+	 */
+	public int $taken_back = 0;
+
+	/**
 	 * Problems and notable decisions, as order note lines.
 	 *
 	 * @var string[]
@@ -70,6 +77,6 @@ final class ProcessReport {
 	 * Whether anything changed.
 	 */
 	public function changed(): bool {
-		return $this->issued + $this->renewed + $this->revoked + $this->reinstated > 0 || array() !== $this->notes;
+		return $this->issued + $this->renewed + $this->revoked + $this->reinstated + $this->taken_back > 0 || array() !== $this->notes;
 	}
 }

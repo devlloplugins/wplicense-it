@@ -14,18 +14,19 @@ namespace Devllo\WPLicenseIt\Licenses;
  */
 interface EventLog {
 
-	public const ISSUED      = 'issued';
-	public const ACTIVATED   = 'activated';
-	public const DEACTIVATED = 'deactivated';
-	public const RENEWED     = 'renewed';
-	public const EXPIRED     = 'expired';
-	public const REVOKED     = 'revoked';
-	public const REFUNDED    = 'refunded';
-	public const REINSTATED  = 'reinstated';
-	public const UPDATED     = 'updated';
-	public const REMINDER    = 'reminder_sent';
-	public const INVOICED    = 'renewal_invoiced';
-	public const IMPORTED    = 'imported';
+	public const ISSUED           = 'issued';
+	public const ACTIVATED        = 'activated';
+	public const DEACTIVATED      = 'deactivated';
+	public const RENEWED          = 'renewed';
+	public const EXPIRED          = 'expired';
+	public const REVOKED          = 'revoked';
+	public const REFUNDED         = 'refunded';
+	public const REINSTATED       = 'reinstated';
+	public const UPDATED          = 'updated';
+	public const REMINDER         = 'reminder_sent';
+	public const INVOICED         = 'renewal_invoiced';
+	public const IMPORTED         = 'imported';
+	public const RENEWAL_REFUNDED = 'renewal_refunded';
 
 	/**
 	 * Records an event.

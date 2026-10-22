@@ -120,7 +120,7 @@ jobs:
       - name: Run the order tests again on classic order storage
         run: |
           sudo -E env "PATH=$PATH" bash tests/env/order-storage.sh classic
-          sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh 06 17 19 21 27 28 30
+          sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh 06 17 19 21 27 28 30 33
           sudo -E env "PATH=$PATH" bash tests/env/order-storage.sh hpos
       - name: Check package protection on nginx
         run: |

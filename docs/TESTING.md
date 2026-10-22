@@ -29,6 +29,13 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/33-renewal.cjs` (19 checks) uses a product with an Agency and a newer Single site plan: Renew in My Account,
+the cart and a renewal invoice use the Agency plan the license was bought with, and a link edited to the Single site
+plan renews nothing (4 checks fail with the lookup used before); refunding the renewal order puts the expiry back with
+the license still active, noted on the order and in the license history; completing it again with the refund recorded
+keeps it taken back; a cancelled renewal order paid after all renews again, once; with the plan unpublished there is no
+Renew button until a plan with the same sites exists.
+
 `tests/e2e/32-update-delivery.cjs` (18 checks) runs the sample plugin with the client SDK on the customer site: the
 Enable auto-updates link is there while it is up to date and turning it on is saved; a release needing PHP 99 is not
 offered and the background update skips it; a fitting release is installed by the background update (run as WordPress's

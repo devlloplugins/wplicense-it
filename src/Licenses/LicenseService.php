@@ -241,11 +241,12 @@ final class LicenseService {
 	 * has already expired. An expired license becomes active again. Lifetime
 	 * licenses are returned unchanged.
 	 *
-	 * @param int          $license_id License ID.
-	 * @param DateInterval $period     Period to add.
+	 * @param int                  $license_id License ID.
+	 * @param DateInterval         $period     Period to add.
+	 * @param array<string, mixed> $context    Recorded in the history with it, such as the order that paid for it.
 	 * @throws LicenseException If the license does not exist or was revoked or refunded.
 	 */
-	public function renew_license( int $license_id, DateInterval $period ): License {
+	public function renew_license( int $license_id, DateInterval $period, array $context = array() ): License {
 		$license = $this->licenses->find( $license_id );
 
 		if ( null === $license ) {
@@ -270,13 +271,131 @@ final class LicenseService {
 		$this->events->record(
 			$renewed->id,
 			EventLog::RENEWED,
-			array(
-				'old_expires_at' => $this->format( $license->expires_at ),
-				'new_expires_at' => $this->format( $new ),
+			array_merge(
+				array(
+					'old_expires_at' => $this->format( $license->expires_at ),
+					'new_expires_at' => $this->format( $new ),
+				),
+				$context
 			)
 		);
 
 		return $renewed;
+	}
+
+	/**
+	 * Takes back the time an order's renewal added, for a refunded or cancelled renewal order: the expiry moves back by
+	 * what that renewal added (so a later renewal paid by another order is kept), and the license is expired if that date
+	 * has passed. The license itself, and the time paid for before, stay.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      The order reference the renewal was recorded with (its history's "order").
+	 * @return License|null The license after the change; null when this order's renewal is not on the license (never
+	 *                      renewed by it, already taken back, lifetime, or ended).
+	 * @throws LicenseException If the license does not exist.
+	 */
+	public function take_back_renewal( int $license_id, string $order ): ?License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		$added = $this->renewal_added( $license_id, $order );
+
+		if ( null === $added || null === $license->expires_at || in_array( $license->status, Status::terminal(), true ) ) {
+			return null;
+		}
+
+		$now    = $this->now();
+		$new    = $license->expires_at->sub( $added );
+		$status = $new > $now ? Status::ACTIVE : Status::EXPIRED;
+
+		$changed = $license->with_expiry( $new, $now )->with_status( $status, $now );
+		$this->licenses->update( $changed );
+
+		$this->events->record(
+			$changed->id,
+			EventLog::RENEWAL_REFUNDED,
+			array(
+				'old_expires_at' => $this->format( $license->expires_at ),
+				'new_expires_at' => $this->format( $new ),
+				'order'          => $order,
+			)
+		);
+
+		return $changed;
+	}
+
+	/**
+	 * Whether an order renewed this license and that renewal was taken back since (a refund or cancellation).
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 */
+	public function renewal_taken_back( int $license_id, string $order ): bool {
+		[ $renewed, $taken_back ] = $this->renewal_counts( $license_id, $order );
+
+		return $renewed > 0 && $taken_back >= $renewed;
+	}
+
+	/**
+	 * Whether an order ever renewed this license.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 */
+	public function renewed_by( int $license_id, string $order ): bool {
+		return $this->renewal_counts( $license_id, $order )[0] > 0;
+	}
+
+	/**
+	 * What an order's renewal added to the license, in calendar time (a year is a year, leap or not), while it is still on
+	 * the license; null otherwise.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 */
+	private function renewal_added( int $license_id, string $order ): ?DateInterval {
+		[ $renewed, $taken_back, $latest ] = $this->renewal_counts( $license_id, $order );
+
+		if ( $renewed <= $taken_back || null === $latest ) {
+			return null;
+		}
+
+		$old = $latest['data']['old_expires_at'] ?? null;
+		$new = $latest['data']['new_expires_at'] ?? null;
+
+		if ( ! is_string( $new ) || ! is_string( $old ) ) {
+			return null;
+		}
+
+		$from = new DateTimeImmutable( $old, new DateTimeZone( 'UTC' ) );
+		$to   = new DateTimeImmutable( $new, new DateTimeZone( 'UTC' ) );
+
+		return $to > $from ? $from->diff( $to ) : null;
+	}
+
+	/**
+	 * How often an order renewed a license and how often that was taken back, with its latest renewal event.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 * @return array{0:int, 1:int, 2:array<string, mixed>|null}
+	 */
+	private function renewal_counts( int $license_id, string $order ): array {
+		$renewals   = array_values(
+			array_filter(
+				$this->events->of_type( $license_id, EventLog::RENEWED, 200 ),
+				static fn( array $event ): bool => ( $event['data']['order'] ?? null ) === $order
+			)
+		);
+		$taken_back = array_filter(
+			$this->events->of_type( $license_id, EventLog::RENEWAL_REFUNDED, 200 ),
+			static fn( array $event ): bool => ( $event['data']['order'] ?? null ) === $order
+		);
+
+		return array( count( $renewals ), count( $taken_back ), $renewals[0] ?? null );
 	}
 
 	/**

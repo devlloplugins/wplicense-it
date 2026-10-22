@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-22T18:32:29+00:00\n"
+"POT-Creation-Date: 2026-10-22T19:30:00+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -381,10 +381,11 @@ msgid "Press Ctrl+C to copy the selected code."
 msgstr ""
 
 #: src/Admin/LicenseActions.php:138
-#: src/Licenses/LicenseService.php:252
-#: src/Licenses/LicenseService.php:298
-#: src/Licenses/LicenseService.php:330
-#: src/Licenses/LicenseService.php:361
+#: src/Licenses/LicenseService.php:253
+#: src/Licenses/LicenseService.php:301
+#: src/Licenses/LicenseService.php:417
+#: src/Licenses/LicenseService.php:449
+#: src/Licenses/LicenseService.php:480
 msgid "License not found."
 msgstr ""
 
@@ -507,7 +508,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:114
 #: src/Admin/LicensesTable.php:312
-#: src/Admin/LicenseView.php:216
+#: src/Admin/LicenseView.php:217
 #: src/Admin/OverviewScreen.php:307
 #: src/WooCommerce/AccountPage.php:245
 msgid "Expired"
@@ -515,7 +516,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:115
 #: src/Admin/LicensesTable.php:313
-#: src/Admin/LicenseView.php:217
+#: src/Admin/LicenseView.php:218
 #: src/Admin/OverviewScreen.php:308
 #: src/WooCommerce/AccountPage.php:242
 msgid "Revoked"
@@ -523,7 +524,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:116
 #: src/Admin/LicensesTable.php:314
-#: src/Admin/LicenseView.php:218
+#: src/Admin/LicenseView.php:219
 #: src/Admin/OverviewScreen.php:309
 #: src/WooCommerce/AccountPage.php:238
 msgid "Refunded"
@@ -706,23 +707,27 @@ msgstr ""
 msgid "Renewed"
 msgstr ""
 
-#: src/Admin/LicenseView.php:219
-msgid "Reinstated"
+#: src/Admin/LicenseView.php:216
+msgid "Renewal taken back"
 msgstr ""
 
 #: src/Admin/LicenseView.php:220
-msgid "Edited"
+msgid "Reinstated"
 msgstr ""
 
 #: src/Admin/LicenseView.php:221
-msgid "Expiry reminder emailed"
+msgid "Edited"
 msgstr ""
 
 #: src/Admin/LicenseView.php:222
-msgid "Renewal invoice sent"
+msgid "Expiry reminder emailed"
 msgstr ""
 
 #: src/Admin/LicenseView.php:223
+msgid "Renewal invoice sent"
+msgstr ""
+
+#: src/Admin/LicenseView.php:224
 msgid "Imported"
 msgstr ""
 
@@ -1924,14 +1929,14 @@ msgstr ""
 
 #: src/Licenses/LicenseService.php:88
 #: src/Licenses/LicenseService.php:165
-#: src/Licenses/LicenseService.php:390
+#: src/Licenses/LicenseService.php:509
 msgid "A valid email is required."
 msgstr ""
 
 #. translators: %d: the highest activation limit.
 #: src/Licenses/LicenseService.php:95
 #: src/Licenses/LicenseService.php:178
-#: src/Licenses/LicenseService.php:374
+#: src/Licenses/LicenseService.php:493
 #, php-format
 msgid "The activation limit must be between 0 and %d."
 msgstr ""
@@ -1950,19 +1955,19 @@ msgstr ""
 msgid "A license with this key already exists."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:256
+#: src/Licenses/LicenseService.php:257
 msgid "A revoked or refunded license cannot be renewed."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:292
+#: src/Licenses/LicenseService.php:411
 msgid "Status must be revoked or refunded."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:334
+#: src/Licenses/LicenseService.php:453
 msgid "Only a revoked or refunded license can be reinstated."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:759
+#: src/Licenses/LicenseService.php:878
 msgid "Could not generate a unique license key."
 msgstr ""
 
@@ -2862,7 +2867,7 @@ msgstr ""
 msgid "%1$d of %2$s in use"
 msgstr ""
 
-#: src/WooCommerce/CartRenewal.php:117
+#: src/WooCommerce/CartRenewal.php:118
 msgid "Renews license"
 msgstr ""
 
@@ -3014,28 +3019,48 @@ msgid "%1$s: could not issue a license (%2$s)."
 msgstr ""
 
 #. translators: 1: license ID, 2: what went wrong.
-#: src/WooCommerce/OrderProcessor.php:254
-#: src/WooCommerce/OrderProcessor.php:314
+#: src/WooCommerce/OrderProcessor.php:270
+#: src/WooCommerce/OrderProcessor.php:409
 #, php-format
 msgid "License %1$d: %2$s"
 msgstr ""
 
 #. translators: 1: order line name, 2: number of licenses.
-#: src/WooCommerce/OrderProcessor.php:264
+#: src/WooCommerce/OrderProcessor.php:281
+#, php-format
+msgid "%1$s: %2$d license's renewal stays taken back, because its unit is still refunded."
+msgid_plural "%1$s: %2$d licenses' renewals stay taken back, because their units are still refunded."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: order line name, 2: number of licenses.
+#: src/WooCommerce/OrderProcessor.php:289
 #, php-format
 msgid "%1$s: %2$d license stays refunded, because its unit is still refunded."
 msgid_plural "%1$s: %2$d licenses stay refunded, because their units are still refunded."
 msgstr[0] ""
 msgstr[1] ""
 
+#. translators: 1: order line name, 2: license key, 3: new expiry date.
+#: src/WooCommerce/OrderProcessor.php:327
+#, php-format
+msgid "%1$s: renewed license %2$s again until %3$s."
+msgstr ""
+
+#. translators: 1: license key, 2: expiry date.
+#: src/WooCommerce/OrderProcessor.php:365
+#, php-format
+msgid "License %1$s: the renewal is taken back; it expires on %2$s again."
+msgstr ""
+
 #. translators: %s: order line name.
-#: src/WooCommerce/OrderProcessor.php:348
+#: src/WooCommerce/OrderProcessor.php:443
 #, php-format
 msgid "%s: the license chosen for renewal does not belong to this customer or product. A new license is issued instead."
 msgstr ""
 
 #. translators: 1: order line name, 2: license key.
-#: src/WooCommerce/OrderProcessor.php:358
+#: src/WooCommerce/OrderProcessor.php:453
 #, php-format
 msgid "%1$s: license %2$s was revoked or refunded and cannot be renewed. A new license is issued instead."
 msgstr ""
@@ -3112,6 +3137,14 @@ msgstr[1] ""
 #, php-format
 msgid "ended %d license"
 msgid_plural "ended %d licenses"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of licenses.
+#: src/WooCommerce/WooAdapter.php:238
+#, php-format
+msgid "took back the renewal of %d license"
+msgid_plural "took back the renewal of %d licenses"
 msgstr[0] ""
 msgstr[1] ""
 

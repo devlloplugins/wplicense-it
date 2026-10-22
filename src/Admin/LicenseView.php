@@ -209,18 +209,19 @@ final class LicenseView {
 	 */
 	public static function event_label( string $type ): string {
 		$labels = array(
-			EventLog::ISSUED      => __( 'Issued', 'wplicense-it' ),
-			EventLog::ACTIVATED   => __( 'Site activated', 'wplicense-it' ),
-			EventLog::DEACTIVATED => __( 'Site deactivated', 'wplicense-it' ),
-			EventLog::RENEWED     => __( 'Renewed', 'wplicense-it' ),
-			EventLog::EXPIRED     => __( 'Expired', 'wplicense-it' ),
-			EventLog::REVOKED     => __( 'Revoked', 'wplicense-it' ),
-			EventLog::REFUNDED    => __( 'Refunded', 'wplicense-it' ),
-			EventLog::REINSTATED  => __( 'Reinstated', 'wplicense-it' ),
-			EventLog::UPDATED     => __( 'Edited', 'wplicense-it' ),
-			EventLog::REMINDER    => __( 'Expiry reminder emailed', 'wplicense-it' ),
-			EventLog::INVOICED    => __( 'Renewal invoice sent', 'wplicense-it' ),
-			EventLog::IMPORTED    => __( 'Imported', 'wplicense-it' ),
+			EventLog::ISSUED           => __( 'Issued', 'wplicense-it' ),
+			EventLog::ACTIVATED        => __( 'Site activated', 'wplicense-it' ),
+			EventLog::DEACTIVATED      => __( 'Site deactivated', 'wplicense-it' ),
+			EventLog::RENEWED          => __( 'Renewed', 'wplicense-it' ),
+			EventLog::RENEWAL_REFUNDED => __( 'Renewal taken back', 'wplicense-it' ),
+			EventLog::EXPIRED          => __( 'Expired', 'wplicense-it' ),
+			EventLog::REVOKED          => __( 'Revoked', 'wplicense-it' ),
+			EventLog::REFUNDED         => __( 'Refunded', 'wplicense-it' ),
+			EventLog::REINSTATED       => __( 'Reinstated', 'wplicense-it' ),
+			EventLog::UPDATED          => __( 'Edited', 'wplicense-it' ),
+			EventLog::REMINDER         => __( 'Expiry reminder emailed', 'wplicense-it' ),
+			EventLog::INVOICED         => __( 'Renewal invoice sent', 'wplicense-it' ),
+			EventLog::IMPORTED         => __( 'Imported', 'wplicense-it' ),
 		);
 
 		return $labels[ $type ] ?? $type;
