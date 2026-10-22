@@ -125,6 +125,32 @@ The plugin that updates itself must run on a different site from the license ser
 maintenance mode while it updates a plugin, and a license server in maintenance mode cannot hand out the download:
 the update then fails with "The license server had a problem".
 
+## A demo store
+
+To look around a store that already has data (or to show the plugin to someone), run on a **test site** with
+WooCommerce active:
+
+    wp wplit demo create     # asks first; --yes to skip the question
+    wp wplit demo status
+    wp wplit demo remove     # deletes exactly what create made, and nothing else
+
+It goes through the plugin's own code, as a seller and customers would: two products (Demo Backup Pro, a plugin with
+releases 1.0.0 and 1.1.0 made from the example plugin; Demo Starter Theme 2.0.0), four plans that pass their test
+purchase and are published, eight customers (`demo-<name>@example.com`) and nine real WooCommerce orders dated over the
+past 400 days. The licenses cover every state: active with sites in use (and a staging site that uses no slot), one
+expiring in about 10 days, one expired a month ago, a lifetime theme license, one renewed early, one refunded, one
+revoked by a cancelled order, an order waiting for a bank transfer with no license yet, and one license issued by
+hand. No email is sent while it runs (a plugin that replaces `wp_mail()` entirely could still send some; the
+addresses are at example.com, which accepts no mail). It refuses to run twice, or when one of its addresses belongs
+to an existing user. Everything it makes is written down as it goes (option `wplit_demo`), so `remove` also cleans up
+after a run that stopped half way. The orders show in WooCommerce's reports until the demo is removed, so do not use it
+on a live store. Customers have random passwords; set one (Users, Edit) to see My Account as them.
+
+`tests/e2e/28-demo-store.cjs` (35 checks) runs create, checks every license state, the releases, the published plans,
+the Licenses list, a customer's My Account and download, that no email was sent and a second run is refused, then
+runs remove and checks nothing of it is left (licenses, sites, history, order records, orders and refunds, products,
+release files, customers) and everything else is unchanged.
+
 ## What you need
 
 - A WordPress site (6.2 or newer, PHP 8.0 or newer) with **WooCommerce** active, `WP_DEBUG` and `WP_DEBUG_LOG` on,

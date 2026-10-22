@@ -31,6 +31,7 @@ use Devllo\WPLicenseIt\Database\WpdbActivationRepository;
 use Devllo\WPLicenseIt\Database\WpdbEventLog;
 use Devllo\WPLicenseIt\Compat\LegacyShortcodes;
 use Devllo\WPLicenseIt\Database\WpdbLicenseRepository;
+use Devllo\WPLicenseIt\Demo\Command as DemoCommand;
 use Devllo\WPLicenseIt\Files\ProtectedStorage;
 use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
@@ -156,6 +157,7 @@ final class Plugin {
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'wplit migration', Command::class );
+			\WP_CLI::add_command( 'wplit demo', DemoCommand::class );
 		}
 
 		// Counts calls to the 1.x API addresses, can switch them off, and limits wrong keys before the migration.

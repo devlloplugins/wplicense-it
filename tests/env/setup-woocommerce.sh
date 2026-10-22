@@ -62,15 +62,19 @@ mkdir -p "$SITE/wp-content/mu-plugins"
 cat > "$SITE/wp-content/mu-plugins/wplit-test-mail.php" <<'PHP'
 <?php
 /**
- * Test environment only: keeps outgoing email in wp-content/mail-log.jsonl instead of sending it.
+ * Test environment only: keeps outgoing email in wp-content/mail-log.jsonl instead of sending it. It runs last, and an
+ * email that something else already stopped (the demo store does) is not kept, as a real mailer would not send it.
  */
 add_filter(
 	'pre_wp_mail',
 	function ( $short_circuit, $atts ) {
+		if ( null !== $short_circuit ) {
+			return $short_circuit;
+		}
 		file_put_contents( WP_CONTENT_DIR . '/mail-log.jsonl', wp_json_encode( $atts ) . "\n", FILE_APPEND );
 		return true;
 	},
-	10,
+	PHP_INT_MAX,
 	2
 );
 PHP

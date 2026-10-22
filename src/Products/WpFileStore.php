@@ -24,10 +24,19 @@ final class WpFileStore implements FileStore {
 	);
 
 	/**
+	 * Constructor.
+	 *
+	 * @param bool $own_files Takes files this plugin made itself (the demo store's zips) instead of uploads: they are
+	 *                        copied, not moved, and are not checked to be HTTP uploads. Never for anything a user sent.
+	 */
+	public function __construct( private bool $own_files = false ) {
+	}
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function is_uploaded( string $path ): bool {
-		return is_uploaded_file( $path );
+		return $this->own_files ? is_file( $path ) : is_uploaded_file( $path );
 	}
 
 	/**
@@ -58,7 +67,9 @@ final class WpFileStore implements FileStore {
 		// A new folder with a random name for every upload, so the package cannot be found by guessing its address.
 		$package_dir = ProtectedStorage::new_package_directory( $version_dir );
 
-		if ( ! is_dir( $package_dir ) || ! move_uploaded_file( $tmp, $package_dir . $name ) ) {
+		$stored = $this->own_files ? copy( $tmp, $package_dir . $name ) : move_uploaded_file( $tmp, $package_dir . $name );
+
+		if ( ! is_dir( $package_dir ) || ! $stored ) {
 			throw new FileStoreException( __( 'The file could not be moved into the releases folder. Check the permissions of the uploads folder.', 'wplicense-it' ) );
 		}
 

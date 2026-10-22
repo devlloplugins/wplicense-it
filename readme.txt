@@ -85,6 +85,7 @@ Please post it in the [WordPress support forum](https://wordpress.org/support/pl
 * Removed: the built-in Stripe checkout and the [wplit-product] and [wplit-checkout] shortcodes. Sell licenses with WooCommerce instead. Your stored Stripe keys are kept until you delete them, with the button in the notice shown after the upgrade.
 * Translatable: every text in the admin, order notes and emails, with a template in languages/wplicense-it.pot.
 * Orders paid online are completed and get their license at once (plan products are virtual, which WooCommerce would otherwise leave in Processing).
+* A demo store for test sites: wp wplit demo create makes products, plans, customers and orders with licenses in every state, and wp wplit demo remove deletes them again.
 * Export licenses to CSV and import them from CSV (for example from another licensing system), with a check that shows what will happen first.
 * Requires PHP 8.0 and WordPress 6.2.
 
