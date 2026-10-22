@@ -13,6 +13,7 @@ use Devllo\WPLicenseIt\Tests\Support\SdkArrayStore;
 use Devllo\WPLicenseIt\Tests\Support\SdkFakeTransport;
 use PHPUnit\Framework\TestCase;
 use WPLicenseIt\Client\ApiResult;
+use WPLicenseIt\Client\Client;
 use WPLicenseIt\Client\Config;
 use WPLicenseIt\Client\LicenseManager;
 use WPLicenseIt\Client\LicensePage;
@@ -691,5 +692,103 @@ final class SdkClientTest extends TestCase {
 		$message = $this->manager->activate( 'KEY' )->message;
 		$this->assertStringContainsString( 'It is active on: one.example.com, two.example.com.', $message );
 		$this->assertStringContainsString( 'Free a site in your account: https://shop.example.com/my-account/licenses/', $message );
+	}
+
+	// Expiry (card 111).
+
+	private function expire_locally(): void {
+		$state             = $this->store->load();
+		$state->expires_at = self::NOW - 10;
+		$this->store->save( $state );
+	}
+
+	/**
+	 * A client for the shared manager, built the way Client::register() builds one but without WordPress hooks.
+	 *
+	 * @param array<string, mixed> $extra Extra registration options.
+	 */
+	private function client( array $extra = array() ): Client {
+		$config = Config::from_array(
+			$extra + array(
+				'server'     => 'https://shop.example.com/',
+				'product_id' => 7,
+				'name'       => 'Great Plugin',
+				'version'    => '1.2.0',
+				'file'       => '/x',
+				'basename'   => 'great-plugin/great-plugin.php',
+			)
+		);
+		$client = ( new \ReflectionClass( Client::class ) )->newInstanceWithoutConstructor();
+		foreach ( array(
+			'config'  => $config,
+			'manager' => $this->manager,
+		) as $name => $value ) {
+			$property = new \ReflectionProperty( Client::class, $name );
+			$property->setAccessible( true );
+			$property->setValue( $client, $value );
+		}
+
+		return $client;
+	}
+
+	public function test_the_status_tells_active_expired_and_inactive_apart(): void {
+		$this->assertSame( 'inactive', $this->manager->status(), 'no key' );
+
+		$this->activated();
+		$this->assertSame( 'active', $this->manager->status() );
+
+		$this->expire_locally();
+		$this->assertSame( 'expired', $this->manager->status(), 'past its date, before the daily check says so' );
+
+		$state         = $this->store->load();
+		$state->status = LicenseState::EXPIRED;
+		$this->store->save( $state );
+		$this->assertSame( 'expired', $this->manager->status(), 'the server said so' );
+
+		foreach ( array( LicenseState::REVOKED, LicenseState::REFUNDED ) as $ended ) {
+			$state->status = $ended;
+			$this->store->save( $state );
+			$this->assertSame( 'inactive', $this->manager->status(), $ended );
+		}
+	}
+
+	public function test_an_expired_license_keeps_the_features_by_default_but_not_the_updates(): void {
+		$this->activated();
+		$this->expire_locally();
+
+		$this->assertTrue( $this->client()->is_active(), 'wplicense_it_license_active() stays true' );
+		$this->assertFalse( $this->manager->is_active(), 'updates need an active license' );
+		$this->assertSame( 'expired', $this->client()->status() );
+	}
+
+	public function test_a_developer_can_switch_features_off_at_expiry(): void {
+		$this->activated();
+		$this->assertTrue( $this->client( array( 'expired' => 'stop' ) )->is_active() );
+
+		$this->expire_locally();
+		$this->assertFalse( $this->client( array( 'expired' => 'stop' ) )->is_active() );
+		$this->assertSame(
+			'keep',
+			Config::from_array(
+				array(
+					'expired'    => 'something else',
+					'server'     => 'https://shop.example.com',
+					'product_id' => 7,
+					'version'    => '1',
+					'file'       => '/x',
+					'basename'   => 'a/a.php',
+				)
+			)->expired,
+			'anything but stop keeps'
+		);
+	}
+
+	public function test_a_revoked_license_never_keeps_the_features(): void {
+		$this->activated();
+		$state         = $this->store->load();
+		$state->status = LicenseState::REVOKED;
+		$this->store->save( $state );
+
+		$this->assertFalse( $this->client()->is_active() );
 	}
 }

@@ -269,6 +269,19 @@ final class WpdbLicenseRepository implements LicenseRepository {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @param DateTimeImmutable $from   Exclusive start.
+	 * @param DateTimeImmutable $to     Inclusive end.
+	 * @param string            $status Status.
+	 */
+	public function count_expiring( DateTimeImmutable $from, DateTimeImmutable $to, string $status ): int {
+		return (int) $this->db->get_var(
+			$this->db->prepare( "SELECT COUNT(*) FROM {$this->table} WHERE status = %s AND expires_at > %s AND expires_at <= %s", $status, Dates::to_db( $from ), Dates::to_db( $to ) ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+		);
+	}
+
+	/**
 	 * Column formats, in the order of to_row().
 	 *
 	 * @return string[]

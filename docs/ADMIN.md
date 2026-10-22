@@ -21,6 +21,10 @@ licenses can open it. It shows:
   steps still to do are listed.
 - **Licenses**: how many are active, expired, revoked and refunded, each a link to the list filtered by that status.
 - **Expiring in the next 30 days**: the ten that expire soonest, with the days left.
+- **Expired in the last 30 days, not renewed**: the ten most recent, with how many days ago, and under it the **renewal
+  rate**: of the licenses that came due (reached their expiry date) in the last 90 days, how many were renewed, early or
+  late (a renewal that was refunded does not count; revoked and refunded licenses are left out). **All expired
+  licenses** opens the Licenses list filtered to Expired.
 - **Newest licenses**: the last eight issued. A license key opens that license.
 
 The daily job writes down when it last ran (`wplit_last_maintenance`), and downloading the SDK is remembered

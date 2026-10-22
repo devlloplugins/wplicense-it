@@ -97,6 +97,8 @@ Please post it in the [WordPress support forum](https://wordpress.org/support/pl
 * Export licenses to CSV and import them from CSV (for example from another licensing system), with a check that shows what will happen first.
 * Client SDK: WordPress's automatic updates work for licensed plugins and themes; a release that needs a newer PHP is not offered to sites on an older one; an expired license still sees the new version, with a Renew link, but cannot install it until renewed.
 * Renewals: Renew and renewal invoices use the plan the license was bought with (before, any plan of the product could be picked, at its price); refunding a renewal takes back only the renewed time instead of ending the license.
+* Client SDK: an expired license keeps the plugin working and only stops updates (developers can pass 'expired' => 'stop' to switch features off instead); new wplicense_it_license_status() answers active, expired or inactive.
+* Overview: licenses that expired in the last 30 days and were not renewed, and the renewal rate of the last 90 days.
 * Requires PHP 8.0 and WordPress 6.2.
 
 = 1.0.2 =

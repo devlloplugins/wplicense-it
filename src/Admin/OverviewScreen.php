@@ -34,6 +34,8 @@ final class OverviewScreen {
 
 	private const EXPIRING_DAYS  = 30;
 	private const EXPIRING_LIMIT = 10;
+	private const EXPIRED_DAYS   = 30;
+	private const RATE_DAYS      = 90;
 	private const RECENT_LIMIT   = 8;
 
 	/**
@@ -86,6 +88,18 @@ final class OverviewScreen {
 			'expires',
 			__( 'Nothing expires soon.', 'wplicense-it' ),
 			$names
+		);
+		$this->render_licenses(
+			sprintf(
+				/* translators: %d: number of days. */
+				_n( 'Expired in the last %d day, not renewed', 'Expired in the last %d days, not renewed', self::EXPIRED_DAYS, 'wplicense-it' ),
+				self::EXPIRED_DAYS
+			),
+			$this->licenses->recently_expired( self::EXPIRED_DAYS, self::EXPIRING_LIMIT ),
+			'expired',
+			__( 'No license expired without being renewed.', 'wplicense-it' ),
+			$names,
+			$this->renewal_rate_html()
 		);
 		$this->render_licenses(
 			__( 'Newest licenses', 'wplicense-it' ),
@@ -345,28 +359,29 @@ final class OverviewScreen {
 	 * @param string             $column 'expires' or 'created': which date to show.
 	 * @param string             $empty  Text when there are none.
 	 * @param array<int, string> $names  Product names already looked up (filled as needed).
+	 * @param string             $footer Escaped HTML after the table.
 	 */
-	private function render_licenses( string $title, array $list, string $column, string $empty, array &$names ): void {
+	private function render_licenses( string $title, array $list, string $column, string $empty, array &$names, string $footer = '' ): void {
 		$id = 'wplit-' . sanitize_key( $column ) . '-title';
 
 		echo '<section class="wplit-panel wplit-wide" aria-labelledby="' . esc_attr( $id ) . '"><h2 id="' . esc_attr( $id ) . '">' . esc_html( $title ) . '</h2>';
 
 		if ( array() === $list ) {
-			echo '<p>' . esc_html( $empty ) . '</p></section>';
+			echo '<p>' . esc_html( $empty ) . '</p>' . $footer . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The footer is escaped where it is built.
 
 			return;
 		}
 
 		$now = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 
-		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'License', 'wplicense-it' ) . '</th><th scope="col">' . esc_html__( 'Customer', 'wplicense-it' ) . '</th><th scope="col">' . esc_html( 'expires' === $column ? __( 'Expires', 'wplicense-it' ) : __( 'Created', 'wplicense-it' ) ) . '</th></tr></thead><tbody>';
+		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'License', 'wplicense-it' ) . '</th><th scope="col">' . esc_html__( 'Customer', 'wplicense-it' ) . '</th><th scope="col">' . esc_html( 'created' === $column ? __( 'Created', 'wplicense-it' ) : ( 'expired' === $column ? __( 'Expired', 'wplicense-it' ) : __( 'Expires', 'wplicense-it' ) ) ) . '</th></tr></thead><tbody>';
 
 		foreach ( $list as $license ) {
 			if ( ! isset( $names[ $license->product_id ] ) ) {
 				$names[ $license->product_id ] = (string) get_the_title( $license->product_id );
 			}
 
-			$date = 'expires' === $column ? $license->expires_at : $license->created_at;
+			$date = 'created' === $column ? $license->created_at : $license->expires_at;
 			$when = null === $date ? '' : wp_date( (string) get_option( 'date_format' ), $date->getTimestamp() );
 
 			if ( 'expires' === $column && null !== $date ) {
@@ -376,11 +391,39 @@ final class OverviewScreen {
 					_n( '%d day', '%d days', max( 1, $days ), 'wplicense-it' ),
 					max( 1, $days )
 				) . ')';
+			} elseif ( 'expired' === $column && null !== $date ) {
+				$ago   = max( 0, (int) floor( ( $now->getTimestamp() - $date->getTimestamp() ) / 86400 ) );
+				$when .= ' (' . ( 0 === $ago ? __( 'today', 'wplicense-it' ) : sprintf(
+					/* translators: %d: number of days. */
+					_n( '%d day ago', '%d days ago', $ago, 'wplicense-it' ),
+					$ago
+				) ) . ')';
 			}
 
 			echo '<tr><td><a href="' . esc_url( Urls::view( $license->id ) ) . '"><code>' . esc_html( $license->license_key ) . '</code></a><br><span class="description">' . esc_html( $names[ $license->product_id ] ) . '</span></td><td>' . esc_html( $license->email ) . '</td><td>' . esc_html( $when ) . '</td></tr>';
-		}
+		}//end foreach
 
-		echo '</tbody></table></section>';
+		echo '</tbody></table>' . $footer . '</section>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The footer is escaped where it is built.
+	}
+
+	/**
+	 * The renewal rate line and the link to every expired license, under the recently expired list.
+	 */
+	private function renewal_rate_html(): string {
+		$rate = $this->licenses->renewal_rate( self::RATE_DAYS );
+
+		$text = 0 === $rate['due']
+			/* translators: %d: number of days. */
+			? sprintf( _n( 'No license came due in the last %d day.', 'No license came due in the last %d days.', self::RATE_DAYS, 'wplicense-it' ), self::RATE_DAYS )
+			: sprintf(
+				/* translators: 1: renewed licenses, 2: licenses that came due, 3: number of days, 4: percentage. */
+				_n( 'Renewal rate: %1$d of %2$d license that came due in the last %3$d days was renewed (%4$d%%).', 'Renewal rate: %1$d of %2$d licenses that came due in the last %3$d days were renewed (%4$d%%).', $rate['due'], 'wplicense-it' ),
+				$rate['renewed'],
+				$rate['due'],
+				self::RATE_DAYS,
+				(int) round( 100 * $rate['renewed'] / $rate['due'] )
+			);
+
+		return '<p class="wplit-renewal-rate">' . esc_html( $text ) . ' <a href="' . esc_url( Urls::list( array( 'status' => Status::EXPIRED ) ) ) . '">' . esc_html__( 'All expired licenses', 'wplicense-it' ) . '</a></p>';
 	}
 }

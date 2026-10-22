@@ -58,6 +58,6 @@ them, and of two copies with the same version the first one loaded wins. So ever
 must raise that version, or customers whose site holds an older copy from another plugin may never get the change.
 1.1.0 (card 101): remembers the activated address and the server, the moved-site and silent-server notices, frees the
 site when the plugin is deleted, lists the sites of a full license; also the theme details page (card 75), and (card 102)
-the PHP requirement, updates shown but not installable for an expired license, and automatic updates. 1.1.0 is not
-released yet, so these share its number.
+the PHP requirement, updates shown but not installable for an expired license, and automatic updates. Card 111 adds the `expired` option and
+`wplicense_it_license_status()`. 1.1.0 is not released yet, so these share its number.
 

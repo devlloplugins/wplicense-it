@@ -356,4 +356,47 @@ final class LicenseServiceTest extends TestCase {
 		$this->assertTrue( $this->service->validate( $lifetime->license_key )->is_valid() );
 		$this->assertSame( ValidationResult::REVOKED, $this->service->validate( $revoked->license_key )->code );
 	}
+
+	// Expiry overview (card 111).
+
+	public function test_the_renewal_rate_counts_licenses_that_came_due_and_were_renewed(): void {
+		$at = static fn( string $date ): DateTimeImmutable => new DateTimeImmutable( $date, new DateTimeZone( 'UTC' ) );
+
+		$early   = $this->service->issue_license( 7, 'a@example.com', null, null, 1, $at( '2026-02-01' ) );
+		$lapsed  = $this->service->issue_license( 7, 'b@example.com', null, null, 1, $at( '2026-02-15' ) );
+		$undone  = $this->service->issue_license( 7, 'c@example.com', null, null, 1, $at( '2026-01-20' ) );
+		$revoked = $this->service->issue_license( 7, 'd@example.com', null, null, 1, $at( '2026-01-10' ) );
+		$late    = $this->service->issue_license( 7, 'e@example.com', null, null, 1, $at( '2026-01-05' ) );
+		$later   = $this->service->issue_license( 7, 'f@example.com', null, null, 1, $at( '2026-12-01' ) );
+
+		$this->service->renew_license( $early->id, new DateInterval( 'P1Y' ), array( 'order' => 'WC-1' ) ); // A month early.
+		$this->service->renew_license( $undone->id, new DateInterval( 'P1Y' ), array( 'order' => 'WC-2' ) );
+		$this->service->revoke_license( $revoked->id );
+		$this->clock->advance( '+60 days' ); // 2026-03-02.
+		$this->service->take_back_renewal( $undone->id, 'WC-2' ); // Refunded: expired again on 2026-01-20.
+		$this->service->expire_due_licenses();
+		$this->service->renew_license( $late->id, new DateInterval( 'P1Y' ) ); // After it expired, by hand.
+
+		$this->assertSame(
+			array(
+				'due'     => 4,
+				'renewed' => 2,
+			),
+			$this->service->renewal_rate( 90 ),
+			'came due: early (renewed), late (renewed), lapsed and the taken-back one; not the revoked one or the one due in December'
+		);
+		$this->assertSame( array( $lapsed->id ), array_map( static fn( $l ): int => $l->id, $this->service->recently_expired( 30, 10 ) ), 'only the one that expired in the last 30 days and is still expired' );
+		$this->assertSame( 'active', $this->service->find( $later->id )->status );
+	}
+
+	public function test_no_license_came_due(): void {
+		$this->assertSame(
+			array(
+				'due'     => 0,
+				'renewed' => 0,
+			),
+			$this->service->renewal_rate( 90 )
+		);
+		$this->assertSame( array(), $this->service->recently_expired( 30, 10 ) );
+	}
 }

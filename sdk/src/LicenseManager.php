@@ -83,6 +83,25 @@ final class LicenseManager {
 	}
 
 	/**
+	 * The license in one word: 'active' (updates and features), 'expired' (past its date: no updates, and features as the
+	 * developer chose with the "expired" option), or 'inactive' (no key, revoked, refunded, deactivated, or activated for
+	 * another address).
+	 */
+	public function status(): string {
+		$state = $this->store->load();
+
+		if ( '' === $state->key || '' !== $this->moved_from() ) {
+			return 'inactive';
+		}
+
+		if ( $state->is_active( $this->now() ) ) {
+			return 'active';
+		}
+
+		return LicenseState::EXPIRED === $state->status || LicenseState::ACTIVE === $state->status ? 'expired' : 'inactive';
+	}
+
+	/**
 	 * The address the license was activated for, when this site now has another one (moved or copied), else ''. Such a site
 	 * is not active until the license is activated here: nothing moves on its own, so copying a site cannot multiply licenses.
 	 */
@@ -199,7 +218,8 @@ final class LicenseManager {
 		$result = $this->api->validate( $state->key, $this->site_url );
 
 		if ( $result->is_temporary() ) {
-			return $result; // Learned nothing: keep everything as it was.
+			return $result;
+			// Learned nothing: keep everything as it was.
 		}
 
 		$state->last_checked = $this->now();
@@ -226,7 +246,7 @@ final class LicenseManager {
 			if ( isset( $result->data['license'] ) && is_array( $result->data['license'] ) ) {
 				$this->apply_license( $state, $state->key, $result->data );
 			}
-		}
+		}//end if
 
 		$this->store->save( $state );
 		$this->store->cache_delete( 'update' );

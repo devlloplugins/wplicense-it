@@ -63,6 +63,7 @@ That is all. Customers now find **Settings > My Plugin License**.
 | `name` | Name shown to customers. |
 | `version` | Installed version. |
 | `menu` | `false` for no license page (build your own, see below), or `array( 'parent' => 'tools.php', 'title' => 'License' )`. Default: a page under Settings. |
+| `expired` | What an expired license means for your features. `'keep'` (default): they keep working and only updates stop. `'stop'`: `wplicense_it_license_active()` is false once the license expires. |
 
 ## Checking the license in your code
 
@@ -72,7 +73,22 @@ if ( wplicense_it_license_active( 'my-plugin' ) ) {
 }
 ```
 
-The argument is your plugin's folder name (or the theme's folder name). The result is what the site last learned from your server. A license that has passed its expiry date counts as inactive immediately.
+The argument is your plugin's folder name (or the theme's folder name). The result is what the site last learned from your server.
+
+An expired license still counts here by default: the plugin keeps working and only updates stop, which is what most
+WordPress customers expect. Register with `'expired' => 'stop'` to switch your features off when the license expires
+(at its date, without waiting for the daily check). Revoked, refunded and deactivated licenses, and a site the license
+was not activated for, always count as not active.
+
+To tell the cases apart, for example to show your own "renew" notice:
+
+```php
+switch ( wplicense_it_license_status( 'my-plugin' ) ) {
+	case 'active':   // Features and updates.
+	case 'expired':  // Past its date: no updates (features as the 'expired' option says).
+	case 'inactive': // No key, revoked, refunded, deactivated or activated for another address.
+}
+```
 
 ## Your own settings screen
 
@@ -83,7 +99,7 @@ $client = \WPLicenseIt\Client\Client::get( 'my-plugin' );
 $client->render_license_form();
 ```
 
-`$client->activate( $key )`, `->deactivate()`, `->license()` and `->is_active()` are available for fully custom screens.
+`$client->activate( $key )`, `->deactivate()`, `->license()`, `->is_active()` (what `wplicense_it_license_active()` answers) and `->status()` are available for fully custom screens.
 
 ## Cleaning up
 

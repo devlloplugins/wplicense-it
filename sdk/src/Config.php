@@ -87,6 +87,14 @@ final class Config {
 	public $menu_title;
 
 	/**
+	 * What an expired license means for the plugin's own features: 'keep' (they keep working, only updates stop) or
+	 * 'stop' (wplicense_it_license_active() is false once it expires).
+	 *
+	 * @var string
+	 */
+	public $expired = 'keep';
+
+	/**
 	 * Builds a configuration from the array a developer passes in.
 	 *
 	 * @param array<string, mixed> $args Settings: server, product_id, name, version and file (plugin) or slug and type (theme).
@@ -138,6 +146,7 @@ final class Config {
 		$menu                = isset( $args['menu'] ) ? $args['menu'] : array();
 		$config->menu_parent = false === $menu ? '' : (string) ( is_array( $menu ) && isset( $menu['parent'] ) ? $menu['parent'] : 'options-general.php' );
 		$config->menu_title  = is_array( $menu ) && isset( $menu['title'] ) ? (string) $menu['title'] : $config->name . ' License';
+		$config->expired     = 'stop' === ( $args['expired'] ?? 'keep' ) ? 'stop' : 'keep';
 
 		return $config;
 	}

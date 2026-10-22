@@ -99,11 +99,23 @@ final class Client {
 	}
 
 	/**
-	 * Whether the product's license is active right now.
+	 * Whether the product's licensed features may run (what wplicense_it_license_active() answers): an active license, or
+	 * an expired one unless the developer passed 'expired' => 'stop'. Updates need an active license; status() tells the
+	 * two apart.
 	 */
 	public function is_active(): bool {
-		return $this->manager->is_active();
+		$status = $this->manager->status();
+
+		return 'active' === $status || ( 'expired' === $status && 'stop' !== $this->config->expired );
 	}
+
+	/**
+	 * The license in one word: 'active', 'expired' or 'inactive' (see LicenseManager::status()).
+	 */
+	public function status(): string {
+		return $this->manager->status();
+	}
+
 
 	/**
 	 * What the site knows about its license.

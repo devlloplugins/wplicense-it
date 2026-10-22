@@ -95,4 +95,13 @@ interface LicenseRepository {
 	 * @return License[]
 	 */
 	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit, string $status = Status::ACTIVE ): array;
+
+	/**
+	 * How many licenses of a status have their expiry after $from and up to $to.
+	 *
+	 * @param DateTimeImmutable $from   Exclusive start (UTC).
+	 * @param DateTimeImmutable $to     Inclusive end (UTC).
+	 * @param string            $status Status.
+	 */
+	public function count_expiring( DateTimeImmutable $from, DateTimeImmutable $to, string $status ): int;
 }

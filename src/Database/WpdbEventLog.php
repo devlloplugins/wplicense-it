@@ -87,6 +87,32 @@ final class WpdbEventLog implements EventLog {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @param string            $type  Event type.
+	 * @param DateTimeImmutable $since Earliest time (UTC).
+	 * @param int               $limit Maximum events.
+	 */
+	public function since( string $type, DateTimeImmutable $since, int $limit = 20000 ): array {
+		$rows = $this->db->get_results(
+			$this->db->prepare( "SELECT license_id, type, data, created_at FROM {$this->table} WHERE created_at >= %s AND type = %s ORDER BY created_at ASC, id ASC LIMIT %d", Dates::to_db( $since ), $type, max( 1, $limit ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+			ARRAY_A
+		);
+		$rows = is_array( $rows ) ? $rows : array();
+
+		$events = array();
+		foreach ( $this->events_from_rows( $rows ) as $i => $event ) {
+			$events[] = array(
+				'license_id' => (int) $rows[ $i ]['license_id'],
+				'data'       => $event['data'],
+				'created_at' => $event['created_at'],
+			);
+		}
+
+		return $events;
+	}
+
+	/**
 	 * Turns database rows into events.
 	 *
 	 * @param mixed $rows Rows from get_results().

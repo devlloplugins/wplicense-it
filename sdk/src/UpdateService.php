@@ -14,8 +14,10 @@ namespace WPLicenseIt\Client;
  */
 final class UpdateService {
 
-	private const CACHE_FOUND = 21600; // Six hours.
-	private const CACHE_NONE  = 3600;  // One hour: do not hammer the server for a license that cannot update.
+	private const CACHE_FOUND = 21600;
+	// Six hours.
+	private const CACHE_NONE = 3600;
+	// One hour: do not hammer the server for a license that cannot update.
 
 	/**
 	 * Server API.

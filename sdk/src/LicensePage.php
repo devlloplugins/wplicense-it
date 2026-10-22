@@ -186,7 +186,7 @@ final class LicensePage {
 			} else {
 				$text = $result->ok ? 'License deactivated on this site.' : $result->message;
 			}
-		}
+		}//end if
 
 		set_transient(
 			$this->notice_key(),
@@ -248,8 +248,10 @@ final class LicensePage {
 			return 'Not activated. Enter your license key to receive updates.';
 		}
 
-		if ( LicenseState::ACTIVE === $state->status ) {
-			return 'Expired. Renew your license to keep receiving updates.';
+		if ( 'expired' === $this->manager->status() ) {
+			return 'stop' === $this->config->expired
+				? sprintf( 'Expired. Renew your license to use %s again and to receive updates.', $this->config->name )
+				: sprintf( 'Expired. %s keeps working, but you no longer receive updates. Renew your license to get them again.', $this->config->name );
 		}
 
 		return '' !== $state->message ? ucfirst( $state->status ) . '. ' . $state->message : ucfirst( $state->status ) . '.';

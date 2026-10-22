@@ -832,6 +832,71 @@ final class LicenseService {
 	}
 
 	/**
+	 * Licenses that expired within the last days and were not renewed, most recent first.
+	 *
+	 * @param int $days  Days back.
+	 * @param int $limit Most licenses to return.
+	 * @return License[]
+	 */
+	public function recently_expired( int $days, int $limit ): array {
+		$now   = $this->now();
+		$found = $this->licenses->find_expiring( $now->modify( '-' . max( 1, $days ) . ' days' ), $now, null, 1000, Status::EXPIRED );
+
+		return array_slice( array_reverse( $found ), 0, max( 1, $limit ) );
+	}
+
+	/**
+	 * Of the licenses that came due (reached their expiry date) in the last days, how many were renewed. Renewed ones are
+	 * found by their history (a renewal whose old expiry falls in the period, early or late, not taken back since); the
+	 * rest are the licenses now expired with an expiry in the period. Revoked and refunded licenses are not counted.
+	 *
+	 * @param int $days Days back.
+	 * @return array{due:int,renewed:int}
+	 */
+	public function renewal_rate( int $days ): array {
+		$now  = $this->now();
+		$from = $now->modify( '-' . max( 1, $days ) . ' days' );
+
+		// Renewals can be made up to a year early; their events are within a year before the period.
+		$since   = $from->modify( '-1 year' );
+		$balance = array();
+
+		foreach ( $this->events->since( EventLog::RENEWED, $since ) as $event ) {
+			$old = $event['data']['old_expires_at'] ?? null;
+			if ( ! is_string( $old ) ) {
+				continue;
+			}
+
+			$due = new DateTimeImmutable( $old, new DateTimeZone( 'UTC' ) );
+			if ( $due > $from && $due <= $now ) {
+				$key             = $event['license_id'] . '|' . ( $event['data']['order'] ?? '' );
+				$balance[ $key ] = ( $balance[ $key ] ?? 0 ) + 1;
+			}
+		}
+
+		foreach ( $this->events->since( EventLog::RENEWAL_REFUNDED, $since ) as $event ) {
+			$key = $event['license_id'] . '|' . ( $event['data']['order'] ?? '' );
+			if ( isset( $balance[ $key ] ) ) {
+				--$balance[ $key ];
+			}
+		}
+
+		$renewed = array();
+		foreach ( $balance as $key => $count ) {
+			if ( $count > 0 ) {
+				$renewed[ (int) strtok( (string) $key, '|' ) ] = true;
+			}
+		}
+
+		$lapsed = $this->licenses->count_expiring( $from, $now, Status::EXPIRED );
+
+		return array(
+			'due'     => count( $renewed ) + $lapsed,
+			'renewed' => count( $renewed ),
+		);
+	}
+
+	/**
 	 * How many local or staging sites are active on a license.
 	 *
 	 * @param License $license License.

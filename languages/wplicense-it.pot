@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-22T19:30:00+00:00\n"
+"POT-Creation-Date: 2026-10-22T22:23:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -250,13 +250,13 @@ msgid "Issue license"
 msgstr ""
 
 #: src/Admin/AdminMenu.php:55
-#: src/Admin/OverviewScreen.php:57
+#: src/Admin/OverviewScreen.php:59
 msgid "Overview"
 msgstr ""
 
 #: src/Admin/AdminMenu.php:57
 #: src/Admin/LicensesScreen.php:86
-#: src/Admin/OverviewScreen.php:312
+#: src/Admin/OverviewScreen.php:326
 #: src/Privacy/PrivacyService.php:201
 #: src/WooCommerce/AccountPage.php:79
 #: src/WooCommerce/AccountPage.php:85
@@ -273,7 +273,7 @@ msgid "Import and export"
 msgstr ""
 
 #: src/Admin/AdminMenu.php:64
-#: src/Admin/OverviewScreen.php:337
+#: src/Admin/OverviewScreen.php:351
 #: src/Admin/SettingsScreen.php:259
 msgid "Licensing settings"
 msgstr ""
@@ -314,12 +314,12 @@ msgid "Before you sell"
 msgstr ""
 
 #: src/Admin/ConnectBox.php:193
-#: src/Admin/OverviewScreen.php:261
+#: src/Admin/OverviewScreen.php:275
 msgid "Done:"
 msgstr ""
 
 #: src/Admin/ConnectBox.php:193
-#: src/Admin/OverviewScreen.php:261
+#: src/Admin/OverviewScreen.php:275
 msgid "To do:"
 msgstr ""
 
@@ -358,7 +358,7 @@ msgstr ""
 #: src/Admin/ConnectBox.php:220
 #: src/Admin/LicensesTable.php:79
 #: src/Admin/LicenseView.php:41
-#: src/Admin/OverviewScreen.php:362
+#: src/Admin/OverviewScreen.php:377
 msgid "License"
 msgstr ""
 
@@ -456,7 +456,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:81
 #: src/Admin/LicenseView.php:75
-#: src/Admin/OverviewScreen.php:362
+#: src/Admin/OverviewScreen.php:377
 msgid "Customer"
 msgstr ""
 
@@ -473,7 +473,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:83
 #: src/Admin/LicenseView.php:78
-#: src/Admin/OverviewScreen.php:362
+#: src/Admin/OverviewScreen.php:377
 #: src/Compat/LegacyShortcodes.php:74
 #: src/Privacy/PrivacyService.php:176
 #: src/WooCommerce/AccountPage.php:208
@@ -493,7 +493,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:85
 #: src/Admin/LicenseView.php:80
-#: src/Admin/OverviewScreen.php:362
+#: src/Admin/OverviewScreen.php:377
 #: src/Privacy/PrivacyService.php:180
 #: src/Privacy/PrivacyService.php:286
 msgid "Created"
@@ -501,7 +501,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:113
 #: src/Admin/LicensesTable.php:311
-#: src/Admin/OverviewScreen.php:306
+#: src/Admin/OverviewScreen.php:320
 #: src/WooCommerce/AccountPage.php:234
 msgid "Active"
 msgstr ""
@@ -509,7 +509,8 @@ msgstr ""
 #: src/Admin/LicensesTable.php:114
 #: src/Admin/LicensesTable.php:312
 #: src/Admin/LicenseView.php:217
-#: src/Admin/OverviewScreen.php:307
+#: src/Admin/OverviewScreen.php:321
+#: src/Admin/OverviewScreen.php:377
 #: src/WooCommerce/AccountPage.php:245
 msgid "Expired"
 msgstr ""
@@ -517,7 +518,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:115
 #: src/Admin/LicensesTable.php:313
 #: src/Admin/LicenseView.php:218
-#: src/Admin/OverviewScreen.php:308
+#: src/Admin/OverviewScreen.php:322
 #: src/WooCommerce/AccountPage.php:242
 msgid "Revoked"
 msgstr ""
@@ -525,7 +526,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:116
 #: src/Admin/LicensesTable.php:314
 #: src/Admin/LicenseView.php:219
-#: src/Admin/OverviewScreen.php:309
+#: src/Admin/OverviewScreen.php:323
 #: src/WooCommerce/AccountPage.php:238
 msgid "Refunded"
 msgstr ""
@@ -584,7 +585,7 @@ msgid "No licenses found."
 msgstr ""
 
 #: src/Admin/LicenseView.php:42
-#: src/Admin/OverviewScreen.php:318
+#: src/Admin/OverviewScreen.php:332
 msgid "All licenses"
 msgstr ""
 
@@ -804,144 +805,188 @@ msgid "Something went wrong."
 msgstr ""
 
 #. translators: %d: number of days.
-#: src/Admin/OverviewScreen.php:82
+#: src/Admin/OverviewScreen.php:84
 #, php-format
 msgid "Expiring in the next %d day"
 msgid_plural "Expiring in the next %d days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/OverviewScreen.php:87
+#: src/Admin/OverviewScreen.php:89
 msgid "Nothing expires soon."
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:91
+#. translators: %d: number of days.
+#: src/Admin/OverviewScreen.php:95
+#, php-format
+msgid "Expired in the last %d day, not renewed"
+msgid_plural "Expired in the last %d days, not renewed"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/OverviewScreen.php:100
+msgid "No license expired without being renewed."
+msgstr ""
+
+#: src/Admin/OverviewScreen.php:105
 msgid "Newest licenses"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:94
+#: src/Admin/OverviewScreen.php:108
 msgid "No licenses yet."
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:182
+#: src/Admin/OverviewScreen.php:196
 msgid "See the details"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:184
+#: src/Admin/OverviewScreen.php:198
 msgid "Open the products"
 msgstr ""
 
 #. translators: %s: order number.
-#: src/Admin/OverviewScreen.php:194
+#: src/Admin/OverviewScreen.php:208
 #, php-format
 msgid "Order %s"
 msgstr ""
 
 #. translators: %d: number of orders.
-#: src/Admin/OverviewScreen.php:216
+#: src/Admin/OverviewScreen.php:230
 #, php-format
 msgid "%d paid order could not be given its license, so the customer is waiting. Open it, fix the cause and press Try again."
 msgid_plural "%d paid orders could not be given their licenses, so the customers are waiting. Open each one, fix the cause and press Try again."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/OverviewScreen.php:219
+#: src/Admin/OverviewScreen.php:233
 msgid "The move of your 1.x data needs attention. Some licenses or orders were not moved."
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:222
+#: src/Admin/OverviewScreen.php:236
 msgid "The folder for product packages cannot be written to. Uploading a release will fail until its permissions are fixed."
 msgstr ""
 
 #. translators: %d: number of products.
-#: src/Admin/OverviewScreen.php:226
+#: src/Admin/OverviewScreen.php:240
 #, php-format
 msgid "%d published product has no release uploaded, so customers cannot download or update it."
 msgid_plural "%d published products have no release uploaded, so customers cannot download or update them."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/OverviewScreen.php:229
+#: src/Admin/OverviewScreen.php:243
 msgid "WP-Cron is switched off on this site (DISABLE_WP_CRON). Marking licenses as expired, expiry reminders and renewal invoices only happen if a real cron job calls wp-cron.php every few minutes."
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:232
+#: src/Admin/OverviewScreen.php:246
 msgid "The daily job (expiry, reminders, renewal invoices) has not run for more than two days. Check that WP-Cron works on this site."
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:235
+#: src/Admin/OverviewScreen.php:249
 msgid "The daily job (expiry, reminders, renewal invoices) was due more than a day ago and has not run yet. Check that WP-Cron works on this site."
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:247
+#: src/Admin/OverviewScreen.php:261
 msgid "Setup"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:247
+#: src/Admin/OverviewScreen.php:261
 msgid "Getting started"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:250
+#: src/Admin/OverviewScreen.php:264
 msgid "The basics are set up."
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:250
+#: src/Admin/OverviewScreen.php:264
 msgid "These could help too:"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:263
+#: src/Admin/OverviewScreen.php:277
 msgid "(optional)"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:281
+#: src/Admin/OverviewScreen.php:295
 msgid "Create your first product"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:282
+#: src/Admin/OverviewScreen.php:296
 msgid "Upload a release (a zip file) to a product"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:283
+#: src/Admin/OverviewScreen.php:297
 msgid "Issue a license, to try it yourself"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:284
+#: src/Admin/OverviewScreen.php:298
 msgid "Add a plan with a price to a product, so customers can buy it"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:285
+#: src/Admin/OverviewScreen.php:299
 msgid "Install WooCommerce to sell licenses from your store, or issue them by hand"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:286
+#: src/Admin/OverviewScreen.php:300
 msgid "Download the client SDK and add it to your plugin or theme"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:287
+#: src/Admin/OverviewScreen.php:301
 msgid "Turn on expiry reminder emails"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:288
+#: src/Admin/OverviewScreen.php:302
 msgid "Turn on renewal invoices"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:335
+#: src/Admin/OverviewScreen.php:349
 #: src/Admin/SettingsScreen.php:224
 #: src/Admin/SettingsScreen.php:613
 msgid "Old 1.x API addresses"
 msgstr ""
 
-#: src/Admin/OverviewScreen.php:337
+#: src/Admin/OverviewScreen.php:351
 msgid "Plugins and themes released with WPLicense It 1.x call these addresses with the license key in the address. When no more calls come, switch them off."
 msgstr ""
 
 #. translators: %d: number of days.
-#: src/Admin/OverviewScreen.php:376
+#: src/Admin/OverviewScreen.php:391
 #, php-format
 msgid "%d day"
 msgid_plural "%d days"
 msgstr[0] ""
 msgstr[1] ""
+
+#: src/Admin/OverviewScreen.php:396
+msgid "today"
+msgstr ""
+
+#. translators: %d: number of days.
+#: src/Admin/OverviewScreen.php:398
+#, php-format
+msgid "%d day ago"
+msgid_plural "%d days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of days.
+#: src/Admin/OverviewScreen.php:417
+#, php-format
+msgid "No license came due in the last %d day."
+msgid_plural "No license came due in the last %d days."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: renewed licenses, 2: licenses that came due, 3: number of days, 4: percentage.
+#: src/Admin/OverviewScreen.php:420
+#, php-format
+msgid "Renewal rate: %1$d of %2$d license that came due in the last %3$d days was renewed (%4$d%%)."
+msgid_plural "Renewal rate: %1$d of %2$d licenses that came due in the last %3$d days were renewed (%4$d%%)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/OverviewScreen.php:427
+msgid "All expired licenses"
+msgstr ""
 
 #: src/Admin/PlansBox.php:95
 #: src/Admin/ProductScreen.php:95
@@ -1967,7 +2012,7 @@ msgstr ""
 msgid "Only a revoked or refunded license can be reinstated."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:878
+#: src/Licenses/LicenseService.php:943
 msgid "Could not generate a unique license key."
 msgstr ""
 

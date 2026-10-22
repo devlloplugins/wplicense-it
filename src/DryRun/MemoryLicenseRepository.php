@@ -169,4 +169,11 @@ final class MemoryLicenseRepository implements LicenseRepository {
 
 		return array_slice( $found, 0, $limit );
 	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function count_expiring( DateTimeImmutable $from, DateTimeImmutable $to, string $status ): int {
+		return count( $this->find_expiring( $from, $to, null, PHP_INT_MAX, $status ) );
+	}
 }

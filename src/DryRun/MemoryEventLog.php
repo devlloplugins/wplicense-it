@@ -64,6 +64,19 @@ final class MemoryEventLog implements EventLog {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 *
+	 * @param string             $type  Event type.
+	 * @param \DateTimeImmutable $since Earliest time.
+	 * @param int                $limit Maximum events.
+	 */
+	public function since( string $type, \DateTimeImmutable $since, int $limit = 20000 ): array {
+		$found = array_filter( $this->events, static fn( array $event ): bool => $event['type'] === $type && $event['created_at'] >= $since );
+
+		return array_slice( array_values( $found ), 0, $limit );
+	}
+
+	/**
 	 * Event types in the order they were recorded.
 	 *
 	 * @return string[]

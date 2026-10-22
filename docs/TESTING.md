@@ -29,6 +29,13 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/34-expiry.cjs` (18 checks) runs the sample plugin with the client SDK on the customer site: after the daily
+job expires its license and Check now, `wplicense_it_license_active()` stays true, the status is `expired` and the
+license page says the plugin keeps working without updates; registered with `'expired' => 'stop'` the plugin's licensed
+part turns off and the page says so; the expired key cannot be activated on another site; a revoked license is
+`inactive`. The Overview lists the license that expired 5 days ago with the renewal rate (checked against the server's
+own count) and the link to all expired licenses; renewing it counts as renewed and removes it from the list.
+
 `tests/e2e/33-renewal.cjs` (19 checks) uses a product with an Agency and a newer Single site plan: Renew in My Account,
 the cart and a renewal invoice use the Agency plan the license was bought with, and a link edited to the Single site
 plan renews nothing (4 checks fail with the lookup used before); refunding the renewal order puts the expiry back with

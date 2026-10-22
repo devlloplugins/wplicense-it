@@ -55,4 +55,14 @@ interface EventLog {
 	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:\DateTimeImmutable}>
 	 */
 	public function of_type( int $license_id, string $type, int $limit = 20 ): array;
+
+	/**
+	 * Events of one type for all licenses, recorded since a time, oldest first.
+	 *
+	 * @param string             $type  One of the constants above.
+	 * @param \DateTimeImmutable $since Earliest time (UTC).
+	 * @param int                $limit Maximum events.
+	 * @return array<int, array{license_id:int,data:array<string,mixed>,created_at:\DateTimeImmutable}>
+	 */
+	public function since( string $type, \DateTimeImmutable $since, int $limit = 20000 ): array;
 }

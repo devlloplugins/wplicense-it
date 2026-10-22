@@ -58,7 +58,9 @@ defined( 'ABSPATH' ) || exit;
 // 1. Connect to your license server. This is the code from the product's Connect box.
 {$snippet}
 // 2. Check the license where it matters. wplicense_it_license_active() is what the site last heard from your server.
-//    A network problem never turns a license off; only your server does (expired, revoked, refunded, site deactivated).
+//    A network problem never turns a license off; only your server does (revoked, refunded, site deactivated).
+//    An expired license keeps your features on and only stops updates; add 'expired' => 'stop' to the call above to
+//    switch them off instead. wplicense_it_license_status() answers 'active', 'expired' or 'inactive'.
 add_action(
 	'admin_notices',
 	function () {

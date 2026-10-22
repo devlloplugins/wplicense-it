@@ -15,6 +15,9 @@
  *     ) );
  *
  * Themes: pass 'type' => 'theme' and 'slug' => 'my-theme' instead of 'file'.
+ * An expired license keeps your plugin working (wplicense_it_license_active() stays true) and only stops updates; pass
+ * 'expired' => 'stop' to switch your licensed features off when it expires. wplicense_it_license_status() tells
+ * 'active', 'expired' and 'inactive' apart.
  *
  * If several plugins on a site include this SDK, only the newest copy is loaded.
  * Requires PHP 7.4 or newer and WordPress 5.8 or newer.
@@ -41,7 +44,9 @@ if ( ! function_exists( 'wplicense_it_client' ) ) {
 	}
 
 	/**
-	 * Whether a product's license is active. Returns false if the product is not registered.
+	 * Whether a product's licensed features may run: the license is active, or it has expired and the product was
+	 * registered without 'expired' => 'stop' (an expired license keeps the plugin working; only updates stop). Returns
+	 * false if the product is not registered.
 	 *
 	 * @param string $slug Plugin folder name or theme folder name.
 	 * @return bool
@@ -205,6 +210,22 @@ if ( ! function_exists( 'wplicense_it_client_uninstall_hook' ) ) {
 		}
 
 		wplicense_it_client_forget( $slug );
+	}
+}
+
+// Its own block: on a site where an older copy of the SDK (without it) loaded first, the block above is skipped.
+if ( ! function_exists( 'wplicense_it_license_status' ) ) {
+	/**
+	 * A product's license in one word: 'active' (updates and features), 'expired' (past its date: no updates) or
+	 * 'inactive' (no key, revoked, refunded, deactivated, activated for another address, or the product is not registered).
+	 *
+	 * @param string $slug Plugin folder name or theme folder name.
+	 * @return string
+	 */
+	function wplicense_it_license_status( $slug ) {
+		$client = class_exists( '\WPLicenseIt\Client\Client' ) ? \WPLicenseIt\Client\Client::get( (string) $slug ) : null;
+
+		return null !== $client && method_exists( $client, 'status' ) ? $client->status() : 'inactive';
 	}
 }
 
