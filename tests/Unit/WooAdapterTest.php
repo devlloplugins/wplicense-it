@@ -45,6 +45,7 @@ final class WooAdapterTest extends TestCase {
 	private \WC_Product $product;
 
 	protected function setUp(): void {
+		$GLOBALS['wplit_test_actions']       = array();
 		$GLOBALS['wplit_test_orders']        = array();
 		$GLOBALS['wplit_test_open_invoices'] = array();
 		$GLOBALS['wplit_test_mail']          = array();
@@ -212,12 +213,22 @@ final class WooAdapterTest extends TestCase {
 		$this->complete();
 		$this->assertNotSame( '', IssueProblems::problem_of( $this->order ) );
 
+		$this->assertNotContains( 'wplicense_it_licenses_issued_late', $GLOBALS['wplit_test_actions'] ?? array(), 'a failed attempt sends the customer nothing' );
+
 		$this->item->meta[ OrderReader::META_PERIOD ] = 'P1Y';
 		$this->order->status                          = 'completed';
 		$this->adapter->retry( $this->order );
 
 		$this->assertCount( 1, WooItemLicenseStore::ids( $this->item ) );
 		$this->assertSame( '', IssueProblems::problem_of( $this->order ) );
+		$this->assertContains( 'wplicense_it_licenses_issued_late', $GLOBALS['wplit_test_actions'], 'the license issued late is sent to the customer' );
+	}
+
+	public function test_an_order_that_gets_its_license_first_time_sends_no_late_email(): void {
+		$this->complete();
+
+		$this->assertCount( 1, WooItemLicenseStore::ids( $this->item ) );
+		$this->assertNotContains( 'wplicense_it_licenses_issued_late', $GLOBALS['wplit_test_actions'] ?? array() );
 	}
 
 	public function test_an_order_that_gets_its_license_has_no_problem_and_nobody_is_emailed(): void {

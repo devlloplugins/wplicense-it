@@ -169,8 +169,12 @@ final class WooAdapter {
 		set_transient( $lock, 1, self::LOCK_SECONDS );
 
 		$problems = array();
+		$late     = $issuing && '' !== IssueProblems::problem_of( $order );
+		$report   = null;
+		// The ProcessReport, once the operation ran.
 
 		try {
+			/** @var ProcessReport $report */
 			$report = $operation( $this->reader->read( $order ) );
 
 			if ( $report->changed() ) {
@@ -194,6 +198,12 @@ final class WooAdapter {
 
 		if ( array() === $problems ) {
 			IssueProblems::clear( $order );
+
+			// The order had a problem, so the customer's email went out without a key: send it now.
+			if ( $late && $report instanceof ProcessReport && $report->issued + $report->renewed > 0 ) {
+				do_action( 'wplicense_it_licenses_issued_late', $order );
+				// LicenseDisplay::LATE_ACTION.
+			}
 		} elseif ( IssueProblems::flag( $order, $problems ) ) {
 			IssueProblems::notify_admin( $order, $problems );
 		}

@@ -71,6 +71,15 @@ in yet. So does an order that also holds something to ship.
 Every action is written to the order as a note. A failure never breaks checkout or the status change:
 it is logged, noted on the order, and changing the status again retries it.
 
+**Accounts.** Buying a license needs an account: when the cart holds a licensed product, checkout creates one (or asks
+the buyer to log in), even if the store allows guest checkout; other carts follow the store's setting. Return false
+from the `wplicense_it_require_account` filter to allow guests.
+
+**What the customer sees.** The processing and completed emails and the order page list each key with its product, the
+sites it covers and the expiry, a line on how to activate it, and a link to My Account, Licenses. While an order still
+waits for its licenses (bank transfer, cash on delivery) they say the key will be emailed once the payment is confirmed.
+If an order had a problem (see below) and **Try again** issues its license later, the customer is emailed the key then.
+
 A license that was revoked by hand is never overwritten by a later refund or cancellation, and is never brought back
 by an order: only licenses whose latest refund or revocation names the order (the license history shows `order:
 WC-123`) are reinstated by it. That covers an order cancelled while unpaid and paid after all, and an order set to

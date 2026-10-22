@@ -112,6 +112,7 @@ if ( ! function_exists( 'wc_get_order' ) ) {
 	function get_option( $name, $default = false ) { return $GLOBALS['wplit_test_options'][ $name ] ?? $default; }
 	function update_option( $name, $value, $autoload = null ) { $GLOBALS['wplit_test_options'][ $name ] = $value; return true; }
 	function apply_filters( $hook, $value ) { return $value; }
+	function do_action( $hook, ...$args ) { $GLOBALS['wplit_test_actions'][] = $hook; }
 	function delete_transient( $name ) { $store = &wplit_test_transients(); unset( $store[ $name ] ); return true; }
 }
 

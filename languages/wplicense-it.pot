@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-22T15:02:31+00:00\n"
+"POT-Creation-Date: 2026-10-22T16:19:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -173,7 +173,7 @@ msgstr ""
 #: src/Admin/LicenseView.php:73
 #: src/Admin/PlansBox.php:254
 #: src/Admin/TransferScreen.php:265
-#: src/WooCommerce/LicenseDisplay.php:53
+#: src/WooCommerce/LicenseDisplay.php:138
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "Product"
 msgstr ""
@@ -410,7 +410,7 @@ msgstr ""
 #: src/Compat/LegacyShortcodes.php:74
 #: src/Privacy/PrivacyService.php:177
 #: src/WooCommerce/AccountPage.php:208
-#: src/WooCommerce/LicenseDisplay.php:124
+#: src/WooCommerce/LicenseDisplay.php:256
 #: src/WooCommerce/OrderLicensesBox.php:170
 msgid "Never"
 msgstr ""
@@ -461,7 +461,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:82
 #: src/Admin/LicenseView.php:72
-#: src/Admin/SettingsScreen.php:601
+#: src/Admin/SettingsScreen.php:610
 #: src/Admin/TransferScreen.php:261
 #: src/Privacy/PrivacyService.php:168
 #: src/Privacy/PrivacyService.php:229
@@ -476,7 +476,7 @@ msgstr ""
 #: src/Compat/LegacyShortcodes.php:74
 #: src/Privacy/PrivacyService.php:176
 #: src/WooCommerce/AccountPage.php:208
-#: src/WooCommerce/LicenseDisplay.php:53
+#: src/WooCommerce/LicenseDisplay.php:138
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "Expires"
 msgstr ""
@@ -485,6 +485,7 @@ msgstr ""
 #: src/Admin/LicensesTable.php:84
 #: src/Admin/LicenseView.php:79
 #: src/WooCommerce/AccountPage.php:210
+#: src/WooCommerce/LicenseDisplay.php:138
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "Sites"
 msgstr ""
@@ -591,7 +592,7 @@ msgstr ""
 #: src/Privacy/PrivacyService.php:156
 #: src/Privacy/PrivacyService.php:270
 #: src/WooCommerce/AccountPage.php:206
-#: src/WooCommerce/LicenseDisplay.php:53
+#: src/WooCommerce/LicenseDisplay.php:138
 #: src/WooCommerce/OrderLicensesBox.php:88
 msgid "License key"
 msgstr ""
@@ -921,7 +922,7 @@ msgstr ""
 
 #: src/Admin/OverviewScreen.php:335
 #: src/Admin/SettingsScreen.php:224
-#: src/Admin/SettingsScreen.php:604
+#: src/Admin/SettingsScreen.php:613
 msgid "Old 1.x API addresses"
 msgstr ""
 
@@ -1451,7 +1452,7 @@ msgid "Time window (minutes)"
 msgstr ""
 
 #: src/Admin/SettingsScreen.php:223
-#: src/Admin/SettingsScreen.php:517
+#: src/Admin/SettingsScreen.php:526
 msgid "Visitors reach this site"
 msgstr ""
 
@@ -1563,154 +1564,154 @@ msgstr ""
 msgid "How"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:387
+#: src/Admin/SettingsScreen.php:396
 msgid "In My Account"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:387
+#: src/Admin/SettingsScreen.php:396
 msgid "From an email"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:388
+#: src/Admin/SettingsScreen.php:397
 msgid "Turn back on"
 msgstr ""
 
 #. translators: %d: number of addresses shown.
-#: src/Admin/SettingsScreen.php:395
+#: src/Admin/SettingsScreen.php:404
 #, php-format
 msgid "The newest %d are shown."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:420
+#: src/Admin/SettingsScreen.php:429
 msgid "Send me a test email"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:421
+#: src/Admin/SettingsScreen.php:430
 msgid "Send me the email after expiry"
 msgstr ""
 
 #. translators: %s: the administrator's email address.
-#: src/Admin/SettingsScreen.php:425
+#: src/Admin/SettingsScreen.php:434
 #, php-format
 msgid "Sends the reminder a customer would get to %s, for your first product and the first number of days above (or the email after expiry), with [Test] in the subject. It uses the saved settings, so save your changes first. It works while reminders are off, and nothing is recorded on any license."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:467
+#: src/Admin/SettingsScreen.php:476
 msgid "Reminder emails go to that address again."
 msgstr ""
 
 #. translators: %s: email address.
-#: src/Admin/SettingsScreen.php:470
+#: src/Admin/SettingsScreen.php:479
 #, php-format
 msgid "A test reminder was sent to %s. If it does not arrive, check the spam folder and your site's email setup."
 msgstr ""
 
 #. translators: %s: email address.
-#: src/Admin/SettingsScreen.php:473
+#: src/Admin/SettingsScreen.php:482
 #, php-format
 msgid "WordPress could not send the test reminder to %s. Check your site's email setup (an SMTP plugin, for example)."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:481
+#: src/Admin/SettingsScreen.php:490
 msgid "Clients that send many wrong license keys are blocked for the rest of the time window. Right keys that are expired or revoked do not count."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:482
+#: src/Admin/SettingsScreen.php:491
 msgid "Clients are told apart by their address. If this site is behind Cloudflare or another proxy, choose so below; otherwise all customers would share the proxy's address and one counter, and one client sending wrong keys could block everyone."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:503
+#: src/Admin/SettingsScreen.php:512
 msgid "0 keeps it forever."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:512
+#: src/Admin/SettingsScreen.php:521
 msgid "Directly (no proxy or CDN in front of the site)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:513
+#: src/Admin/SettingsScreen.php:522
 msgid "Through Cloudflare (the CF-Connecting-IP header is used, only on requests that come from Cloudflare's addresses)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:514
+#: src/Admin/SettingsScreen.php:523
 msgid "Through another proxy or load balancer (the X-Forwarded-For header is used, only on requests from the proxies listed below)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:523
+#: src/Admin/SettingsScreen.php:532
 msgid "Addresses of your proxies (for the last choice), one address or range per line, for example 10.0.0.0/8"
 msgstr ""
 
 #. translators: 1: the address the request came from, 2: the address counted for it.
-#: src/Admin/SettingsScreen.php:530
+#: src/Admin/SettingsScreen.php:539
 #, php-format
 msgid "This page was requested from %1$s, and the plugin counts it as %2$s. If the second is not your own address, the choice above is not right for this site."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:541
+#: src/Admin/SettingsScreen.php:550
 msgid "Answer the old 1.x API addresses (/api/wplicense-it-api/v1/...)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:542
+#: src/Admin/SettingsScreen.php:551
 msgid "Plugins and themes released with WPLicense It 1.x check licenses and updates there, with the license key in the address, where web server logs can keep it. Switch this off when no more calls come (see Status below): those addresses then answer that they are gone, and copies of your plugins that still use them stop getting updates until they are updated by hand."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:552
+#: src/Admin/SettingsScreen.php:561
 msgid "On."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:552
+#: src/Admin/SettingsScreen.php:561
 msgid "Switched off: they answer that they are gone."
 msgstr ""
 
 #. translators: %d: number of days.
-#: src/Admin/SettingsScreen.php:557
+#: src/Admin/SettingsScreen.php:566
 #, php-format
 msgid "No calls in the last %d days."
 msgstr ""
 
 #. translators: 1: number of calls, 2: number of days, 3: date of the last call, 4: product names.
-#: src/Admin/SettingsScreen.php:571
+#: src/Admin/SettingsScreen.php:580
 #, php-format
 msgid "%1$s call in the last %2$d days, the last on %3$s (%4$s)."
 msgid_plural "%1$s calls in the last %2$d days, the last on %3$s (%4$s)."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/SettingsScreen.php:583
+#: src/Admin/SettingsScreen.php:592
 msgid "Delete all license data when the plugin is deleted"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:584
+#: src/Admin/SettingsScreen.php:593
 msgid "Off by default: deleting the plugin from the Plugins page keeps every license, activation, order record and setting, so installing it again picks up where you left off. Turn this on only if you want them gone for good; this cannot be undone. Products and uploaded release files are WordPress content and stay either way."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:591
+#: src/Admin/SettingsScreen.php:600
 msgid "Keep the address and phone number from migrated 1.x orders"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:592
+#: src/Admin/SettingsScreen.php:601
 msgid "Only used when the 1.x data is migrated. They contain personal data, and are covered by the WordPress personal data export and erase tools."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:602
+#: src/Admin/SettingsScreen.php:611
 msgid "API address"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:603
+#: src/Admin/SettingsScreen.php:612
 msgid "1.x data migration"
 msgstr ""
 
 #. translators: 1: licenses, 2: orders.
-#: src/Admin/SettingsScreen.php:617
+#: src/Admin/SettingsScreen.php:626
 #, php-format
 msgid "Finished. %1$d licenses and %2$d orders migrated."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:620
+#: src/Admin/SettingsScreen.php:629
 msgid "Needs attention. See the notice at the top of the admin screens."
 msgstr ""
 
 #. translators: 1: licenses, 2: orders.
-#: src/Admin/SettingsScreen.php:624
+#: src/Admin/SettingsScreen.php:633
 #, php-format
 msgid "In progress. %1$d licenses and %2$d orders so far."
 msgstr ""
@@ -2756,6 +2757,7 @@ msgstr ""
 
 #. translators: %d: number of sites.
 #: src/TestPurchase/TestPurchase.php:558
+#: src/WooCommerce/LicenseDisplay.php:254
 #, php-format
 msgid "%d site"
 msgid_plural "%d sites"
@@ -2908,10 +2910,53 @@ msgstr ""
 msgid "That order does not exist."
 msgstr ""
 
-#: src/WooCommerce/LicenseDisplay.php:52
-#: src/WooCommerce/LicenseDisplay.php:82
-#: src/WooCommerce/LicenseDisplay.php:91
+#: src/WooCommerce/LicenseDisplay.php:56
+#: src/WooCommerce/LicenseDisplay.php:62
+#: src/WooCommerce/LicenseDisplay.php:87
+#: src/WooCommerce/LicenseDisplay.php:99
+#: src/WooCommerce/LicenseDisplay.php:170
 msgid "Your licenses"
+msgstr ""
+
+#. translators: %s: order number.
+#: src/WooCommerce/LicenseDisplay.php:118
+#, php-format
+msgid "Your license for order #%s"
+msgstr ""
+
+#: src/WooCommerce/LicenseDisplay.php:119
+msgid "Your license is ready"
+msgstr ""
+
+#. translators: %s: order number.
+#: src/WooCommerce/LicenseDisplay.php:120
+#, php-format
+msgid "Sorry for the wait: the license for your order #%s is ready."
+msgstr ""
+
+#: src/WooCommerce/LicenseDisplay.php:126
+msgid "WPLicense It: the license key was emailed to the customer."
+msgstr ""
+
+#: src/WooCommerce/LicenseDisplay.php:157
+#: src/WooCommerce/LicenseDisplay.php:179
+msgid "Download, renew and manage your licenses:"
+msgstr ""
+
+#: src/WooCommerce/LicenseDisplay.php:157
+msgid "My Account, Licenses"
+msgstr ""
+
+#: src/WooCommerce/LicenseDisplay.php:198
+msgid "To activate, enter the license key on the plugin or theme's license page in your WordPress admin."
+msgstr ""
+
+#: src/WooCommerce/LicenseDisplay.php:205
+msgid "Your license key will be emailed to you once your payment is confirmed and the order is complete."
+msgstr ""
+
+#: src/WooCommerce/LicenseDisplay.php:252
+msgid "Unlimited sites"
 msgstr ""
 
 #: src/WooCommerce/OrderLicensesBox.php:64
@@ -3027,19 +3072,19 @@ msgid "Empty uses the product setting. 0 is unlimited."
 msgstr ""
 
 #. translators: %s: what went wrong.
-#: src/WooCommerce/WooAdapter.php:184
+#: src/WooCommerce/WooAdapter.php:186
 #, php-format
 msgid "WPLicense It error: %s Change the order status again to retry."
 msgstr ""
 
 #. translators: %s: what went wrong.
-#: src/WooCommerce/WooAdapter.php:186
+#: src/WooCommerce/WooAdapter.php:188
 #, php-format
 msgid "WPLicense It error: %s"
 msgstr ""
 
 #. translators: %d: number of licenses.
-#: src/WooCommerce/WooAdapter.php:212
+#: src/WooCommerce/WooAdapter.php:219
 #, php-format
 msgid "issued %d license"
 msgid_plural "issued %d licenses"
@@ -3047,7 +3092,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of licenses.
-#: src/WooCommerce/WooAdapter.php:216
+#: src/WooCommerce/WooAdapter.php:223
 #, php-format
 msgid "renewed %d license"
 msgid_plural "renewed %d licenses"
@@ -3055,7 +3100,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of licenses.
-#: src/WooCommerce/WooAdapter.php:220
+#: src/WooCommerce/WooAdapter.php:227
 #, php-format
 msgid "brought back %d license"
 msgid_plural "brought back %d licenses"
@@ -3063,7 +3108,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of licenses.
-#: src/WooCommerce/WooAdapter.php:224
+#: src/WooCommerce/WooAdapter.php:231
 #, php-format
 msgid "ended %d license"
 msgid_plural "ended %d licenses"

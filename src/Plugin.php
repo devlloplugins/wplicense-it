@@ -52,6 +52,7 @@ use Devllo\WPLicenseIt\Privacy\PrivacyHooks;
 use Devllo\WPLicenseIt\WooCommerce\AccountPage;
 use Devllo\WPLicenseIt\WooCommerce\CartRenewal;
 use Devllo\WPLicenseIt\WooCommerce\IssueProblems;
+use Devllo\WPLicenseIt\WooCommerce\CheckoutAccount;
 use Devllo\WPLicenseIt\WooCommerce\LicenseDisplay;
 use Devllo\WPLicenseIt\WooCommerce\OrderLicensesBox;
 use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
@@ -219,7 +220,8 @@ final class Plugin {
 		$tester  = new TestPurchase( $gateway, $catalog, new WcOrderBuilder( $reader ), new RestLoopbackProbe() );
 		( new PlansBox( new PostMetaPlanRepository(), $gateway, $tester, $catalog ) )->register();
 		( new CartRenewal( $this->licenses(), $reader ) )->register();
-		( new LicenseDisplay( $this->licenses() ) )->register();
+		( new LicenseDisplay( $this->licenses(), $reader ) )->register();
+		( new CheckoutAccount( $reader ) )->register();
 		( new OrderLicensesBox( $this->licenses(), $reader ) )->register();
 		( new AccountPage( $this->licenses(), new WpProductCatalog(), $this->signer() ) )->register();
 	}

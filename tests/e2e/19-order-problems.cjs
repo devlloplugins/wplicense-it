@@ -92,6 +92,12 @@ const save = async ( page, selector ) => Promise.all( [ page.waitForNavigation( 
 	const after = woo( { op: 'order_info', order_id: order.order_id } );
 	check( after.problem === '', 'the order no longer carries the problem' );
 	check( woo( { op: 'order_notes', order_id: order.order_id } ).notes.some( ( n ) => /issued 1 license/.test( n ) ), 'the order note says one license was issued' );
+	// Card 100: the customer's completed email went out without a key, so the key is emailed now.
+	const late = woo( { op: 'mail' } ).mail.filter( ( m ) => String( m.to ) === email );
+	const key = sql( "SELECT l.license_key FROM wp_wplit_licenses l JOIN wp_wplit_license_orders o ON o.id=l.order_id WHERE o.order_number='WC-" + order.order_id + "'" );
+	const lateMail = late.find( ( m ) => /Your license for order #/.test( m.subject || '' ) );
+	check( !! lateMail && String( lateMail.message ).includes( key ) && /Sorry for the wait/.test( lateMail.message ) && /1 site/.test( lateMail.message ), 'the customer is emailed the key once it is issued: ' + late.map( ( m ) => m.subject ).join( ' | ' ) );
+	check( woo( { op: 'order_notes', order_id: order.order_id } ).notes.some( ( n ) => /license key was emailed to the customer/.test( n ) ), 'and the order note says so' );
 	await page.goto( OVERVIEW );
 	check( await page.locator( '.notice-error', { hasText: 'Order ' + info.number } ).count() === 0 && ! ( await page.locator( 'body' ).innerText() ).includes( 'Order ' + info.number + ':' ), 'the Overview no longer lists it' );
 
