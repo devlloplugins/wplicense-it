@@ -1,0 +1,945 @@
+<?php
+/**
+ * License service.
+ *
+ * @package Devllo\WPLicenseIt
+ */
+
+declare( strict_types=1 );
+
+namespace Devllo\WPLicenseIt\Licenses;
+
+use DateInterval;
+use DateTimeImmutable;
+use DateTimeZone;
+
+/**
+ * The licensing core: issues, renews, revokes, validates and activates licenses.
+ *
+ * It knows nothing about payments. Adapters (WooCommerce, free products, manual
+ * orders) call issue_license(), renew_license() and revoke_license().
+ */
+final class LicenseService {
+
+	private const KEY_ATTEMPTS = 5;
+
+	/**
+	 * Local and staging sites do not use a slot, but they are not unlimited either: without a cap, one key
+	 * could create endless activation rows.
+	 */
+	public const MAX_LOCAL_SITES = 25;
+
+	/**
+	 * The largest sites-per-license value accepted (the column is a 32 bit integer, and nobody needs more).
+	 */
+	public const MAX_ACTIVATION_LIMIT = 100000;
+
+	/**
+	 * Clock, returns the current time in UTC.
+	 *
+	 * @var callable
+	 */
+	private $clock;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param LicenseRepository    $licenses    License storage.
+	 * @param ActivationRepository $activations Activation storage.
+	 * @param EventLog             $events      Audit log.
+	 * @param KeyGenerator         $keys        Key generator.
+	 * @param callable|null        $clock       Returns a DateTimeImmutable, defaults to the current UTC time.
+	 */
+	public function __construct(
+		private LicenseRepository $licenses,
+		private ActivationRepository $activations,
+		private EventLog $events,
+		private KeyGenerator $keys,
+		?callable $clock = null
+	) {
+		$this->clock = $clock ?? static fn(): DateTimeImmutable => new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
+	}
+
+	/**
+	 * Issues a new license.
+	 *
+	 * @param int                    $product_id       Post ID of the wplit_product.
+	 * @param string                 $email            Customer email.
+	 * @param int|null               $user_id          WordPress user ID, if any.
+	 * @param int|null               $order_id         Order the license came from, if any.
+	 * @param int                    $activation_limit Maximum active sites, 0 for unlimited.
+	 * @param DateTimeImmutable|null $expires_at       Expiry, null for a lifetime license.
+	 * @throws LicenseException If the input is invalid.
+	 */
+	public function issue_license(
+		int $product_id,
+		string $email,
+		?int $user_id = null,
+		?int $order_id = null,
+		int $activation_limit = 1,
+		?DateTimeImmutable $expires_at = null
+	): License {
+		$email = strtolower( trim( $email ) );
+
+		if ( $product_id <= 0 ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A product is required.', 'wplicense-it' ) );
+		}
+		if ( '' === $email || false === strpos( $email, '@' ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A valid email is required.', 'wplicense-it' ) );
+		}
+		if ( $activation_limit < 0 || $activation_limit > self::MAX_ACTIVATION_LIMIT ) {
+			throw new LicenseException(
+				LicenseException::INVALID_INPUT,
+				sprintf(
+					/* translators: %d: the highest activation limit. */
+					__( 'The activation limit must be between 0 and %d.', 'wplicense-it' ),
+					self::MAX_ACTIVATION_LIMIT
+				)
+			);
+		}
+
+		$now = $this->now();
+
+		$key = $this->unique_key();
+
+		$license = $this->licenses->insert(
+			new License(
+				0,
+				$product_id,
+				$user_id,
+				$order_id,
+				$key,
+				$email,
+				Status::ACTIVE,
+				$activation_limit,
+				$expires_at,
+				$now,
+				$now
+			)
+		);
+
+		$this->events->record(
+			$license->id,
+			EventLog::ISSUED,
+			array(
+				'product_id' => $product_id,
+				'order_id'   => $order_id,
+				'expires_at' => $this->format( $expires_at ),
+			)
+		);
+
+		return $license;
+	}
+
+	/**
+	 * Adds a license that already exists elsewhere (a CSV import from another system or from a backup): its own key,
+	 * status and dates are kept. Recorded in the history as imported. The key must not be in use yet.
+	 *
+	 * @param int                    $product_id       Post ID of the wplit_product.
+	 * @param string                 $email            Customer email.
+	 * @param string                 $license_key      The license's key (4 to 64 visible characters, no spaces).
+	 * @param string                 $status           One of Status::all().
+	 * @param int                    $activation_limit Maximum active sites, 0 for unlimited.
+	 * @param DateTimeImmutable|null $expires_at       Expiry, null for a lifetime license.
+	 * @param int|null               $user_id          WordPress user ID, if any.
+	 * @param DateTimeImmutable|null $created_at       When it was first issued, if known; now otherwise.
+	 * @throws LicenseException If the input is invalid or the key is taken.
+	 */
+	public function import_license(
+		int $product_id,
+		string $email,
+		string $license_key,
+		string $status,
+		int $activation_limit,
+		?DateTimeImmutable $expires_at,
+		?int $user_id = null,
+		?DateTimeImmutable $created_at = null
+	): License {
+		$email       = strtolower( trim( $email ) );
+		$license_key = trim( $license_key );
+
+		if ( $product_id <= 0 ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A product is required.', 'wplicense-it' ) );
+		}
+		if ( ! self::is_valid_email( $email ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A valid email is required.', 'wplicense-it' ) );
+		}
+		if ( ! self::is_valid_key( $license_key ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'The license key must be 4 to 64 characters, without spaces.', 'wplicense-it' ) );
+		}
+		if ( ! in_array( $status, Status::all(), true ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'The status must be active, expired, revoked or refunded.', 'wplicense-it' ) );
+		}
+		if ( $activation_limit < 0 || $activation_limit > self::MAX_ACTIVATION_LIMIT ) {
+			throw new LicenseException(
+				LicenseException::INVALID_INPUT,
+				sprintf(
+					/* translators: %d: the highest activation limit. */
+					__( 'The activation limit must be between 0 and %d.', 'wplicense-it' ),
+					self::MAX_ACTIVATION_LIMIT
+				)
+			);
+		}
+		if ( null !== $this->licenses->find_by_key( $license_key ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A license with this key already exists.', 'wplicense-it' ) );
+		}
+
+		$now = $this->now();
+
+		$license = $this->licenses->insert(
+			new License(
+				0,
+				$product_id,
+				$user_id,
+				null,
+				$license_key,
+				$email,
+				$status,
+				$activation_limit,
+				$expires_at,
+				$created_at ?? $now,
+				$now
+			)
+		);
+
+		$this->events->record(
+			$license->id,
+			EventLog::IMPORTED,
+			array(
+				'product_id' => $product_id,
+				'status'     => $status,
+				'expires_at' => $this->format( $expires_at ),
+			)
+		);
+
+		return $license;
+	}
+
+	/**
+	 * Whether a key from another system can be stored: 4 to 64 visible ASCII characters (the API takes keys up to 64,
+	 * and keys from 1.x and other systems are not limited to letters and digits). No spaces, so it survives copying.
+	 *
+	 * @param string $key License key.
+	 */
+	public static function is_valid_key( string $key ): bool {
+		return 1 === preg_match( '/^[\x21-\x7E]{4,64}$/', $key );
+	}
+
+	/**
+	 * Whether an email address is usable (a light check that works without WordPress).
+	 *
+	 * @param string $email Email address.
+	 */
+	public static function is_valid_email( string $email ): bool {
+		return strlen( $email ) <= 190 && false !== filter_var( $email, FILTER_VALIDATE_EMAIL );
+	}
+
+	/**
+	 * Extends a license.
+	 *
+	 * The new period starts from the current expiry, or from now if the license
+	 * has already expired. An expired license becomes active again. Lifetime
+	 * licenses are returned unchanged.
+	 *
+	 * @param int                  $license_id License ID.
+	 * @param DateInterval         $period     Period to add.
+	 * @param array<string, mixed> $context    Recorded in the history with it, such as the order that paid for it.
+	 * @throws LicenseException If the license does not exist or was revoked or refunded.
+	 */
+	public function renew_license( int $license_id, DateInterval $period, array $context = array() ): License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		if ( in_array( $license->status, Status::terminal(), true ) ) {
+			throw new LicenseException( LicenseException::NOT_RENEWABLE, __( 'A revoked or refunded license cannot be renewed.', 'wplicense-it' ) );
+		}
+
+		if ( $license->is_lifetime() ) {
+			return $license;
+		}
+
+		$now  = $this->now();
+		$base = $license->is_past_expiry( $now ) ? $now : $license->expires_at;
+		$new  = $base->add( $period );
+
+		$renewed = $license->with_expiry( $new, $now )->with_status( Status::ACTIVE, $now );
+		$this->licenses->update( $renewed );
+
+		$this->events->record(
+			$renewed->id,
+			EventLog::RENEWED,
+			array_merge(
+				array(
+					'old_expires_at' => $this->format( $license->expires_at ),
+					'new_expires_at' => $this->format( $new ),
+				),
+				$context
+			)
+		);
+
+		return $renewed;
+	}
+
+	/**
+	 * Takes back the time an order's renewal added, for a refunded or cancelled renewal order: the expiry moves back by
+	 * what that renewal added (so a later renewal paid by another order is kept), and the license is expired if that date
+	 * has passed. The license itself, and the time paid for before, stay.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      The order reference the renewal was recorded with (its history's "order").
+	 * @return License|null The license after the change; null when this order's renewal is not on the license (never
+	 *                      renewed by it, already taken back, lifetime, or ended).
+	 * @throws LicenseException If the license does not exist.
+	 */
+	public function take_back_renewal( int $license_id, string $order ): ?License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		$added = $this->renewal_added( $license_id, $order );
+
+		if ( null === $added || null === $license->expires_at || in_array( $license->status, Status::terminal(), true ) ) {
+			return null;
+		}
+
+		$now    = $this->now();
+		$new    = $license->expires_at->sub( $added );
+		$status = $new > $now ? Status::ACTIVE : Status::EXPIRED;
+
+		$changed = $license->with_expiry( $new, $now )->with_status( $status, $now );
+		$this->licenses->update( $changed );
+
+		$this->events->record(
+			$changed->id,
+			EventLog::RENEWAL_REFUNDED,
+			array(
+				'old_expires_at' => $this->format( $license->expires_at ),
+				'new_expires_at' => $this->format( $new ),
+				'order'          => $order,
+			)
+		);
+
+		return $changed;
+	}
+
+	/**
+	 * Whether an order renewed this license and that renewal was taken back since (a refund or cancellation).
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 */
+	public function renewal_taken_back( int $license_id, string $order ): bool {
+		[ $renewed, $taken_back ] = $this->renewal_counts( $license_id, $order );
+
+		return $renewed > 0 && $taken_back >= $renewed;
+	}
+
+	/**
+	 * Whether an order ever renewed this license.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 */
+	public function renewed_by( int $license_id, string $order ): bool {
+		return $this->renewal_counts( $license_id, $order )[0] > 0;
+	}
+
+	/**
+	 * What an order's renewal added to the license, in calendar time (a year is a year, leap or not), while it is still on
+	 * the license; null otherwise.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 */
+	private function renewal_added( int $license_id, string $order ): ?DateInterval {
+		[ $renewed, $taken_back, $latest ] = $this->renewal_counts( $license_id, $order );
+
+		if ( $renewed <= $taken_back || null === $latest ) {
+			return null;
+		}
+
+		$old = $latest['data']['old_expires_at'] ?? null;
+		$new = $latest['data']['new_expires_at'] ?? null;
+
+		if ( ! is_string( $new ) || ! is_string( $old ) ) {
+			return null;
+		}
+
+		$from = new DateTimeImmutable( $old, new DateTimeZone( 'UTC' ) );
+		$to   = new DateTimeImmutable( $new, new DateTimeZone( 'UTC' ) );
+
+		return $to > $from ? $from->diff( $to ) : null;
+	}
+
+	/**
+	 * How often an order renewed a license and how often that was taken back, with its latest renewal event.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 * @return array{0:int, 1:int, 2:array<string, mixed>|null}
+	 */
+	private function renewal_counts( int $license_id, string $order ): array {
+		$renewals   = array_values(
+			array_filter(
+				$this->events->of_type( $license_id, EventLog::RENEWED, 200 ),
+				static fn( array $event ): bool => ( $event['data']['order'] ?? null ) === $order
+			)
+		);
+		$taken_back = array_filter(
+			$this->events->of_type( $license_id, EventLog::RENEWAL_REFUNDED, 200 ),
+			static fn( array $event ): bool => ( $event['data']['order'] ?? null ) === $order
+		);
+
+		return array( count( $renewals ), count( $taken_back ), $renewals[0] ?? null );
+	}
+
+	/**
+	 * Ends a license permanently.
+	 *
+	 * @param int                  $license_id License ID.
+	 * @param string               $status     Status::REVOKED or Status::REFUNDED.
+	 * @param array<string, mixed> $context    Recorded in the history with it, such as the order that ended it.
+	 * @throws LicenseException If the status is not a terminal one or the license does not exist.
+	 */
+	public function revoke_license( int $license_id, string $status = Status::REVOKED, array $context = array() ): License {
+		if ( ! in_array( $status, Status::terminal(), true ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'Status must be revoked or refunded.', 'wplicense-it' ) );
+		}
+
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		if ( $license->status === $status ) {
+			return $license;
+		}
+
+		$revoked = $license->with_status( $status, $this->now() );
+		$this->licenses->update( $revoked );
+
+		$this->events->record(
+			$revoked->id,
+			Status::REFUNDED === $status ? EventLog::REFUNDED : EventLog::REVOKED,
+			array_merge( array( 'previous_status' => $license->status ), $context )
+		);
+
+		return $revoked;
+	}
+
+	/**
+	 * Puts a revoked or refunded license back in use (for a revocation made by mistake).
+	 *
+	 * The expiry is not changed. If it has passed, the license is valid again only after a renewal.
+	 *
+	 * @param int                  $license_id License ID.
+	 * @param array<string, mixed> $context    Recorded in the history with it, such as the order that brought it back.
+	 * @throws LicenseException If the license does not exist or was not revoked or refunded.
+	 */
+	public function reinstate_license( int $license_id, array $context = array() ): License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		if ( ! in_array( $license->status, Status::terminal(), true ) ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'Only a revoked or refunded license can be reinstated.', 'wplicense-it' ) );
+		}
+
+		$now        = $this->now();
+		$reinstated = $license->with_status( $license->is_past_expiry( $now ) ? Status::EXPIRED : Status::ACTIVE, $now );
+		$this->licenses->update( $reinstated );
+
+		$this->events->record( $reinstated->id, EventLog::REINSTATED, array_merge( array( 'previous_status' => $license->status ), $context ) );
+
+		return $reinstated;
+	}
+
+	/**
+	 * Applies an administrator's edits: sites per license, expiry and customer email.
+	 *
+	 * Setting a future expiry on an expired license makes it active again, and a past expiry on an
+	 * active license makes it expired. Lowering the limit below the sites already activated does not
+	 * deactivate them, it only blocks new ones.
+	 *
+	 * @param int            $license_id License ID.
+	 * @param LicenseChanges $changes    The edits.
+	 * @throws LicenseException If the license does not exist or an edit is invalid.
+	 */
+	public function update_license( int $license_id, LicenseChanges $changes ): License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		$now     = $this->now();
+		$updated = clone $license;
+		$diff    = array();
+
+		if ( null !== $changes->activation_limit ) {
+			if ( $changes->activation_limit < 0 || $changes->activation_limit > self::MAX_ACTIVATION_LIMIT ) {
+				throw new LicenseException(
+					LicenseException::INVALID_INPUT,
+					sprintf(
+					/* translators: %d: the highest activation limit. */
+						__( 'The activation limit must be between 0 and %d.', 'wplicense-it' ),
+						self::MAX_ACTIVATION_LIMIT
+					)
+				);
+			}
+
+			if ( $changes->activation_limit !== $license->activation_limit ) {
+				$diff['activation_limit']  = array( $license->activation_limit, $changes->activation_limit );
+				$updated->activation_limit = $changes->activation_limit;
+			}
+		}
+
+		if ( null !== $changes->email ) {
+			$email = strtolower( trim( $changes->email ) );
+
+			if ( '' === $email || false === strpos( $email, '@' ) ) {
+				throw new LicenseException( LicenseException::INVALID_INPUT, __( 'A valid email is required.', 'wplicense-it' ) );
+			}
+
+			if ( $email !== $license->email ) {
+				$diff['email']  = array( $license->email, $email );
+				$updated->email = $email;
+			}
+		}
+
+		if ( $changes->change_expiry && $this->format( $changes->expires_at ) !== $this->format( $license->expires_at ) ) {
+			$diff['expires_at']  = array( $this->format( $license->expires_at ), $this->format( $changes->expires_at ) );
+			$updated->expires_at = $changes->expires_at;
+
+			// Keep the status in step with the new date, but never undo a revocation or refund.
+			if ( ! in_array( $license->status, Status::terminal(), true ) ) {
+				$updated->status = $updated->is_past_expiry( $now ) ? Status::EXPIRED : Status::ACTIVE;
+			}
+		}
+
+		if ( array() === $diff ) {
+			return $license;
+		}
+
+		$updated->updated_at = $now;
+		$this->licenses->update( $updated );
+		$this->events->record( $updated->id, EventLog::UPDATED, $diff );
+
+		return $updated;
+	}
+
+	/**
+	 * Recent events of a license, newest first.
+	 *
+	 * @param License $license License.
+	 * @param int     $limit   Maximum events.
+	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:DateTimeImmutable}>
+	 */
+	public function events( License $license, int $limit = 50 ): array {
+		return $this->events->for_license( $license->id, $limit );
+	}
+
+	/**
+	 * The newest event of one type for a license, or null.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $type       Event type (EventLog constants).
+	 * @return array{type:string,data:array<string,mixed>,created_at:DateTimeImmutable}|null
+	 */
+	public function last_event( int $license_id, string $type ): ?array {
+		return $this->events->of_type( $license_id, $type, 1 )[0] ?? null;
+	}
+
+	/**
+	 * Searches licenses for the admin list.
+	 *
+	 * @param LicenseQuery $query Filters, sort order and page.
+	 */
+	public function search( LicenseQuery $query ): LicensePage {
+		return $this->licenses->search( $query );
+	}
+
+	/**
+	 * Number of licenses per status.
+	 *
+	 * @return array<string, int>
+	 */
+	public function status_counts(): array {
+		return $this->licenses->status_counts();
+	}
+
+	/**
+	 * Finds a license by ID.
+	 *
+	 * @param int $license_id License ID.
+	 */
+	public function find( int $license_id ): ?License {
+		return $this->licenses->find( $license_id );
+	}
+
+	/**
+	 * Finds a license by its key.
+	 *
+	 * @param string $license_key License key.
+	 */
+	public function find_by_key( string $license_key ): ?License {
+		return $this->licenses->find_by_key( $license_key );
+	}
+
+	/**
+	 * A customer's licenses, newest first.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return License[]
+	 */
+	public function licenses_for_user( int $user_id ): array {
+		return $this->licenses->find_by_user( $user_id );
+	}
+
+	/**
+	 * The sites a license is currently active on.
+	 *
+	 * @param License $license License.
+	 * @return Activation[]
+	 */
+	public function active_sites( License $license ): array {
+		return $this->activations->list_active( $license->id );
+	}
+
+	/**
+	 * Whether a site is currently activated on a license. Also records that the site checked in.
+	 *
+	 * @param License $license  License.
+	 * @param string  $site_url Site URL as reported by the client.
+	 * @return bool|null True if active, false if not, null if the URL is not a usable site.
+	 */
+	public function site_is_active( License $license, string $site_url ): ?bool {
+		$site = SiteNormalizer::normalize( $site_url );
+
+		if ( null === $site ) {
+			return null;
+		}
+
+		$activation = $this->activations->find( $license->id, $site );
+
+		if ( null === $activation || ! $activation->is_active() ) {
+			return false;
+		}
+
+		$activation->last_checked_at = $this->now();
+		$this->activations->save( $activation );
+
+		return true;
+	}
+
+	/**
+	 * Number of sites currently using a slot of the license.
+	 *
+	 * @param License $license License.
+	 */
+	public function activations_used( License $license ): int {
+		return $this->activations->count_active( $license->id );
+	}
+
+	/**
+	 * Checks a license key.
+	 *
+	 * @param string      $license_key License key.
+	 * @param int|null    $product_id  If given, the license must be for this product.
+	 * @param string|null $email       If given, the license must belong to this email.
+	 */
+	public function validate( string $license_key, ?int $product_id = null, ?string $email = null ): ValidationResult {
+		$license_key = trim( $license_key );
+
+		$license = '' === $license_key ? null : $this->licenses->find_by_key( $license_key );
+
+		if ( null === $license || ! hash_equals( $license->license_key, $license_key ) ) {
+			return new ValidationResult( ValidationResult::NOT_FOUND );
+		}
+
+		if ( null !== $product_id && $license->product_id !== $product_id ) {
+			return new ValidationResult( ValidationResult::PRODUCT_MISMATCH, $license );
+		}
+
+		if ( null !== $email && strtolower( trim( $email ) ) !== $license->email ) {
+			return new ValidationResult( ValidationResult::EMAIL_MISMATCH, $license );
+		}
+
+		if ( Status::REVOKED === $license->status ) {
+			return new ValidationResult( ValidationResult::REVOKED, $license );
+		}
+
+		if ( Status::REFUNDED === $license->status ) {
+			return new ValidationResult( ValidationResult::REFUNDED, $license );
+		}
+
+		if ( ! $license->is_usable( $this->now() ) ) {
+			return new ValidationResult( ValidationResult::EXPIRED, $license );
+		}
+
+		return new ValidationResult( ValidationResult::OK, $license );
+	}
+
+	/**
+	 * Activates a license on a site.
+	 *
+	 * Activating a site that is already active succeeds without using a new slot.
+	 * Local and staging sites are recorded but do not count against the limit.
+	 *
+	 * @param string      $license_key     License key.
+	 * @param string      $site_url        Site URL reported by the client.
+	 * @param int|null    $product_id      If given, the license must be for this product.
+	 * @param string|null $product_version Version reported by the client.
+	 */
+	public function activate( string $license_key, string $site_url, ?int $product_id = null, ?string $product_version = null ): ActivationResult {
+		$validation = $this->validate( $license_key, $product_id );
+
+		if ( ! $validation->is_valid() ) {
+			return new ActivationResult( $validation->code, $validation->license );
+		}
+
+		$license = $validation->license;
+		$site    = SiteNormalizer::normalize( $site_url );
+
+		if ( null === $site ) {
+			return new ActivationResult( ActivationResult::INVALID_SITE, $license );
+		}
+
+		return $this->activations->with_license_lock(
+			$license->id,
+			function () use ( $license, $site, $product_version ): ActivationResult {
+				$now      = $this->now();
+				$is_local = SiteNormalizer::is_local( $site );
+				$existing = $this->activations->find( $license->id, $site );
+
+				if ( null !== $existing && $existing->is_active() ) {
+					$existing->last_checked_at = $now;
+					$existing->product_version = $product_version ?? $existing->product_version;
+					$this->activations->save( $existing );
+
+					return new ActivationResult( ActivationResult::ALREADY_ACTIVE, $license, $existing );
+				}
+
+				$limit = $license->activation_limit;
+				if ( ! $is_local && $limit > 0 && $this->activations->count_active( $license->id ) >= $limit ) {
+					return new ActivationResult( ActivationResult::LIMIT_REACHED, $license );
+				}
+
+				if ( $is_local && $this->count_local_sites( $license ) >= self::MAX_LOCAL_SITES ) {
+					return new ActivationResult( ActivationResult::LIMIT_REACHED, $license );
+				}
+
+				if ( null !== $existing ) {
+					$existing->status          = Activation::ACTIVE;
+					$existing->is_local        = $is_local;
+					$existing->activated_at    = $now;
+					$existing->deactivated_at  = null;
+					$existing->last_checked_at = $now;
+					$existing->product_version = $product_version ?? $existing->product_version;
+					$activation                = $this->activations->save( $existing );
+				} else {
+					$activation = $this->activations->save(
+						new Activation( 0, $license->id, $site, $is_local, Activation::ACTIVE, $product_version, $now, null, $now )
+					);
+				}
+
+				$this->events->record( $license->id, EventLog::ACTIVATED, array( 'site' => $site ) );
+
+				return new ActivationResult( ActivationResult::ACTIVATED, $license, $activation );
+			}
+		);
+	}
+
+	/**
+	 * Deactivates a license on a site, freeing the slot.
+	 *
+	 * Deactivation works for expired licenses too, so customers can free slots.
+	 *
+	 * @param string $license_key License key.
+	 * @param string $site_url    Site URL reported by the client.
+	 */
+	public function deactivate( string $license_key, string $site_url ): ActivationResult {
+		$license_key = trim( $license_key );
+		$license     = '' === $license_key ? null : $this->licenses->find_by_key( $license_key );
+
+		if ( null === $license || ! hash_equals( $license->license_key, $license_key ) ) {
+			return new ActivationResult( ValidationResult::NOT_FOUND );
+		}
+
+		$site = SiteNormalizer::normalize( $site_url );
+		if ( null === $site ) {
+			return new ActivationResult( ActivationResult::INVALID_SITE, $license );
+		}
+
+		return $this->activations->with_license_lock(
+			$license->id,
+			function () use ( $license, $site ): ActivationResult {
+				$activation = $this->activations->find( $license->id, $site );
+
+				if ( null === $activation || ! $activation->is_active() ) {
+					return new ActivationResult( ActivationResult::NOT_ACTIVE, $license, $activation );
+				}
+
+				$now                        = $this->now();
+				$activation->status         = Activation::DEACTIVATED;
+				$activation->deactivated_at = $now;
+				$activation                 = $this->activations->save( $activation );
+
+				$this->events->record( $license->id, EventLog::DEACTIVATED, array( 'site' => $site ) );
+
+				return new ActivationResult( ActivationResult::DEACTIVATED, $license, $activation );
+			}
+		);
+	}
+
+	/**
+	 * Marks active licenses whose expiry has passed as expired. Meant for a daily job.
+	 *
+	 * @param int $batch Maximum licenses to process in one call.
+	 * @return int Number of licenses expired.
+	 */
+	public function expire_due_licenses( int $batch = 100 ): int {
+		$now = $this->now();
+		$due = $this->licenses->find_due_for_expiry( $now, $batch );
+
+		foreach ( $due as $license ) {
+			$this->licenses->update( $license->with_status( Status::EXPIRED, $now ) );
+			$this->events->record( $license->id, EventLog::EXPIRED, array( 'expires_at' => $this->format( $license->expires_at ) ) );
+		}
+
+		return count( $due );
+	}
+
+	/**
+	 * Active licenses that expire within a number of days, soonest first.
+	 *
+	 * @param int $days  Days ahead.
+	 * @param int $limit Most licenses to return.
+	 * @return License[]
+	 */
+	public function expiring_soon( int $days, int $limit ): array {
+		$now = $this->now();
+
+		return $this->licenses->find_expiring( $now, $now->modify( '+' . max( 1, $days ) . ' days' ), null, max( 1, $limit ) );
+	}
+
+	/**
+	 * Licenses that expired within the last days and were not renewed, most recent first.
+	 *
+	 * @param int $days  Days back.
+	 * @param int $limit Most licenses to return.
+	 * @return License[]
+	 */
+	public function recently_expired( int $days, int $limit ): array {
+		$now   = $this->now();
+		$found = $this->licenses->find_expiring( $now->modify( '-' . max( 1, $days ) . ' days' ), $now, null, 1000, Status::EXPIRED );
+
+		return array_slice( array_reverse( $found ), 0, max( 1, $limit ) );
+	}
+
+	/**
+	 * Of the licenses that came due (reached their expiry date) in the last days, how many were renewed. Renewed ones are
+	 * found by their history (a renewal whose old expiry falls in the period, early or late, not taken back since); the
+	 * rest are the licenses now expired with an expiry in the period. Revoked and refunded licenses are not counted.
+	 *
+	 * @param int $days Days back.
+	 * @return array{due:int,renewed:int}
+	 */
+	public function renewal_rate( int $days ): array {
+		$now  = $this->now();
+		$from = $now->modify( '-' . max( 1, $days ) . ' days' );
+
+		// Renewals can be made up to a year early; their events are within a year before the period.
+		$since   = $from->modify( '-1 year' );
+		$balance = array();
+
+		foreach ( $this->events->since( EventLog::RENEWED, $since ) as $event ) {
+			$old = $event['data']['old_expires_at'] ?? null;
+			if ( ! is_string( $old ) ) {
+				continue;
+			}
+
+			$due = new DateTimeImmutable( $old, new DateTimeZone( 'UTC' ) );
+			if ( $due > $from && $due <= $now ) {
+				$key             = $event['license_id'] . '|' . ( $event['data']['order'] ?? '' );
+				$balance[ $key ] = ( $balance[ $key ] ?? 0 ) + 1;
+			}
+		}
+
+		foreach ( $this->events->since( EventLog::RENEWAL_REFUNDED, $since ) as $event ) {
+			$key = $event['license_id'] . '|' . ( $event['data']['order'] ?? '' );
+			if ( isset( $balance[ $key ] ) ) {
+				--$balance[ $key ];
+			}
+		}
+
+		$renewed = array();
+		foreach ( $balance as $key => $count ) {
+			if ( $count > 0 ) {
+				$renewed[ (int) strtok( (string) $key, '|' ) ] = true;
+			}
+		}
+
+		$lapsed = $this->licenses->count_expiring( $from, $now, Status::EXPIRED );
+
+		return array(
+			'due'     => count( $renewed ) + $lapsed,
+			'renewed' => count( $renewed ),
+		);
+	}
+
+	/**
+	 * How many local or staging sites are active on a license.
+	 *
+	 * @param License $license License.
+	 */
+	private function count_local_sites( License $license ): int {
+		return count(
+			array_filter(
+				$this->activations->list_active( $license->id ),
+				static fn( Activation $activation ): bool => $activation->is_local
+			)
+		);
+	}
+
+	/**
+	 * Current time in UTC.
+	 */
+	private function now(): DateTimeImmutable {
+		return ( $this->clock )();
+	}
+
+	/**
+	 * Formats a date for the audit log.
+	 *
+	 * @param DateTimeImmutable|null $date Date.
+	 */
+	private function format( ?DateTimeImmutable $date ): ?string {
+		return null === $date ? null : $date->format( 'Y-m-d H:i:s' );
+	}
+
+	/**
+	 * Generates a key that is not in use yet.
+	 *
+	 * @throws LicenseException If no unused key could be generated.
+	 */
+	private function unique_key(): string {
+		for ( $attempt = 0; $attempt < self::KEY_ATTEMPTS; $attempt++ ) {
+			$key = $this->keys->generate();
+
+			if ( null === $this->licenses->find_by_key( $key ) ) {
+				return $key;
+			}
+		}
+
+		throw new LicenseException( LicenseException::INVALID_INPUT, __( 'Could not generate a unique license key.', 'wplicense-it' ) );
+	}
+}

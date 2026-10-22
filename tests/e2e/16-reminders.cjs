@@ -1,0 +1,275 @@
+/**
+ * Expiry reminder emails: the settings, what is sent and to whom, that nothing is sent twice, that a renewal starts a new
+ * cycle, and that the renewal address in the email works. Mail is kept by the test site's mail capture (see
+ * tests/env/setup-woocommerce.sh), so nothing leaves the sandbox. The daily job is run through the real WordPress cron request.
+ */
+const path = require( 'path' );
+const { execFileSync } = require( 'child_process' );
+const { BASE, ROOT, check, finish, login, logSize, shot, sql, start, woo } = require( './lib.cjs' );
+
+const helper = ( ...args ) => JSON.parse( execFileSync( 'php', [ path.join( __dirname, 'php/reminders.php' ), ...args ], { encoding: 'utf8', env: { ...process.env, WPLIT_ENV_ROOT: ROOT } } ).trim() );
+const SETTINGS = BASE + '/wp-admin/edit.php?post_type=wplit_product&page=wplit-licensing-settings';
+const mails = () => woo( { op: 'mail' } ).mail;
+
+( async () => {
+	const logStart = logSize();
+	woo( { op: 'clear_mail' } );
+
+	const saved = { enabled: sql( "SELECT option_value FROM wp_options WHERE option_name='wplit_reminders_enabled'" ), days: sql( "SELECT option_value FROM wp_options WHERE option_name='wplit_reminder_days'" ), url: sql( "SELECT option_value FROM wp_options WHERE option_name='wplit_reminder_url'" ) };
+	sql( "DELETE FROM wp_options WHERE option_name IN ('wplit_reminders_enabled','wplit_reminder_days','wplit_reminder_url','wplit_reminder_after_enabled','wplit_reminder_after_days')" );
+
+	const stamp = Date.now();
+	const accountEmail = 'account-customer-' + stamp + '@example.com';
+	const customer = woo( { op: 'create_user', login: 'reminded' + stamp, email: accountEmail, password: 'pw-reminded-1' } );
+	check( customer.user_id > 0, 'the customer account was made: ' + JSON.stringify( customer ) );
+	const seed = helper( 'seed', String( customer.user_id ), accountEmail );
+	const L = seed.licenses;
+
+	const env = await start();
+	const page = env.page;
+	await login( page );
+
+	// 1. The settings: off by default, with the days 30 and 7.
+	await page.goto( SETTINGS );
+	await shot( page, '16-settings-default' );
+	const box = page.locator( 'input[name="wplit_reminders_enabled"]' );
+	check( await box.count() === 1 && ! ( await box.isChecked() ), 'reminders are off until the owner turns them on' );
+	check( ( await page.inputValue( '#wplit_reminder_days' ) ) === '30, 7', 'the default days are 30, 7, got ' + await page.inputValue( '#wplit_reminder_days' ) );
+	check( ( await page.inputValue( '#wplit_reminder_url' ) ) === '', 'no renewal address is set by default' );
+	check( /Off until you turn it on/.test( await page.locator( 'body' ).innerText() ), 'the screen says nothing is sent until it is turned on' );
+
+	// 1b. Card 139: a test email to the administrator, while reminders are off, built like the real one.
+	const adminEmail = sql( 'SELECT user_email FROM wp_users WHERE ID=1' );
+	const firstProduct = sql( "SELECT post_title FROM wp_posts WHERE post_type='wplit_product' AND post_status='publish' ORDER BY ID ASC LIMIT 1" );
+	const eventsBefore = sql( 'SELECT COUNT(*) FROM wp_wplit_license_events' );
+	const licensesBefore = sql( 'SELECT COUNT(*) FROM wp_wplit_licenses' );
+	check( ( await page.locator( '#wplit-test-reminder' ).count() ) === 1 && ( await page.locator( 'body' ).innerText() ).includes( adminEmail ), 'the settings offer a test email to the administrator\'s address' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#wplit-test-reminder' ) ] );
+	await shot( page, '16-test-email-sent' );
+	check( ( await page.locator( '.notice-success' ).innerText() ).includes( 'A test reminder was sent to ' + adminEmail ), 'the screen says where it went' );
+	const test = mails();
+	check( 1 === test.length && String( test[ 0 ].to ) === adminEmail, 'one email went out, to the administrator only: ' + test.map( ( m ) => m.to ).join( ',' ) );
+	check( String( test[ 0 ] && test[ 0 ].subject ) === '[Test] Your ' + firstProduct + ' license expires in 30 days', 'its subject is the customer\'s, for the first product and the first number of days, marked [Test]: ' + ( test[ 0 ] && test[ 0 ].subject ) );
+	check( /Renew it here/.test( String( test[ 0 ] && test[ 0 ].message ) ) && String( test[ 0 ] && test[ 0 ].message ).includes( BASE + '/my-account/licenses/' ), 'its text and renewal link are the ones a customer with an account gets' );
+	check( eventsBefore === sql( 'SELECT COUNT(*) FROM wp_wplit_license_events' ) && licensesBefore === sql( 'SELECT COUNT(*) FROM wp_wplit_licenses' ), 'nothing was recorded on any license, and no license was made' );
+	const forged = await page.request.get( BASE + '/wp-admin/admin-post.php?action=wplit_test_reminder' );
+	check( 403 === forged.status() && 1 === mails().length, 'without the button\'s security token nothing is sent: ' + forged.status() );
+	woo( { op: 'clear_mail' } );
+
+	// 2. Off: the daily job emails nobody.
+	helper( 'run' );
+	check( mails().length === 0, 'with reminders off the daily job sends nothing, sent ' + mails().length );
+
+	// 3. Junk in the days field is cleaned when saved.
+	await page.fill( '#wplit_reminder_days', 'abc, 0, -4, 7; 30, 30, 999' );
+	await page.check( 'input[name="wplit_reminders_enabled"]' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit' ) ] );
+	check( ( await page.inputValue( '#wplit_reminder_days' ) ) === '30, 7', 'junk is cleaned out of the days when saved, got ' + await page.inputValue( '#wplit_reminder_days' ) );
+	check( await page.locator( 'input[name="wplit_reminders_enabled"]' ).isChecked(), 'turning reminders on is saved' );
+
+	// 4. On: the daily job, run by the real cron request.
+	woo( { op: 'clear_mail' } );
+	helper( 'due' );
+	let cron = await page.request.get( BASE + '/wp-cron.php' );
+	check( cron.status() === 200, 'wp-cron.php runs, got ' + cron.status() );
+	await page.waitForTimeout( 1500 );
+	if ( mails().length !== 3 ) {
+		// Written down for a failure on a slower machine: what WordPress thought of the job when the mails did not appear.
+		console.log( '  state after the first cron request: ' + JSON.stringify( helper( 'state' ) ) + ', mails ' + mails().length );
+		helper( 'due' );
+		cron = await page.request.get( BASE + '/wp-cron.php' );
+		await page.waitForTimeout( 3000 );
+		console.log( '  state after a second cron request: ' + JSON.stringify( helper( 'state' ) ) + ', mails ' + mails().length );
+	}
+	let sent = mails();
+	check( sent.length === 3, 'the daily job sent three emails (account, guest, later), sent ' + sent.length + ': ' + sent.map( ( m ) => m.to ).join( ', ' ) );
+	const to = ( who ) => sent.find( ( m ) => String( [].concat( m.to ) ).includes( who ) );
+	check( !! to( 'account-customer' ) && !! to( 'guest-customer' ) && !! to( 'later-customer' ), 'each license that is inside a window got its email' );
+	check( ! to( 'far-customer' ), 'a license that expires in 100 days got nothing' );
+	check( ! to( 'lifetime-customer' ), 'a license that never expires got nothing' );
+	check( ! to( 'revoked-customer' ), 'a revoked license got nothing' );
+	const account = to( 'account-customer' ) || {};
+	const guest = to( 'guest-customer' ) || {};
+	check( /expires in 2[56] days/.test( account.subject || '' ) && /Reminder Product/.test( account.subject || '' ), 'the subject names the product and the days: ' + account.subject );
+	check( /expires in [56] days/.test( guest.subject || '' ), 'the guest license 5 days away: ' + guest.subject );
+	for ( const mail of sent ) {
+		check( ! Object.values( L ).some( ( l ) => String( mail.message ).includes( l.key ) ), 'the email for ' + mail.to + ' does not contain the license key' );
+		check( /Reminder Product/.test( mail.message ) && /no longer receive updates/.test( mail.message ), 'the email for ' + mail.to + ' says which product and what expiry means' );
+	}
+	const accountUrl = ( ( account.message || '' ).match( /https?:\/\/\S+/ ) || [ '' ] )[ 0 ];
+	const guestUrl = ( ( guest.message || '' ).match( /https?:\/\/\S+/ ) || [ '' ] )[ 0 ];
+	check( /\/my-account\/licenses\/?$/.test( accountUrl ), 'a license with an account sends the customer to My Account > Licenses, got ' + accountUrl );
+	check( /^https?:\/\/127\.0\.0\.1:8080\/$/.test( guestUrl ), 'a license without an account sends the customer to the home page, got ' + guestUrl );
+
+	// 5. The address in the email works: the customer logs in and sees the license.
+	await page.context().clearCookies();
+	await page.goto( accountUrl );
+	check( await page.locator( '#username' ).count() === 1, 'the link asks the customer to log in' );
+	await page.fill( '#username', 'reminded' + stamp );
+	await page.fill( '#password', 'pw-reminded-1' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( 'button[name="login"]' ) ] );
+	await page.goto( accountUrl );
+	const accountText = await page.locator( 'body' ).innerText();
+	check( accountText.includes( L.account.key ), 'after logging in the link shows the customer their license: ' + accountText.replace( /\n/g, ' | ' ).slice( 0, 300 ) );
+	await shot( page, '16-account' );
+	await page.context().clearCookies();
+	await login( page );
+
+	// 6. It is written to the license history, and nothing is sent twice.
+	await page.goto( BASE + '/wp-admin/edit.php?post_type=wplit_product&page=wplit-licenses&license=' + L.account.id );
+	const history = await page.locator( 'body' ).innerText();
+	check( /Expiry reminder emailed/.test( history ), 'the license history shows the reminder' );
+	check( ! history.includes( 'account-customer@example.com' ) || ( history.match( /account-customer@example\.com/g ) || [] ).length <= 2, 'the history does not repeat the customer address for the reminder' );
+	await shot( page, '16-history' );
+	helper( 'run' );
+	check( mails().length === 3, 'running the job again sends nothing more, now ' + mails().length );
+	check( sql( "SELECT COUNT(*) FROM wp_wplit_license_events WHERE type='reminder_sent'" ) === '3', 'three reminders are recorded' );
+
+	// 7. Later the account license gets close: its second window (7 days) sends a second email.
+	sql( "UPDATE wp_wplit_licenses SET expires_at = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 6 DAY) WHERE id=" + L.account.id );
+	helper( 'run' );
+	check( mails().length === 4, 'a changed expiry date is a new cycle, so the license is mailed again: ' + mails().length );
+	check( String( mails()[ 3 ].to ).includes( 'account-customer' ) && /expires in [67] days/.test( mails()[ 3 ].subject ), 'the new email is for the account license, with its new date: ' + mails()[ 3 ].subject );
+	// The guest license (5 days away) was already sent its closest window, so it stays quiet.
+	check( mails().filter( ( m ) => String( m.to ).includes( 'guest-customer' ) ).length === 1, 'the guest license got exactly one email' );
+
+	// 8. A renewal in the admin moves the expiry a year ahead: nothing is due. A year later it is.
+	await page.goto( BASE + '/wp-admin/edit.php?post_type=wplit_product&page=wplit-licenses&license=' + L.later.id );
+	await page.selectOption( '#wplit-renew-period', 'P1Y' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( 'form:has(#wplit-renew-period) button[type="submit"]' ) ] );
+	const days = Number( sql( 'SELECT DATEDIFF(expires_at, UTC_TIMESTAMP()) FROM wp_wplit_licenses WHERE id=' + L.later.id ) );
+	check( days > 300, 'renewing in the admin moved the expiry about a year ahead, ' + days + ' days' );
+	const before = mails().length;
+	helper( 'run' );
+	check( mails().length === before, 'a renewed license is not mailed' );
+	sql( "UPDATE wp_wplit_licenses SET expires_at = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 25 DAY) WHERE id=" + L.later.id );
+	helper( 'run' );
+	check( mails().length === before + 1 && String( mails()[ before ].to ).includes( 'later-customer' ), 'a year later the renewed license gets a new email' );
+
+	// 8b. Card 140: one email some days after a license ran out, when turned on; long-expired licenses are left alone.
+	const lapsed = helper( 'lapsed' );
+	await page.goto( SETTINGS );
+	check( ! ( await page.locator( 'input[name="wplit_reminder_after_enabled"]' ).isChecked() ) && '3' === await page.inputValue( '#wplit_reminder_after_days' ), 'the email after expiry is off by default, at 3 days' );
+	let mark = mails().length;
+	helper( 'run' );
+	check( ! mails().slice( mark ).some( ( m ) => /lapsed/.test( String( m.to ) ) ), 'while it is off, nobody whose license ran out is emailed' );
+	check( 'expired' === sql( 'SELECT status FROM wp_wplit_licenses WHERE id=' + lapsed.recent ), 'the daily job marked the license expired' );
+	await page.check( 'input[name="wplit_reminder_after_enabled"]' );
+	await page.evaluate( () => document.getElementById( 'wplit_reminder_after_days' ).removeAttribute( 'max' ) ); // As a hand-made request would.
+	await page.fill( '#wplit_reminder_after_days', '500' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit' ) ] );
+	check( await page.locator( 'input[name="wplit_reminder_after_enabled"]' ).isChecked() && '3' === await page.inputValue( '#wplit_reminder_after_days' ), 'turning it on is saved, and a day count out of range falls back to 3' );
+	await shot( page, '16-after-expiry-setting' );
+	mark = mails().length;
+	helper( 'run' );
+	const after = mails().slice( mark ).filter( ( m ) => /lapsed/.test( String( m.to ) ) );
+	check( 1 === after.length && 'recent-lapsed@example.com' === String( after[ 0 ].to ), 'the license that ran out 4 days ago is emailed, the one 40 days ago is not: ' + after.map( ( m ) => m.to ).join( ',' ) );
+	check( /^Your Reminder Product license has expired$/.test( String( after[ 0 ] && after[ 0 ].subject ) ) && /expired on .*no longer receive updates.*Renew it here to get them again/s.test( String( after[ 0 ] && after[ 0 ].message ) ), 'it says the license expired and links to renew: ' + ( after[ 0 ] && after[ 0 ].subject ) );
+	check( '1' === sql( "SELECT COUNT(*) FROM wp_wplit_license_events WHERE license_id=" + lapsed.recent + " AND type='reminder_sent' AND data LIKE '%\"after\":3%'" ), 'it is recorded in the license history' );
+	mark = mails().length;
+	helper( 'run' );
+	check( mails().length === mark, 'the next day nothing is sent again' );
+	await page.goto( SETTINGS );
+	woo( { op: 'clear_mail' } );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#wplit-test-reminder-after' ) ] );
+	check( 1 === mails().length && String( mails()[ 0 ].subject ).startsWith( '[Test] Your ' ) && / license has expired$/.test( String( mails()[ 0 ].subject ) ), 'the second test button sends the email after expiry: ' + ( mails()[ 0 ] && mails()[ 0 ].subject ) );
+	await page.uncheck( 'input[name="wplit_reminder_after_enabled"]' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit' ) ] );
+	woo( { op: 'clear_mail' } );
+
+	// 9. Another renewal address and other days.
+	await page.goto( SETTINGS );
+	await page.fill( '#wplit_reminder_url', 'https://shop.example.test/renew?utm=reminder' );
+	await page.fill( '#wplit_reminder_days', '14' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit' ) ] );
+	check( ( await page.inputValue( '#wplit_reminder_url' ) ) === 'https://shop.example.test/renew?utm=reminder', 'the renewal address is saved' );
+	check( ( await page.inputValue( '#wplit_reminder_days' ) ) === '14', 'the new days are saved' );
+	sql( "UPDATE wp_wplit_licenses SET expires_at = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 13 DAY) WHERE id=" + L.far.id );
+	const count = mails().length;
+	helper( 'run' );
+	const extra = mails().slice( count );
+	check( extra.length === 1 && String( extra[ 0 ].to ).includes( 'far-customer' ), 'with the day set to 14 only the license inside 14 days is mailed: ' + extra.map( ( m ) => m.to ).join( ',' ) );
+	check( ( extra[ 0 ] && extra[ 0 ].message || '' ).includes( 'https://shop.example.test/renew?utm=reminder' ), 'the email uses the renewal address from the settings' );
+	await page.fill( '#wplit_reminder_url', 'javascript:alert(1)' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit' ) ] );
+	check( ! /javascript:/i.test( await page.inputValue( '#wplit_reminder_url' ) ), 'a javascript: renewal address is not kept, got "' + await page.inputValue( '#wplit_reminder_url' ) + '"' );
+
+	// 10. Card 141: customers stop the emails, from the email or in My Account; the owner sees who and can turn them back on.
+	sql( "DELETE FROM wp_options WHERE option_name='wplit_reminder_optouts'" );
+	await page.goto( SETTINGS );
+	await page.fill( '#wplit_reminder_url', '' );
+	await page.fill( '#wplit_reminder_days', '30, 7' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#submit' ) ] );
+	check( 1 === await page.locator( '#wplit-optouts-none' ).count(), 'the settings say no customer has stopped the emails yet' );
+	const optEmail = 'optout-' + stamp + '@example.com';
+	const opt = helper( 'license', optEmail, '20' );
+	woo( { op: 'clear_mail' } );
+	helper( 'run' );
+	const first = mails().filter( ( m ) => String( m.to ) === optEmail );
+	const link = helper( 'optout', optEmail ).url;
+	check( 1 === first.length && String( first[ 0 ].message ).includes( "Don't want these reminders? Stop them here:\n" + link ), 'every reminder ends with a link to stop them' );
+	check( first.length > 0 && JSON.stringify( first[ 0 ].headers ).includes( 'List-Unsubscribe: <' + link + '>' ) && JSON.stringify( first[ 0 ].headers ).includes( 'List-Unsubscribe-Post: List-Unsubscribe=One-Click' ), 'and the headers mail programs use for their own unsubscribe button' );
+
+	const visitor = await env.browser.newContext();
+	const vpage = await visitor.newPage();
+	await vpage.goto( link );
+	await shot( vpage, '16-unsubscribe-ask' );
+	check( /Stop the emails that remind/.test( await vpage.locator( '#wplit-reminders-state' ).innerText() ) && null === helper( 'optout', optEmail ).entry, 'opening the link, without logging in, only asks: a mail scanner opening it stops nothing' );
+	await Promise.all( [ vpage.waitForNavigation( { waitUntil: 'load' } ), vpage.click( '#wplit-reminders-stop' ) ] );
+	await shot( vpage, '16-unsubscribe-done' );
+	check( /will get no more reminder emails/.test( await vpage.locator( '#wplit-reminders-state' ).innerText() ) && 1 === await vpage.locator( '#wplit-reminders-resume' ).count(), 'the Stop button stops them, and the page offers to turn them back on' );
+	check( 'email' === ( helper( 'optout', optEmail ).entry || {} ).via, 'the address is on the list, stopped from an email' );
+	const wrongCode = await visitor.request.get( link.replace( /c=[a-f0-9]+/, 'c=' + '0'.repeat( 32 ) ) );
+	check( 403 === wrongCode.status(), "a link with a wrong code is refused: " + wrongCode.status() );
+	sql( 'UPDATE wp_wplit_licenses SET expires_at = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 DAY) WHERE id=' + opt.id );
+	mark = mails().length;
+	helper( 'run' );
+	check( ! mails().slice( mark ).some( ( m ) => String( m.to ) === optEmail ), 'the 7-day reminder is not sent to an address that stopped them' );
+
+	await page.goto( SETTINGS );
+	await shot( page, '16-optouts' );
+	const row = page.locator( '#wplit-optouts tr', { hasText: optEmail } );
+	check( 1 === await row.count() && /From an email/.test( await row.innerText() ), 'the owner sees the address, when and how it stopped them' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), row.locator( 'a', { hasText: 'Turn back on' } ).click() ] );
+	check( null === helper( 'optout', optEmail ).entry && /go to that address again/.test( await page.locator( '.notice-success' ).innerText() ), 'and can turn them back on' );
+	mark = mails().length;
+	helper( 'run' );
+	check( 1 === mails().slice( mark ).filter( ( m ) => String( m.to ) === optEmail ).length, 'then the 7-day reminder goes out' );
+
+	const oneClick = await visitor.request.post( link, { form: { 'List-Unsubscribe': 'One-Click' }, maxRedirects: 0 } );
+	check( 200 === oneClick.status() && 'email' === ( helper( 'optout', optEmail ).entry || {} ).via, 'a mail program\'s one-click unsubscribe stops them at once: ' + oneClick.status() );
+	await visitor.close();
+
+	const exported = helper( 'optout', optEmail, 'erase' );
+	check( 1 === exported.exported.length && /from an email/.test( JSON.stringify( exported.exported ) ), 'the personal data export says the address stopped reminder emails, and when' );
+	check( null === exported.after && true === exported.erase.items_removed, 'erasing the person\'s data removes the address from the list' );
+
+	// My Account: the customer with an account switches them off and on.
+	const shopper = await env.browser.newContext();
+	const spage = await shopper.newPage();
+	await spage.goto( BASE + '/my-account/' );
+	await spage.fill( '#username', 'reminded' + stamp );
+	await spage.fill( '#password', 'pw-reminded-1' );
+	await Promise.all( [ spage.waitForNavigation( { waitUntil: 'load' } ), spage.click( 'button[name="login"]' ) ] );
+	await spage.goto( BASE + '/my-account/licenses/' );
+	const box2 = spage.locator( '#wplit-account-reminders input[name="reminders"]' );
+	check( 1 === await box2.count() && await box2.isChecked(), 'My Account > Licenses has a reminder switch, on' );
+	await box2.uncheck();
+	await Promise.all( [ spage.waitForNavigation( { waitUntil: 'load' } ), spage.click( '#wplit-account-reminders button' ) ] );
+	await shot( spage, '16-account-reminders-off' );
+	check( /You will get no more reminder emails about your licenses/.test( await spage.locator( 'body' ).innerText() ) && ! ( await spage.locator( '#wplit-account-reminders input[name="reminders"]' ).isChecked() ), 'switching it off is saved and said' );
+	check( 'account' === ( helper( 'optout', accountEmail ).entry || {} ).via, 'the address is on the list, stopped in My Account' );
+	await spage.locator( '#wplit-account-reminders input[name="reminders"]' ).check();
+	await Promise.all( [ spage.waitForNavigation( { waitUntil: 'load' } ), spage.click( '#wplit-account-reminders button' ) ] );
+	check( null === helper( 'optout', accountEmail ).entry, 'switching it on again takes the address off the list' );
+	await shopper.close();
+	sql( "DELETE FROM wp_options WHERE option_name='wplit_reminder_optouts'" );
+
+	// Put everything back.
+	woo( { op: 'clear_mail' } );
+	sql( "DELETE FROM wp_options WHERE option_name IN ('wplit_reminders_enabled','wplit_reminder_days','wplit_reminder_url','wplit_reminder_after_enabled','wplit_reminder_after_days')" );
+	for ( const [ name, value ] of [ [ 'wplit_reminders_enabled', saved.enabled ], [ 'wplit_reminder_days', saved.days ], [ 'wplit_reminder_url', saved.url ] ] ) {
+		if ( '' !== value ) { sql( "INSERT INTO wp_options (option_name, option_value, autoload) VALUES ('" + name + "', '" + value.replace( /'/g, "''" ) + "', 'yes')" ); }
+	}
+	await finish( env, logStart );
+} )().catch( ( error ) => { console.error( error ); process.exit( 1 ); } );

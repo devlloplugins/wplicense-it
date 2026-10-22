@@ -1,0 +1,68 @@
+<?php
+/**
+ * Audit log contract.
+ *
+ * @package Devllo\WPLicenseIt
+ */
+
+declare( strict_types=1 );
+
+namespace Devllo\WPLicenseIt\Licenses;
+
+/**
+ * Append-only audit log of license events.
+ */
+interface EventLog {
+
+	public const ISSUED           = 'issued';
+	public const ACTIVATED        = 'activated';
+	public const DEACTIVATED      = 'deactivated';
+	public const RENEWED          = 'renewed';
+	public const EXPIRED          = 'expired';
+	public const REVOKED          = 'revoked';
+	public const REFUNDED         = 'refunded';
+	public const REINSTATED       = 'reinstated';
+	public const UPDATED          = 'updated';
+	public const REMINDER         = 'reminder_sent';
+	public const INVOICED         = 'renewal_invoiced';
+	public const IMPORTED         = 'imported';
+	public const RENEWAL_REFUNDED = 'renewal_refunded';
+
+	/**
+	 * Records an event.
+	 *
+	 * @param int                  $license_id License ID.
+	 * @param string               $type       One of the constants above.
+	 * @param array<string, mixed> $data       Extra details (site, old and new expiry, ...).
+	 */
+	public function record( int $license_id, string $type, array $data = array() ): void;
+
+	/**
+	 * Recent events of a license, newest first.
+	 *
+	 * @param int $license_id License ID.
+	 * @param int $limit      Maximum events.
+	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:\DateTimeImmutable}>
+	 */
+	public function for_license( int $license_id, int $limit = 50 ): array;
+
+	/**
+	 * Recent events of one type for a license, newest first. Unlike for_license() it is not crowded out by busy activity.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $type       One of the constants above.
+	 * @param int    $limit      Maximum events.
+	 * @return array<int, array{type:string,data:array<string,mixed>,created_at:\DateTimeImmutable}>
+	 */
+	public function of_type( int $license_id, string $type, int $limit = 20 ): array;
+
+	/**
+	 * Events of one type for all licenses, recorded since a time, oldest first.
+	 *
+	 * @param string             $type  One of the constants above.
+	 * @param \DateTimeImmutable $since Earliest time (UTC).
+	 * @param int                $limit Maximum events.
+	 * @return array<int, array{license_id:int,data:array<string,mixed>,created_at:\DateTimeImmutable}>
+	 */
+	public function since( string $type, \DateTimeImmutable $since, int $limit = 20000 ): array;
+}

@@ -1,0 +1,160 @@
+name: CI
+
+# Runs once per push. A pull_request trigger as well would run everything twice for a branch that has a pull request, and
+# the checks of the pushed commit already show on the pull request.
+on:
+  push:
+    branches: [ "2.0", "main" ]
+
+# A newer push to the same branch makes the unfinished run of the older one pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+      - run: composer install --no-progress --prefer-dist
+      - run: composer lint
+
+  analyse:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+      - run: composer install --no-progress --prefer-dist
+      - run: composer analyse
+
+  test:
+    name: Unit tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.0', '8.1', '8.2', '8.3' ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+      - run: composer install --no-progress --prefer-dist
+      - run: composer test
+
+  sdk-php74:
+    name: Client SDK on PHP 7.4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: phpunit:9.6
+      - run: find sdk -name '*.php' -print0 | xargs -0 -n1 php -l
+      # The SDK is embedded in other people's plugins that may still run on 7.4, so run its tests there, not only its syntax check.
+      - run: phpunit -c phpunit-sdk.xml.dist
+
+  release-zip:
+    name: Release zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Build the release zip and check what is in it
+        run: bin/build-release.sh --check
+      - name: Check the translation template is up to date
+        run: WPLIT_ENV_ROOT="$RUNNER_TEMP/wp" bin/make-pot.sh --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wplicense-it-release-zip
+          path: build/wplicense-it-*.zip
+          if-no-files-found: error
+
+  browser:
+    name: Browser tests (real WordPress and WooCommerce)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /home/runner/pw-browsers
+      WPLIT_ENV_ROOT: /opt/wp-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, zip, gd, mbstring
+          tools: composer
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/pw" playwright@1.49.1 axe-core@4.10.2
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Tab bar test (no WordPress needed)
+        run: node tests/js/product-tabs.cjs
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+      # The scripts run as root, like in the sandbox they were written in: they install MariaDB and the database
+      # client then uses the root socket login. sudo -E keeps the environment, and PATH has to be passed on explicitly.
+      - name: Build the test site
+        run: |
+          sudo systemctl stop mysql || true
+          sudo -E env "PATH=$PATH" bash tests/env/setup.sh
+          sudo -E env "PATH=$PATH" bash tests/env/setup-woocommerce.sh
+      - name: Run the browser tests
+        run: sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh
+      - name: Run the order tests again on classic order storage
+        run: |
+          sudo -E env "PATH=$PATH" bash tests/env/order-storage.sh classic
+          sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh 06 17 19 21 27 28 30 33
+          sudo -E env "PATH=$PATH" bash tests/env/order-storage.sh hpos
+      - name: Check package protection on nginx
+        run: |
+          sudo apt-get install -y -qq nginx php-fpm php-mysql php-zip
+          sudo systemctl stop nginx || true
+          sudo -E env "PATH=$PATH" bash tests/env/nginx-check.sh
+      - name: Check the plugin on a multisite network
+        run: |
+          sudo -E env "PATH=$PATH" bash tests/env/setup-multisite.sh
+          sudo -E env "PATH=$PATH" php tests/env/multisite-check.php
+      - name: Run WordPress.org's Plugin Check on the release files
+        run: sudo -E env "PATH=$PATH" bash tests/env/plugin-check.sh
+      - name: Print the site logs
+        if: failure()
+        run: |
+          for f in /opt/wp-test/wordpress/wp-content/debug.log /opt/wp-test/client/wp-content/debug.log; do
+            echo "=== $f"; sudo tail -n 60 "$f" 2>/dev/null || true
+          done
+          # The web servers' requests (without the connection open/close lines), far enough back to cover a test that
+          # waited minutes for an answer before the next test ran.
+          for f in /opt/wp-test/server-*.log; do
+            echo "=== $f"; sudo grep -vE ' (Accepted|Closing)$' "$f" 2>/dev/null | tail -n 400 || true
+          done
+          php -v | head -1; php -m | tr '\n' ' '
+          echo; echo '=== Product screen as the admin'
+          sudo -E env "PATH=$PATH" php tests/env/diagnose.php 2>&1 | tail -40 || true
+      - name: Keep what is needed to see a failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-output
+          path: |
+            /tmp/wplit-shots
+            /opt/wp-test/wordpress/wp-content/debug.log
+            /opt/wp-test/client/wp-content/debug.log
+            /opt/wp-test/server-*.log
+          if-no-files-found: ignore

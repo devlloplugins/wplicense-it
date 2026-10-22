@@ -1,0 +1,314 @@
+<?php
+/**
+ * Plugin bootstrap.
+ *
+ * @package Devllo\WPLicenseIt
+ */
+
+declare( strict_types=1 );
+
+namespace Devllo\WPLicenseIt;
+
+use Devllo\WPLicenseIt\Admin\AdminMenu;
+use Devllo\WPLicenseIt\Admin\ConnectBox;
+use Devllo\WPLicenseIt\Admin\Maintenance;
+use Devllo\WPLicenseIt\Admin\PlansBox;
+use Devllo\WPLicenseIt\Admin\ProductSaveHook;
+use Devllo\WPLicenseIt\Admin\ReleasesBox;
+use Devllo\WPLicenseIt\Admin\ProductScreen;
+use Devllo\WPLicenseIt\Admin\SettingsScreen;
+use Devllo\WPLicenseIt\Admin\UpgradeNotice;
+use Devllo\WPLicenseIt\Api\ApiService;
+use Devllo\WPLicenseIt\Api\DownloadSigner;
+use Devllo\WPLicenseIt\Api\LegacyApi;
+use Devllo\WPLicenseIt\Api\LegacyEndpoint;
+use Devllo\WPLicenseIt\Api\LegacyGate;
+use Devllo\WPLicenseIt\Api\RestController;
+use Devllo\WPLicenseIt\Api\TransientRateLimiter;
+use Devllo\WPLicenseIt\Api\WpProductCatalog;
+use Devllo\WPLicenseIt\Database\Installer;
+use Devllo\WPLicenseIt\Database\WpdbActivationRepository;
+use Devllo\WPLicenseIt\Database\WpdbEventLog;
+use Devllo\WPLicenseIt\Compat\LegacyShortcodes;
+use Devllo\WPLicenseIt\Database\WpdbLicenseRepository;
+use Devllo\WPLicenseIt\Demo\Command as DemoCommand;
+use Devllo\WPLicenseIt\Files\ProtectedStorage;
+use Devllo\WPLicenseIt\Licenses\KeyGenerator;
+use Devllo\WPLicenseIt\Licenses\LicenseService;
+use Devllo\WPLicenseIt\Migration\Command;
+use Devllo\WPLicenseIt\Reminders\UnsubscribePage;
+use Devllo\WPLicenseIt\Migration\MigrationRunner;
+use Devllo\WPLicenseIt\Plans\PostMetaPlanRepository;
+use Devllo\WPLicenseIt\Products\ProductCleanup;
+use Devllo\WPLicenseIt\Products\WpFileStore;
+use Devllo\WPLicenseIt\Products\WpProductMeta;
+use Devllo\WPLicenseIt\Releases\MetaReleaseRepository;
+use Devllo\WPLicenseIt\Releases\ReleaseService;
+use Devllo\WPLicenseIt\Plans\WcProductGateway;
+use Devllo\WPLicenseIt\TestPurchase\RestLoopbackProbe;
+use Devllo\WPLicenseIt\TestPurchase\TestPurchase;
+use Devllo\WPLicenseIt\TestPurchase\WcOrderBuilder;
+use Devllo\WPLicenseIt\Privacy\PrivacyHooks;
+use Devllo\WPLicenseIt\WooCommerce\AccountPage;
+use Devllo\WPLicenseIt\WooCommerce\CartRenewal;
+use Devllo\WPLicenseIt\WooCommerce\IssueProblems;
+use Devllo\WPLicenseIt\WooCommerce\CheckoutAccount;
+use Devllo\WPLicenseIt\WooCommerce\LicenseDisplay;
+use Devllo\WPLicenseIt\WooCommerce\OrderLicensesBox;
+use Devllo\WPLicenseIt\WooCommerce\OrderProcessor;
+use Devllo\WPLicenseIt\WooCommerce\OrderReader;
+use Devllo\WPLicenseIt\WooCommerce\ProductFields;
+use Devllo\WPLicenseIt\WooCommerce\WooAdapter;
+use Devllo\WPLicenseIt\WooCommerce\WooItemLicenseStore;
+use Devllo\WPLicenseIt\WooCommerce\WpdbLicenseOrderRepository;
+
+/**
+ * Wires the plugin into WordPress.
+ *
+ * The 2.0 rewrite grows here. Until each 1.x feature is replaced, the legacy
+ * code in admin/ and includes/ is still loaded from the main plugin file.
+ */
+final class Plugin {
+
+	/**
+	 * Single instance.
+	 *
+	 * @var Plugin|null
+	 */
+	private static ?Plugin $instance = null;
+
+	/**
+	 * Licensing core, built on first use.
+	 *
+	 * @var LicenseService|null
+	 */
+	private ?LicenseService $licenses = null;
+
+	/**
+	 * Download link signer, built on first use.
+	 *
+	 * @var DownloadSigner|null
+	 */
+	private ?DownloadSigner $signer = null;
+
+	/**
+	 * Shared rate limiter for the REST API and the legacy endpoint.
+	 *
+	 * @var TransientRateLimiter|null
+	 */
+	private ?TransientRateLimiter $limiter = null;
+
+	/**
+	 * Returns the plugin instance.
+	 */
+	public static function instance(): Plugin {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
+	/**
+	 * Registers hooks.
+	 */
+	public function boot(): void {
+		// Updating a plugin does not run its activation hook, so repeat the safe parts here.
+		add_action( 'plugins_loaded', array( Installer::class, 'maybe_install' ) );
+		add_action( 'plugins_loaded', array( ProtectedStorage::class, 'maybe_create' ) );
+		add_filter( 'wpmu_drop_tables', array( Installer::class, 'drop_with_site' ), 10, 2 );
+
+		$this->load_product_screens();
+
+		// Before anything registers labels on init (the product type does at priority 0).
+		add_action( 'init', array( $this, 'load_textdomain' ), -1 );
+		add_action( 'init', array( $this, 'register_legacy_shortcodes' ) );
+		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+
+		( new MigrationRunner() )->register();
+
+		// Runs from WP-Cron, so it is not limited to admin requests.
+		Maintenance::register();
+		( new UnsubscribePage() )->register();
+
+		// WordPress runs the privacy tools in admin requests and from WP-Cron (the export and erase emails).
+		( new PrivacyHooks() )->register();
+
+		// Permanent deletion also happens from WP-Cron (emptying the trash) and WP-CLI, so this is not limited to admin requests.
+		$cleanup_meta = new WpProductMeta();
+		( new ProductCleanup( new ReleaseService( new MetaReleaseRepository( $cleanup_meta ), $cleanup_meta ), new WpFileStore() ) )->register();
+
+		if ( is_admin() ) {
+			( new AdminMenu( $this->licenses() ) )->register();
+			( new UpgradeNotice() )->register();
+			( new ProductScreen() )->register();
+			( new ProductSaveHook() )->register();
+			$product_meta = new WpProductMeta();
+			( new ReleasesBox( new ReleaseService( new MetaReleaseRepository( $product_meta ), $product_meta ), new WpFileStore() ) )->register();
+			( new ConnectBox(
+				new PostMetaPlanRepository(),
+				static function () {
+					return class_exists( 'WooCommerce' ) ? new WcProductGateway() : null;
+				},
+				new WpProductCatalog()
+			) )->register();
+		}
+
+		// WooCommerce adapter. The HPOS declaration has to be registered before WooCommerce initialises.
+		add_action( 'before_woocommerce_init', array( WooAdapter::class, 'declare_hpos_compatibility' ) );
+		add_action( 'plugins_loaded', array( $this, 'boot_woocommerce' ), 30 );
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::add_command( 'wplit migration', Command::class );
+			\WP_CLI::add_command( 'wplit demo', DemoCommand::class );
+		}
+
+		// Counts calls to the 1.x API addresses, can switch them off, and limits wrong keys before the migration.
+		( new LegacyGate( $this->limiter(), self::legacy_data_migrated() ) )->register();
+
+		if ( self::legacy_data_migrated() ) {
+			$this->legacy_endpoint()->register();
+		}
+	}
+
+	/**
+	 * Loads the product post type and its edit screen, and, until the 1.x data is migrated,
+	 * the 1.x license API that keeps answering existing customers' update checks.
+	 */
+	private function load_product_screens(): void {
+		require_once WPLICENSE_IT_DIR . 'admin/wplicense-it-product-post.php';
+
+		if ( ! self::legacy_data_migrated() ) {
+			require_once WPLICENSE_IT_DIR . 'includes/wplicense-it-api.php';
+		}
+	}
+
+	/**
+	 * Loads the translations in the plugin's languages folder (wplicense-it-<locale>.mo). WordPress only fetches translations
+	 * by itself for plugins hosted on wordpress.org, which 2.0 is not (decision 21).
+	 */
+	public function load_textdomain(): void {
+		load_plugin_textdomain( 'wplicense-it', false, dirname( plugin_basename( WPLICENSE_IT_FILE ) ) . '/languages' );
+	}
+
+	/**
+	 * Registers the shortcodes from 1.x (see LegacyShortcodes).
+	 */
+	public function register_legacy_shortcodes(): void {
+		( new LegacyShortcodes( $this->licenses(), new WpProductCatalog(), $this->signer() ) )->register();
+	}
+
+	/**
+	 * Connects to WooCommerce when it is active.
+	 */
+	public function boot_woocommerce(): void {
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$reader    = new OrderReader();
+		$processor = new OrderProcessor( $this->licenses(), new WpdbLicenseOrderRepository( $wpdb ), new WooItemLicenseStore() );
+
+		$adapter = new WooAdapter( $processor, $reader );
+		$adapter->register();
+		( new IssueProblems( $adapter ) )->register();
+		( new ProductFields() )->register();
+		$gateway = new WcProductGateway();
+		$catalog = new WpProductCatalog();
+		$tester  = new TestPurchase( $gateway, $catalog, new WcOrderBuilder( $reader ), new RestLoopbackProbe() );
+		( new PlansBox( new PostMetaPlanRepository(), $gateway, $tester, $catalog ) )->register();
+		( new CartRenewal( $this->licenses(), $reader ) )->register();
+		( new LicenseDisplay( $this->licenses(), $reader ) )->register();
+		( new CheckoutAccount( $reader ) )->register();
+		( new OrderLicensesBox( $this->licenses(), $reader ) )->register();
+		( new AccountPage( $this->licenses(), new WpProductCatalog(), $this->signer() ) )->register();
+	}
+
+	/**
+	 * Signs short-lived download links.
+	 */
+	public function signer(): DownloadSigner {
+		if ( null === $this->signer ) {
+			$this->signer = new DownloadSigner( wp_salt( 'auth' ) );
+		}
+
+		return $this->signer;
+	}
+
+	/**
+	 * Whether the 1.x data has been migrated, which switches the deprecated
+	 * /api/wplicense-it-api/ URLs from the 1.x code to the 2.0 core.
+	 */
+	public static function legacy_data_migrated(): bool {
+		return version_compare( (string) get_option( 'wplit_db_version', '0' ), '2.0.0', '>=' );
+	}
+
+	/**
+	 * Registers /wp-json/wplicense-it/v1/.
+	 */
+	public function register_rest_routes(): void {
+		$api = new ApiService(
+			$this->licenses(),
+			new WpProductCatalog(),
+			$this->signer(),
+			$this->limiter(),
+			static function ( string $token ): string {
+				return add_query_arg( 'token', rawurlencode( $token ), rest_url( RestController::ROUTE_NAMESPACE . '/download' ) );
+			}
+		);
+
+		$controller = new RestController( $api );
+		$controller->register();
+		$controller->register_routes();
+	}
+
+	/**
+	 * The deprecated 1.x endpoint, backed by the 2.0 core.
+	 */
+	private function legacy_endpoint(): LegacyEndpoint {
+		return new LegacyEndpoint(
+			new LegacyApi(
+				$this->licenses(),
+				new WpProductCatalog(),
+				$this->limiter(),
+				static function ( int $product_id, string $api_key, string $email, string $license_key ): string {
+					return home_url( '/api/wplicense-it-api/v1/get?p=' . $product_id . '&k=' . rawurlencode( $api_key ) . '&e=' . rawurlencode( $email ) . '&l=' . rawurlencode( $license_key ) );
+				}
+			)
+		);
+	}
+
+	/**
+	 * Shared rate limiter.
+	 */
+	private function limiter(): TransientRateLimiter {
+		if ( null === $this->limiter ) {
+			$this->limiter = new TransientRateLimiter(
+				SettingsScreen::clamp( get_option( SettingsScreen::OPTION_FAILURES, 20 ), 1, 1000, 20 ),
+				60 * SettingsScreen::clamp( get_option( SettingsScreen::OPTION_WINDOW, 15 ), 1, 1440, 15 )
+			);
+		}
+
+		return $this->limiter;
+	}
+
+	/**
+	 * The licensing core. Payment adapters and the API call this.
+	 */
+	public function licenses(): LicenseService {
+		if ( null === $this->licenses ) {
+			global $wpdb;
+
+			$this->licenses = new LicenseService(
+				new WpdbLicenseRepository( $wpdb ),
+				new WpdbActivationRepository( $wpdb ),
+				new WpdbEventLog( $wpdb ),
+				new KeyGenerator()
+			);
+		}
+
+		return $this->licenses;
+	}
+}

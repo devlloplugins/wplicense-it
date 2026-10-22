@@ -1,0 +1,166 @@
+# WooCommerce adapter
+
+WPLicense It sells nothing itself in 2.0. WooCommerce takes the payment, and the adapter turns paid
+orders into licenses. WooCommerce is the only store supported: on a site without it, licenses are issued by hand
+(**Add license**) and nothing can be sold or renewed through the site (see decision 19 in `DECISIONS.md`). It loads only when WooCommerce is active, and works with the classic and the
+high-performance (HPOS) order storage.
+
+## Plans (the recommended way)
+
+Open a product under **License Products**. The **Plans** box lists what customers can buy, one row each:
+name, price, sites per license (0 is unlimited) and how long the license lasts.
+
+Saving the product creates **one simple WooCommerce product per plan**, as a **draft**, marked virtual and
+linked to the license product with the plan's terms. Later saves keep the price and terms current.
+
+| Situation | What happens |
+|---|---|
+| You change a plan's price or terms | They are sent to WooCommerce on save. |
+| Someone changes a price in WooCommerce | Nothing is overwritten. The row shows both prices and asks: **keep the plan price** or **use the WooCommerce price**. |
+| Both prices changed | The plan's price wins. |
+| Someone edits a plan's license terms in WooCommerce | They are put back to the plan's terms on the next save. |
+| A plan's WooCommerce product is deleted | The row says so. **Create it again** makes a new draft. |
+| You clear a plan's row | Its WooCommerce product is set back to **draft**, so it can no longer be bought. It is not deleted. Existing licenses keep working. |
+| A save is refused (bad price, duplicate name) | Nothing is saved, and every mistake is listed. |
+
+A plan can be **published** in the shop only after a test of it has passed. Click **Test this plan** in the
+plan's row. The test runs the real purchase and license code on an order that is never saved (see
+`TEST-PURCHASE.md`), and lists seven checks with what to fix. If it passes, **Publish in the shop** appears. A
+pass stops counting if the plan's product link, sites, period or the stored zip changes, and the plan then has to be
+tested again. A price change does not cancel it. A failed test also clears an earlier pass. Plans already on sale
+can be tested again at any time.
+
+Prices are compared in minor units (cents) using the store currency, so 49 and 49.00 are the same price.
+A sale price set in WooCommerce is ignored: only the regular price is managed.
+
+## Setting up a product by hand
+
+Edit a WooCommerce product, General tab, **WPLicense It** section:
+
+| Field | Meaning |
+|---|---|
+| WPLicense It product | The plugin or theme this product sells a license for. Empty means not a licensed product. |
+| Sites per license | How many sites one license covers. Empty uses the license product default (1). `0` is unlimited. |
+| License period | Lifetime, 1/3/6 months, 1/2 years. Empty uses the license product's period. |
+
+Variations have their own **Sites per license** and **License period**, so one product can offer
+"1 site", "5 sites" and "Unlimited" plans. The most specific setting wins: variation, then product,
+then the license product's defaults, then 1 site and lifetime. Tick **Virtual** on licensed products so
+WooCommerce does not ask for shipping.
+
+The terms are copied onto the order line when the order is created, so editing a product later never
+changes what earlier customers were sold.
+
+## What happens to an order
+
+A licensed product that is virtual (plan products always are) needs no processing, like a virtual downloadable
+product: when a payment service that takes the money online (Stripe, PayPal) reports the payment, WooCommerce
+completes the order at once and the license is issued with the default **Completed** setting. Bank transfer, check
+and cash on delivery orders wait in **On hold** or **Processing** until you complete them, because the money is not
+in yet. So does an order that also holds something to ship.
+
+| Order event | Result |
+|---|---|
+| Reaches **Completed** (or **Processing** if the `wplit_woo_issue_on` option is `processing`) | One license per unit bought. Keys appear on the order page, in the customer's email, and in My Account. |
+| Completed again, or the event fires twice | Nothing new. Licenses are recorded per order line, so none are issued twice. |
+| Completed (or Processing) again after **Cancelled** or **Refunded** | The licenses this order had ended come back (`active`, or `expired` if their expiry passed meanwhile), and the order note says how many. Units still covered by a refund with quantities keep their licenses refunded. |
+| **Refunded** | The order's licenses become `refunded` and stop validating. A license the order *renewed* is not ended: only the time the renewal added is taken back (see Renewals). |
+| **Cancelled** | The order's licenses are revoked; a renewal is taken back the same way. |
+| Partial refund | As many licenses as units refunded are ended, newest first (on a renewal line the extra licenses first, then the renewal). |
+
+Every action is written to the order as a note. A failure never breaks checkout or the status change:
+it is logged, noted on the order, and changing the status again retries it.
+
+**Accounts.** Buying a license needs an account: when the cart holds a licensed product, checkout creates one (or asks
+the buyer to log in), even if the store allows guest checkout; other carts follow the store's setting. Return false
+from the `wplicense_it_require_account` filter to allow guests.
+
+**What the customer sees.** The processing and completed emails and the order page list each key with its product, the
+sites it covers and the expiry, a line on how to activate it, and a link to My Account, Licenses. While an order still
+waits for its licenses (bank transfer, cash on delivery) they say the key will be emailed once the payment is confirmed.
+If an order had a problem (see below) and **Try again** issues its license later, the customer is emailed the key then.
+
+A license that was revoked by hand is never overwritten by a later refund or cancellation, and is never brought back
+by an order: only licenses whose latest refund or revocation names the order (the license history shows `order:
+WC-123`) are reinstated by it. That covers an order cancelled while unpaid and paid after all, and an order set to
+Refunded by mistake. Setting an order to Refunded by hand makes WooCommerce record a refund of the amount without
+items, so every license comes back; a refund made per item in WooCommerce keeps that many licenses refunded (the
+newest ones, as a partial refund ends them). Completing the order again does not return the money: that is up to you
+and your payment service.
+
+Developers can change the trigger statuses with the `wplicense_it_woo_issue_statuses` filter.
+
+## Renewals
+
+Renewal is by repurchase. In **My Account > Licenses** each expiring license has a **Renew** button.
+It adds the license's plan to the cart marked as a renewal: the WooCommerce product the license was bought with, at
+that plan's current price. If that plan is no longer for sale, a plan of the same product with the same number of sites
+(and period) is used; if there is none, the license has no Renew button, rather than renewing at another plan's price
+while keeping its own sites. Renewal invoices use the same plan, and the cart only accepts a renewal for that plan. When
+that order completes, the existing license is extended instead of a new one being issued:
+
+- from its current expiry, or from today if it had already expired (an expired license becomes active again);
+- only for the license's owner, for the product it belongs to, and with a nonce tied to that license;
+- a renewal that stopped being valid by the time the order completes (for example the license was
+  revoked) falls back to issuing a new license, and says so in the order note;
+- buying a product again from the shop (not through Renew) always issues a new license, so customers can
+  buy a second license on purpose.
+
+**Refunding a renewal.** Refunding or cancelling a renewal order takes back only the time it added (a year renewal takes
+a year off the expiry). The license, its key and sites, and the time paid for by earlier orders stay; if the expiry is
+then in the past, the license is `expired` and can be renewed again. A later renewal paid by another order is kept. The
+order note and the license history ("Renewal taken back") say so. Completing the order again (paid after all) renews it
+again, unless the order still carries a refund of that unit.
+
+Renew buttons are shown for simple products. For variable products the customer renews from the product page.
+Automatic recurring billing is not part of the free core (see `docs/DECISIONS.md`, decision 8).
+
+## My Account
+
+**Licenses** shows each license's key, status, expiry, sites in use, a **Download** button (a link that
+expires after 15 minutes) and a **Deactivate** button per site, so customers can move a license themselves.
+
+## Data
+
+One row per WooCommerce order in `wplit_license_orders` (`source` = `woocommerce`, `order_number` =
+`WC-<number>`). The table has a single product column. It holds the product when the order is for one licensed
+product, and `0` when the order has lines for several, so that no one of them is shown as "the" product. The full list is
+read from the licenses: every license points back to its order, and `OrderProducts` returns the distinct products of an
+order's licenses. A line that got no license (for example a period that could not be used) is not in that list.
+
+## The order screen
+
+An order that has licensed lines, or already has licenses, gets a **WPLicense It licenses** box on its own WooCommerce screen
+(with either order storage). It lists each license with its product line, the full key, status, sites in use of the sites
+allowed, expiry and a **View** link to the license screen. A revoked or refunded license stays in the list with its status, so
+a cancelled order still shows what it had. An order that is licensed but has not issued yet (for example it is still
+processing) says that no license has been issued. Orders for ordinary products get no box, and people who may see orders but
+not manage licenses (for example a shop manager) see neither the box nor the keys.
+
+## Order storage
+
+WooCommerce can keep orders in its own tables (high-performance order storage, the default for new stores) or as posts
+(classic storage, which many existing stores still use). The plugin works with both. It never searches orders by meta
+fields, because classic storage ignores such a search and answers with every order: the renewal invoices it made are found
+by their "created via" value and checked one by one, and the orders that could not get a license are kept in the
+`wplit_problem_orders` option.
+
+## When an order could not get its license
+
+If a paid order reaches the status that issues licenses and a license cannot be made (for example the product's license period
+is not valid), the customer has paid and is waiting. The plugin does not leave that in an order note only:
+
+- the **order's own screen** shows a red notice at the top with what went wrong and a **Try again** button;
+- the **Overview** screen (License Products > Overview) lists the orders in this state, newest first, each with a link, at the
+  top of its problems;
+- the site's **administrator** (the Settings > General email address) gets **one email** when an order first has the problem. Trying
+  again while it is still broken does not send another. The recipient can be changed, or switched off by returning an empty
+  address, with the `wplicense_it_issue_problem_recipient` filter;
+- the order note keeps saying what happened, as before.
+
+Fix the cause, then press **Try again** (or change the order status to Completed again, which does the same). The license is
+issued, the order's problem and the Overview entry go away, and a notice says so. Trying again is safe: an order that already has
+its license is not given a second one. Only people who may manage licenses can use the button.
+
+A refund or cancellation is never a problem of this kind, and neither is a renewal that fell back to a new license (that stays an
+order note).

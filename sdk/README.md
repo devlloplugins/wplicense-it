@@ -1,0 +1,155 @@
+# WPLicense It client SDK
+
+Add license activation and automatic updates to your own WordPress plugin or theme, backed by your WPLicense It server.
+
+You get, with a few lines of code:
+
+- a license page where customers enter, activate and deactivate their key;
+- updates in the normal WordPress **Updates** screen, with the "View details" popup, delivered only to customers with an active license;
+- a daily license check, and a notice on the Plugins screen when the license is not active;
+- nothing else: no tracking, no ads, no extra settings.
+
+Requires PHP 7.4+ and WordPress 5.8+ on the customer's site. Your server (the site running WPLicense It 2.0) needs HTTPS.
+
+## Quickest start: the example plugin
+
+On your WPLicense It site, open the product, go to the **Connect** tab and click **Download an example plugin**. You get a
+small working plugin made for that product: this SDK in `vendor/wplicense-it-client`, the registration code with your
+server and product already filled in, a feature that is only on while the license is active, and a readme with a changelog.
+
+1. Install it on a test site (Plugins > Add New > Upload) and activate it. A notice says the licensed feature is off.
+2. Issue yourself a license (**License Products > Add license**), follow the notice to the license page and enter the key.
+   The notice now says the feature is on, and the license shows on your server with the test site.
+3. To see updates: raise `Version` in the plugin header and the `Stable tag` in its readme, zip the folder, and upload it
+   as a new release of the product. The test site offers the update under Dashboard > Updates.
+4. Copy what you need into your own plugin: the `require_once` and `wplicense_it_client()` call, and
+   `wplicense_it_license_active()` wherever a feature depends on the license.
+
+The example's folder is your plugin's folder name (from the release you uploaded, or made from the product name), so
+updates of your real plugin find it.
+
+## Install
+
+1. Copy this `sdk` folder into your plugin or theme (for example `my-plugin/vendor/wplicense-it-client/`).
+2. In your main plugin file (or the theme's `functions.php`), include it and register your product:
+
+```php
+require_once __DIR__ . '/vendor/wplicense-it-client/wplicense-it-client.php';
+
+wplicense_it_client( array(
+	'file'       => __FILE__,                  // The main plugin file.
+	'server'     => 'https://your-shop.com',   // Your WPLicense It site.
+	'product_id' => 7,                         // The product's ID (Products > edit > the number in the URL).
+	'name'       => 'My Plugin',
+	'version'    => '1.2.0',                   // The version being installed. Keep it in sync with your plugin header.
+) );
+```
+
+Themes use `'type' => 'theme'` and `'slug' => 'my-theme'` (the theme folder name) instead of `'file'`. A theme's "View version x
+details" link (Themes and Updates screens) opens a page served by the SDK on the customer's own site, with the name,
+version, requirements, what is new and the description from your server; only people who may switch or update themes
+can open it.
+
+That is all. Customers now find **Settings > My Plugin License**.
+
+## Options
+
+| Option | Meaning |
+|---|---|
+| `file` | Main plugin file (`__FILE__`). Plugins only. |
+| `type`, `slug` | Themes: `'type' => 'theme'` and the theme's folder name. |
+| `server` | Your shop's URL. HTTPS only (plain HTTP is accepted for `localhost`, `*.test`, `*.local` while developing). |
+| `product_id` | The product's ID on your server. |
+| `name` | Name shown to customers. |
+| `version` | Installed version. |
+| `menu` | `false` for no license page (build your own, see below), or `array( 'parent' => 'tools.php', 'title' => 'License' )`. Default: a page under Settings. |
+| `expired` | What an expired license means for your features. `'keep'` (default): they keep working and only updates stop. `'stop'`: `wplicense_it_license_active()` is false once the license expires. |
+
+## Checking the license in your code
+
+```php
+if ( wplicense_it_license_active( 'my-plugin' ) ) {
+	// Pro features.
+}
+```
+
+The argument is your plugin's folder name (or the theme's folder name). The result is what the site last learned from your server.
+
+An expired license still counts here by default: the plugin keeps working and only updates stop, which is what most
+WordPress customers expect. Register with `'expired' => 'stop'` to switch your features off when the license expires
+(at its date, without waiting for the daily check). Revoked, refunded and deactivated licenses, and a site the license
+was not activated for, always count as not active.
+
+To tell the cases apart, for example to show your own "renew" notice:
+
+```php
+switch ( wplicense_it_license_status( 'my-plugin' ) ) {
+	case 'active':   // Features and updates.
+	case 'expired':  // Past its date: no updates (features as the 'expired' option says).
+	case 'inactive': // No key, revoked, refunded, deactivated or activated for another address.
+}
+```
+
+## Your own settings screen
+
+If you do not want a separate page, pass `'menu' => false` and print the form inside your own settings page:
+
+```php
+$client = \WPLicenseIt\Client\Client::get( 'my-plugin' );
+$client->render_license_form();
+```
+
+`$client->activate( $key )`, `->deactivate()`, `->license()`, `->is_active()` (what `wplicense_it_license_active()` answers) and `->status()` are available for fully custom screens.
+
+## Cleaning up
+
+When a customer deletes your plugin, the SDK removes what it stored on their site: the license, the cached update data and
+the daily license check (on every site of a network).
+
+- **Your plugin has no `uninstall.php`:** nothing to do. The SDK registers WordPress's uninstall hook for your plugin.
+- **Your plugin has its own `uninstall.php`:** WordPress then runs only that file, so add one call to it:
+
+```php
+require_once __DIR__ . '/vendor/wplicense-it-client/wplicense-it-client.php';
+wplicense_it_client_forget( 'my-plugin' ); // Your plugin's folder name, or the 'slug' you passed.
+```
+
+- **Themes:** WordPress has no uninstall step for themes, so nothing runs when a theme is deleted. What stays behind is one
+  small option (`wplit_client_<slug>`), a cache entry that expires by itself, and a scheduled daily check that does nothing
+  once the theme is gone. A theme can call `wplicense_it_client_forget( 'my-theme' )` itself, for example from a
+  "remove my data" button.
+
+Deleting the plugin also frees the site's slot on your server: one short request (3 seconds at most) to the server the
+license was activated with. If your server cannot be reached at that moment nothing breaks, and the customer frees the site
+from their account, or you do.
+
+## Rules the SDK follows
+
+- **It never downgrades a customer because of a network problem.** A license only becomes inactive when your server says so (expired, revoked, refunded, unknown key, or the site was deactivated). If your server is down or slow, nothing changes.
+- **Renewing just works.** An expired license keeps its key. When the customer renews, the next daily check (or **Check now**) makes it active again.
+- **Download links never expire on the customer.** Update data only holds a placeholder. The real, 15-minute download link is requested when the customer clicks Update.
+- **The update replaces the installed copy.** If your zip unpacks to a differently named folder, the SDK renames it to your plugin's folder name.
+- **A moved or copied site is told at once.** The SDK remembers the address the license was activated for. On another
+  address (a moved domain, or a database copied to a staging or new site) the license is not active there, and the license
+  page and an admin notice say so, with **Activate here** (which uses one of the customer's sites). Nothing moves on its own,
+  so copying a site cannot multiply a license.
+- **A silent server is reported, not punished.** After 7 days without an answer from your server the license keeps working,
+  but the license page and a dismissible admin notice say updates may be missing, with **Check now**.
+- **An expired license still sees new versions.** The Plugins screen (or the theme's details page) says "Your license has
+  expired. Renew it to get version x", with a Renew link to the customer's account. The update cannot be installed until the
+  license is renewed, and automatic updates are paused for it meanwhile (the customer's own setting is kept).
+- **Automatic updates work.** WordPress's Enable auto-updates switch is there for your plugin or theme, and the background
+  update gets a fresh download link like the Update button. A release that needs a newer PHP (`Requires PHP` in your
+  readme or plugin header) is not offered to sites on an older PHP.
+- **A full license says where it is used.** When activation fails because every site is taken, the message lists the
+  sites that use it and the link to free one in the customer's account.
+- **Several plugins can include the SDK.** Only the newest copy on the site is loaded (by the version at the end of
+  `wplicense-it-client.php`; this is 1.1.0).
+
+## What is sent to your server
+
+Only: the license key, the product ID, the site's address (`home_url()`) and the installed version. Nothing about the WordPress site, its users or its content. If you publish a privacy policy, mention that the plugin contacts your license server to activate the license and check for updates.
+
+## Packaging your updates
+
+Upload the zip for each release on the product's edit screen in WPLicense It, and set its version. The zip should unpack to a folder named like your plugin (`my-plugin/`), with the plugin header's version matching.
