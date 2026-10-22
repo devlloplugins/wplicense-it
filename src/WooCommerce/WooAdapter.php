@@ -215,6 +215,10 @@ final class WooAdapter {
 			/* translators: %d: number of licenses. */
 			$parts[] = sprintf( _n( 'renewed %d license', 'renewed %d licenses', $report->renewed, 'wplicense-it' ), $report->renewed );
 		}
+		if ( $report->reinstated > 0 ) {
+			/* translators: %d: number of licenses. */
+			$parts[] = sprintf( _n( 'brought back %d license', 'brought back %d licenses', $report->reinstated, 'wplicense-it' ), $report->reinstated );
+		}
 		if ( $report->revoked > 0 ) {
 			/* translators: %d: number of licenses. */
 			$parts[] = sprintf( _n( 'ended %d license', 'ended %d licenses', $report->revoked, 'wplicense-it' ), $report->revoked );

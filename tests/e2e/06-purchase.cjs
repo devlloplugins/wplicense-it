@@ -3,11 +3,13 @@
  * customer (order notes, email, My Account), refunds and cancellations end licenses, and a renewal extends one.
  */
 const fixtures = require( './fixtures.cjs' );
-const { BASE, check, createProduct, finish, login, logSize, meta, shot, sql, start, woo } = require( './lib.cjs' );
+const { BASE, ROOT, check, createProduct, finish, login, logSize, meta, shot, sql, start, woo } = require( './lib.cjs' );
 
 async function save( page ) {
 	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#publish' ) ] );
 }
+
+const php = ( code ) => require( 'child_process' ).execFileSync( 'php', [ '-r', 'define( "WP_ADMIN", true ); require "' + require( 'path' ).join( ROOT, 'wordpress/wp-load.php' ) + '"; ' + code ], { encoding: 'utf8' } ).trim();
 
 function licenses( orderId ) {
 	const rows = sql( "SELECT l.id, l.license_key, l.status, l.activation_limit, IFNULL(l.expires_at,''), l.email, IFNULL(l.user_id,''), l.product_id FROM wp_wplit_licenses l JOIN wp_wplit_license_orders o ON o.id=l.order_id WHERE o.order_number='WC-" + orderId + "' ORDER BY l.id" );
@@ -137,6 +139,37 @@ function licenses( orderId ) {
 	const mixedPaid = woo( { op: 'pay_order', order_id: mixed.order_id } );
 	check( 'processing' === mixedPaid.status && 0 === licenses( mixed.order_id ).length, 'with a physical item too, the paid order waits in Processing: ' + mixedPaid.status );
 	woo( { op: 'trash_product', product_id: mug.product_id } );
+
+	// Card 74: an order that is completed again gets back the licenses it had ended.
+	const statuses = ( id ) => licenses( id ).map( ( l ) => l.status ).join( ',' );
+	const again = woo( { op: 'create_order', product_id: wooId, qty: 2, email: 'again' + Date.now() + '@example.com', user_id: 0, status: 'completed' } );
+	woo( { op: 'set_order_status', order_id: again.order_id, status: 'cancelled' } );
+	check( 'revoked,revoked' === statuses( again.order_id ), 'a cancelled order revokes its licenses: ' + statuses( again.order_id ) );
+	woo( { op: 'set_order_status', order_id: again.order_id, status: 'completed' } );
+	check( 'active,active' === statuses( again.order_id ) && 2 === licenses( again.order_id ).length, 'completed again, the same two licenses are active again and none is added: ' + statuses( again.order_id ) );
+	check( woo( { op: 'order_notes', order_id: again.order_id } ).notes.some( ( n ) => /brought back 2 licenses/.test( n ) ), 'the order note says so' );
+	const history = sql( "SELECT GROUP_CONCAT(CONCAT(e.type, ':', JSON_UNQUOTE(JSON_EXTRACT(e.data, '$.order'))) ORDER BY e.id) FROM wp_wplit_license_events e WHERE e.license_id=" + licenses( again.order_id )[ 0 ].id );
+	check( history.endsWith( 'revoked:WC-' + again.order_id + ',reinstated:WC-' + again.order_id ), 'the license history names the order that ended it and brought it back: ' + history );
+
+	// Set to Refunded by hand (WooCommerce records an amount, no items): completing again brings both back.
+	woo( { op: 'set_order_status', order_id: again.order_id, status: 'refunded' } );
+	check( 'refunded,refunded' === statuses( again.order_id ), 'set to refunded, both licenses are refunded' );
+	woo( { op: 'set_order_status', order_id: again.order_id, status: 'completed' } );
+	check( 'active,active' === statuses( again.order_id ), 'completed again, both are back: ' + statuses( again.order_id ) );
+
+	// One unit refunded with its quantity: that license stays refunded when the order is completed again.
+	const units = woo( { op: 'create_order', product_id: wooId, qty: 2, email: 'units' + Date.now() + '@example.com', user_id: 0, status: 'completed' } );
+	woo( { op: 'refund', order_id: units.order_id, qty: 1, amount: 60 } );
+	woo( { op: 'set_order_status', order_id: units.order_id, status: 'refunded' } );
+	woo( { op: 'set_order_status', order_id: units.order_id, status: 'completed' } );
+	check( 'active,refunded' === statuses( units.order_id ), 'a unit refunded with its quantity keeps its license refunded: ' + statuses( units.order_id ) );
+
+	// A license the seller revoked by hand stays revoked.
+	const kept = woo( { op: 'create_order', product_id: wooId, qty: 1, email: 'kept' + Date.now() + '@example.com', user_id: 0, status: 'completed' } );
+	php( 'Devllo\\WPLicenseIt\\Plugin::instance()->licenses()->revoke_license( ' + licenses( kept.order_id )[ 0 ].id + ' );' );
+	woo( { op: 'set_order_status', order_id: kept.order_id, status: 'cancelled' } );
+	woo( { op: 'set_order_status', order_id: kept.order_id, status: 'completed' } );
+	check( 'revoked' === statuses( kept.order_id ), 'a license revoked by hand is not brought back: ' + statuses( kept.order_id ) );
 
 	// A product that is not linked to a license product issues nothing.
 	const plainId = woo( { op: 'create_order', product_id: wooId, qty: 1, email, status: 'pending' } );

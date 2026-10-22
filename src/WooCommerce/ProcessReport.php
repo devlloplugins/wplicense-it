@@ -36,6 +36,13 @@ final class ProcessReport {
 	public int $revoked = 0;
 
 	/**
+	 * Licenses this order had ended and brought back.
+	 *
+	 * @var int
+	 */
+	public int $reinstated = 0;
+
+	/**
 	 * Problems and notable decisions, as order note lines.
 	 *
 	 * @var string[]
@@ -63,6 +70,6 @@ final class ProcessReport {
 	 * Whether anything changed.
 	 */
 	public function changed(): bool {
-		return $this->issued + $this->renewed + $this->revoked > 0 || array() !== $this->notes;
+		return $this->issued + $this->renewed + $this->revoked + $this->reinstated > 0 || array() !== $this->notes;
 	}
 }

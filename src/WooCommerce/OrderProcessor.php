@@ -11,6 +11,7 @@ namespace Devllo\WPLicenseIt\WooCommerce;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Devllo\WPLicenseIt\Licenses\EventLog;
 use Devllo\WPLicenseIt\Licenses\License;
 use Devllo\WPLicenseIt\Licenses\LicenseException;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
@@ -62,6 +63,8 @@ final class OrderProcessor {
 	public function issue( OrderData $order ): ProcessReport {
 		$report   = new ProcessReport();
 		$order_id = null;
+
+		$this->reinstate( $order, $report );
 
 		foreach ( $order->items as $item ) {
 			if ( $item->wplit_product_id <= 0 ) {
@@ -158,7 +161,7 @@ final class OrderProcessor {
 
 		foreach ( $order->items as $item ) {
 			foreach ( $item->license_ids as $license_id ) {
-				$report->revoked += $this->end_license( $license_id, $status, $report );
+				$report->revoked += $this->end_license( $license_id, $status, $report, self::context( $order ) );
 			}
 		}
 
@@ -201,7 +204,7 @@ final class OrderProcessor {
 			$to_end = min( $item->refunded_quantity - $already_ended, count( $still_open ) );
 
 			for ( $i = 0; $i < $to_end; $i++ ) {
-				$report->revoked += $this->end_license( $still_open[ $i ], Status::REFUNDED, $report );
+				$report->revoked += $this->end_license( $still_open[ $i ], Status::REFUNDED, $report, self::context( $order ) );
 			}
 		}//end foreach
 
@@ -209,14 +212,87 @@ final class OrderProcessor {
 	}
 
 	/**
+	 * Brings back the licenses this order ended, when it is completed (or processing) again: an order cancelled while
+	 * unpaid and paid after all, or set to refunded by mistake. Only licenses whose latest refund or revocation names
+	 * this order come back, so one an administrator revoked stays revoked. Units the order's refunds still cover stay
+	 * refunded (newest licenses first, as a partial refund ends them). A license past its expiry comes back expired.
+	 *
+	 * @param OrderData     $order  Order.
+	 * @param ProcessReport $report Report.
+	 */
+	private function reinstate( OrderData $order, ProcessReport $report ): void {
+		$reference = self::context( $order )['order'];
+		$restored  = 0;
+
+		foreach ( $order->items as $item ) {
+			$ended = array();
+
+			foreach ( $item->license_ids as $license_id ) {
+				$license = $this->licenses->find( $license_id );
+				if ( null === $license || ! in_array( $license->status, Status::terminal(), true ) ) {
+					continue;
+				}
+
+				$event = $this->licenses->last_event( $license_id, Status::REFUNDED === $license->status ? EventLog::REFUNDED : EventLog::REVOKED );
+				if ( null !== $event && ( $event['data']['order'] ?? null ) === $reference ) {
+					$ended[] = $license_id;
+				}
+			}
+
+			// The newest licenses are the ones a refund of some units ended; they stay ended while those units are refunded.
+			$keep = min( count( $ended ), max( 0, $item->refunded_quantity ) );
+			$back = array_slice( $ended, 0, count( $ended ) - $keep );
+
+			foreach ( $back as $license_id ) {
+				try {
+					$this->licenses->reinstate_license( $license_id, self::context( $order ) );
+					++$report->reinstated;
+					++$restored;
+				} catch ( LicenseException $e ) {
+					$report->notes[] = sprintf(
+						/* translators: 1: license ID, 2: what went wrong. */
+						__( 'License %1$d: %2$s', 'wplicense-it' ),
+						$license_id,
+						$e->getMessage()
+					);
+				}
+			}
+
+			if ( $keep > 0 ) {
+				$report->notes[] = sprintf(
+					/* translators: 1: order line name, 2: number of licenses. */
+					_n( '%1$s: %2$d license stays refunded, because its unit is still refunded.', '%1$s: %2$d licenses stay refunded, because their units are still refunded.', $keep, 'wplicense-it' ),
+					$item->name,
+					$keep
+				);
+			}
+		}//end foreach
+
+		if ( $restored > 0 ) {
+			$this->orders->set_status( $order->id, 'completed' );
+		}
+	}
+
+	/**
+	 * What a license's history records about the order that changed it.
+	 *
+	 * @param OrderData $order Order.
+	 * @return array{order:string}
+	 */
+	private static function context( OrderData $order ): array {
+		return array( 'order' => 'WC-' . $order->number );
+	}
+
+	/**
 	 * Revokes one license.
 	 *
-	 * @param int           $license_id License ID.
-	 * @param string        $status     Terminal status.
-	 * @param ProcessReport $report     Report to add problems to.
+	 * @param int                  $license_id License ID.
+	 * @param string               $status     Terminal status.
+	 * @param ProcessReport        $report     Report to add problems to.
+	 * @param array<string, mixed> $context    Recorded in the license's history: the order that ended it.
 	 * @return int 1 if the license was ended now, 0 otherwise.
 	 */
-	private function end_license( int $license_id, string $status, ProcessReport $report ): int {
+	private function end_license( int $license_id, string $status, ProcessReport $report, array $context ): int {
 		$license = $this->licenses->find( $license_id );
 
 		if ( null === $license || $license->status === $status ) {
@@ -229,7 +305,7 @@ final class OrderProcessor {
 		}
 
 		try {
-			$this->licenses->revoke_license( $license_id, $status );
+			$this->licenses->revoke_license( $license_id, $status, $context );
 
 			return 1;
 		} catch ( LicenseException $e ) {

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T18:40:25+00:00\n"
+"POT-Creation-Date: 2026-10-22T12:00:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -382,9 +382,9 @@ msgstr ""
 
 #: src/Admin/LicenseActions.php:138
 #: src/Licenses/LicenseService.php:252
-#: src/Licenses/LicenseService.php:297
-#: src/Licenses/LicenseService.php:328
-#: src/Licenses/LicenseService.php:359
+#: src/Licenses/LicenseService.php:298
+#: src/Licenses/LicenseService.php:330
+#: src/Licenses/LicenseService.php:361
 msgid "License not found."
 msgstr ""
 
@@ -719,6 +719,10 @@ msgstr ""
 
 #: src/Admin/LicenseView.php:222
 msgid "Renewal invoice sent"
+msgstr ""
+
+#: src/Admin/LicenseView.php:223
+msgid "Imported"
 msgstr ""
 
 #: src/Admin/Notices.php:25
@@ -1815,14 +1819,14 @@ msgstr ""
 
 #: src/Licenses/LicenseService.php:88
 #: src/Licenses/LicenseService.php:165
-#: src/Licenses/LicenseService.php:388
+#: src/Licenses/LicenseService.php:390
 msgid "A valid email is required."
 msgstr ""
 
 #. translators: %d: the highest activation limit.
 #: src/Licenses/LicenseService.php:95
 #: src/Licenses/LicenseService.php:178
-#: src/Licenses/LicenseService.php:372
+#: src/Licenses/LicenseService.php:374
 #, php-format
 msgid "The activation limit must be between 0 and %d."
 msgstr ""
@@ -1845,15 +1849,15 @@ msgstr ""
 msgid "A revoked or refunded license cannot be renewed."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:291
+#: src/Licenses/LicenseService.php:292
 msgid "Status must be revoked or refunded."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:332
+#: src/Licenses/LicenseService.php:334
 msgid "Only a revoked or refunded license can be reinstated."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:746
+#: src/Licenses/LicenseService.php:759
 msgid "Could not generate a unique license key."
 msgstr ""
 
@@ -2232,45 +2236,45 @@ msgstr ""
 msgid "The upload failed (error %d)."
 msgstr ""
 
-#: src/Products/WpFileStore.php:41
+#: src/Products/WpFileStore.php:50
 msgid "The file name is not valid. Use a name that ends in .zip."
 msgstr ""
 
-#: src/Products/WpFileStore.php:55
+#: src/Products/WpFileStore.php:64
 msgid "The folder for this release could not be created. Check the permissions of the uploads folder."
 msgstr ""
 
-#: src/Products/WpFileStore.php:62
+#: src/Products/WpFileStore.php:73
 msgid "The file could not be moved into the releases folder. Check the permissions of the uploads folder."
 msgstr ""
 
-#: src/Products/WpFileStore.php:86
+#: src/Products/WpFileStore.php:97
 msgid "That file is not a release zip in the releases folder, so it was not deleted."
 msgstr ""
 
-#: src/Products/WpFileStore.php:90
+#: src/Products/WpFileStore.php:101
 msgid "The file could not be deleted. Check the permissions of the uploads folder."
 msgstr ""
 
-#: src/Products/WpFileStore.php:129
+#: src/Products/WpFileStore.php:140
 msgid "The product folder could not be removed."
 msgstr ""
 
-#: src/Products/WpFileStore.php:140
+#: src/Products/WpFileStore.php:151
 msgid "The product folder is not inside the releases folder, so it was not deleted."
 msgstr ""
 
 #. translators: %s: file path.
-#: src/Products/WpFileStore.php:162
+#: src/Products/WpFileStore.php:173
 #, php-format
 msgid "A file could not be deleted: %s"
 msgstr ""
 
-#: src/Products/WpFileStore.php:170
+#: src/Products/WpFileStore.php:181
 msgid "A folder could not be removed."
 msgstr ""
 
-#: src/Products/WpFileStore.php:208
+#: src/Products/WpFileStore.php:219
 msgid "The image could not be stored."
 msgstr ""
 
@@ -2726,49 +2730,58 @@ msgid "%1$d of %2$d"
 msgstr ""
 
 #. translators: 1: order line name, 2: what is wrong.
-#: src/WooCommerce/OrderProcessor.php:82
+#: src/WooCommerce/OrderProcessor.php:85
 #, php-format
 msgid "%1$s: %2$s No license was issued."
 msgstr ""
 
 #. translators: 1: order line name, 2: license key.
-#: src/WooCommerce/OrderProcessor.php:105
+#: src/WooCommerce/OrderProcessor.php:108
 #, php-format
 msgid "%1$s: renewed license %2$s."
 msgstr ""
 
 #. translators: 1: order line name, 2: license key, 3: new expiry date.
-#: src/WooCommerce/OrderProcessor.php:111
+#: src/WooCommerce/OrderProcessor.php:114
 #, php-format
 msgid "%1$s: renewed license %2$s until %3$s."
 msgstr ""
 
 #. translators: 1: order line name, 2: license ID, 3: why.
-#: src/WooCommerce/OrderProcessor.php:119
+#: src/WooCommerce/OrderProcessor.php:122
 #, php-format
 msgid "%1$s: could not renew license %2$d (%3$s). A new license is issued instead."
 msgstr ""
 
 #. translators: 1: order line name, 2: why.
-#: src/WooCommerce/OrderProcessor.php:137
+#: src/WooCommerce/OrderProcessor.php:140
 #, php-format
 msgid "%1$s: could not issue a license (%2$s)."
 msgstr ""
 
 #. translators: 1: license ID, 2: what went wrong.
-#: src/WooCommerce/OrderProcessor.php:238
+#: src/WooCommerce/OrderProcessor.php:254
+#: src/WooCommerce/OrderProcessor.php:314
 #, php-format
 msgid "License %1$d: %2$s"
 msgstr ""
 
+#. translators: 1: order line name, 2: number of licenses.
+#: src/WooCommerce/OrderProcessor.php:264
+#, php-format
+msgid "%1$s: %2$d license stays refunded, because its unit is still refunded."
+msgid_plural "%1$s: %2$d licenses stay refunded, because their units are still refunded."
+msgstr[0] ""
+msgstr[1] ""
+
 #. translators: %s: order line name.
-#: src/WooCommerce/OrderProcessor.php:272
+#: src/WooCommerce/OrderProcessor.php:348
 #, php-format
 msgid "%s: the license chosen for renewal does not belong to this customer or product. A new license is issued instead."
 msgstr ""
 
 #. translators: 1: order line name, 2: license key.
-#: src/WooCommerce/OrderProcessor.php:282
+#: src/WooCommerce/OrderProcessor.php:358
 #, php-format
 msgid "%1$s: license %2$s was revoked or refunded and cannot be renewed. A new license is issued instead."
 msgstr ""
@@ -2834,6 +2847,14 @@ msgstr[1] ""
 
 #. translators: %d: number of licenses.
 #: src/WooCommerce/WooAdapter.php:220
+#, php-format
+msgid "brought back %d license"
+msgid_plural "brought back %d licenses"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of licenses.
+#: src/WooCommerce/WooAdapter.php:224
 #, php-format
 msgid "ended %d license"
 msgid_plural "ended %d licenses"

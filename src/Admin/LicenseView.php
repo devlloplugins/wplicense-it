@@ -220,6 +220,7 @@ final class LicenseView {
 			EventLog::UPDATED     => __( 'Edited', 'wplicense-it' ),
 			EventLog::REMINDER    => __( 'Expiry reminder emailed', 'wplicense-it' ),
 			EventLog::INVOICED    => __( 'Renewal invoice sent', 'wplicense-it' ),
+			EventLog::IMPORTED    => __( 'Imported', 'wplicense-it' ),
 		);
 
 		return $labels[ $type ] ?? $type;

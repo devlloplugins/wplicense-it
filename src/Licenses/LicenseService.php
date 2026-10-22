@@ -282,11 +282,12 @@ final class LicenseService {
 	/**
 	 * Ends a license permanently.
 	 *
-	 * @param int    $license_id License ID.
-	 * @param string $status     Status::REVOKED or Status::REFUNDED.
+	 * @param int                  $license_id License ID.
+	 * @param string               $status     Status::REVOKED or Status::REFUNDED.
+	 * @param array<string, mixed> $context    Recorded in the history with it, such as the order that ended it.
 	 * @throws LicenseException If the status is not a terminal one or the license does not exist.
 	 */
-	public function revoke_license( int $license_id, string $status = Status::REVOKED ): License {
+	public function revoke_license( int $license_id, string $status = Status::REVOKED, array $context = array() ): License {
 		if ( ! in_array( $status, Status::terminal(), true ) ) {
 			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'Status must be revoked or refunded.', 'wplicense-it' ) );
 		}
@@ -307,7 +308,7 @@ final class LicenseService {
 		$this->events->record(
 			$revoked->id,
 			Status::REFUNDED === $status ? EventLog::REFUNDED : EventLog::REVOKED,
-			array( 'previous_status' => $license->status )
+			array_merge( array( 'previous_status' => $license->status ), $context )
 		);
 
 		return $revoked;
@@ -318,10 +319,11 @@ final class LicenseService {
 	 *
 	 * The expiry is not changed. If it has passed, the license is valid again only after a renewal.
 	 *
-	 * @param int $license_id License ID.
+	 * @param int                  $license_id License ID.
+	 * @param array<string, mixed> $context    Recorded in the history with it, such as the order that brought it back.
 	 * @throws LicenseException If the license does not exist or was not revoked or refunded.
 	 */
-	public function reinstate_license( int $license_id ): License {
+	public function reinstate_license( int $license_id, array $context = array() ): License {
 		$license = $this->licenses->find( $license_id );
 
 		if ( null === $license ) {
@@ -336,7 +338,7 @@ final class LicenseService {
 		$reinstated = $license->with_status( $license->is_past_expiry( $now ) ? Status::EXPIRED : Status::ACTIVE, $now );
 		$this->licenses->update( $reinstated );
 
-		$this->events->record( $reinstated->id, EventLog::REINSTATED, array( 'previous_status' => $license->status ) );
+		$this->events->record( $reinstated->id, EventLog::REINSTATED, array_merge( array( 'previous_status' => $license->status ), $context ) );
 
 		return $reinstated;
 	}
@@ -424,6 +426,17 @@ final class LicenseService {
 	 */
 	public function events( License $license, int $limit = 50 ): array {
 		return $this->events->for_license( $license->id, $limit );
+	}
+
+	/**
+	 * The newest event of one type for a license, or null.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $type       Event type (EventLog constants).
+	 * @return array{type:string,data:array<string,mixed>,created_at:DateTimeImmutable}|null
+	 */
+	public function last_event( int $license_id, string $type ): ?array {
+		return $this->events->of_type( $license_id, $type, 1 )[0] ?? null;
 	}
 
 	/**

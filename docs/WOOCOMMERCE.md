@@ -62,7 +62,8 @@ in yet. So does an order that also holds something to ship.
 | Order event | Result |
 |---|---|
 | Reaches **Completed** (or **Processing** if the `wplit_woo_issue_on` option is `processing`) | One license per unit bought. Keys appear on the order page, in the customer's email, and in My Account. |
-| Completed again, or the event fires twice | Nothing. Licenses are recorded per order line, so none are issued twice. |
+| Completed again, or the event fires twice | Nothing new. Licenses are recorded per order line, so none are issued twice. |
+| Completed (or Processing) again after **Cancelled** or **Refunded** | The licenses this order had ended come back (`active`, or `expired` if their expiry passed meanwhile), and the order note says how many. Units still covered by a refund with quantities keep their licenses refunded. |
 | **Refunded** | The order's licenses become `refunded` and stop validating. |
 | **Cancelled** | The order's licenses are revoked. |
 | Partial refund | As many licenses as units refunded are ended, newest first. |
@@ -70,8 +71,13 @@ in yet. So does an order that also holds something to ship.
 Every action is written to the order as a note. A failure never breaks checkout or the status change:
 it is logged, noted on the order, and changing the status again retries it.
 
-A license that was revoked by hand is never overwritten by a later refund or cancellation. Moving a
-refunded order back to Completed does not bring the licenses back: issue a new one by creating a new order.
+A license that was revoked by hand is never overwritten by a later refund or cancellation, and is never brought back
+by an order: only licenses whose latest refund or revocation names the order (the license history shows `order:
+WC-123`) are reinstated by it. That covers an order cancelled while unpaid and paid after all, and an order set to
+Refunded by mistake. Setting an order to Refunded by hand makes WooCommerce record a refund of the amount without
+items, so every license comes back; a refund made per item in WooCommerce keeps that many licenses refunded (the
+newest ones, as a partial refund ends them). Completing the order again does not return the money: that is up to you
+and your payment service.
 
 Developers can change the trigger statuses with the `wplicense_it_woo_issue_statuses` filter.
 

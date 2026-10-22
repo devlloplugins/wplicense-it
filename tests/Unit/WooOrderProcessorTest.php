@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace Devllo\WPLicenseIt\Tests\Unit;
 
 use DateInterval;
+use Devllo\WPLicenseIt\Licenses\EventLog;
 use Devllo\WPLicenseIt\Licenses\KeyGenerator;
 use Devllo\WPLicenseIt\Licenses\LicenseService;
 use Devllo\WPLicenseIt\Licenses\Status;
@@ -426,6 +427,87 @@ final class WooOrderProcessorTest extends TestCase {
 		);
 
 		$this->assertSame( 2, $report->revoked );
+	}
+
+	// Completed again (card 74).
+
+	public function test_a_cancelled_order_that_is_completed_again_brings_its_licenses_back(): void {
+		$this->processor->issue( $this->order( array( 10 => array( 'quantity' => 2 ) ) ) );
+		$this->processor->revoke( $this->order( array( 10 => array( 'quantity' => 2 ) ) ), Status::REVOKED );
+
+		$report = $this->processor->issue( $this->order( array( 10 => array( 'quantity' => 2 ) ) ) );
+
+		$this->assertSame( 2, $report->reinstated );
+		$this->assertSame( 0, $report->issued, 'the same licenses come back; no new ones are issued' );
+		$this->assertCount( 2, $this->store->links[10] );
+		foreach ( $this->store->links[10] as $id ) {
+			$this->assertSame( Status::ACTIVE, $this->service->find( $id )->status );
+			$this->assertSame( 'WC-100', $this->service->last_event( $id, EventLog::REINSTATED )['data']['order'] );
+		}
+		$this->assertSame( 'WC-100', $this->service->last_event( $this->store->links[10][0], EventLog::REVOKED )['data']['order'], 'the revocation names the order too' );
+		$this->assertSame( 'completed', $this->orders->records[100]['status'] );
+
+		$again = $this->processor->issue( $this->order( array( 10 => array( 'quantity' => 2 ) ) ) );
+		$this->assertSame( 0, $again->reinstated + $again->issued, 'completing it once more changes nothing' );
+	}
+
+	public function test_a_refunded_order_completed_again_keeps_the_units_its_refunds_still_cover(): void {
+		$lines                            = fn( int $refunded ): array => array(
+			10 => array(
+				'quantity' => 3,
+				'refunded' => $refunded,
+			),
+		);
+		$this->processor->issue( $this->order( $lines( 0 ) ) );
+		list( $oldest, $middle, $newest ) = $this->store->links[10];
+		$this->processor->revoke_refunded_units( $this->order( $lines( 1 ) ) ); // One unit refunded, with its quantity.
+		$this->processor->revoke( $this->order( $lines( 1 ) ), Status::REFUNDED ); // Then the order set to Refunded (an amount only).
+
+		$report = $this->processor->issue( $this->order( $lines( 1 ) ) );
+
+		$this->assertSame( 2, $report->reinstated );
+		$this->assertSame( Status::ACTIVE, $this->service->find( $oldest )->status );
+		$this->assertSame( Status::ACTIVE, $this->service->find( $middle )->status );
+		$this->assertSame( Status::REFUNDED, $this->service->find( $newest )->status, 'the unit still refunded keeps its license ended' );
+		$this->assertStringContainsString( '1 license stays refunded', implode( ' ', $report->notes ) );
+	}
+
+	public function test_a_license_an_administrator_revoked_is_not_brought_back(): void {
+		$this->processor->issue( $this->order( array( 10 => array( 'quantity' => 2 ) ) ) );
+		list( $first, $second ) = $this->store->links[10];
+		$this->service->revoke_license( $first ); // By hand, for abuse.
+		$this->processor->revoke( $this->order( array( 10 => array( 'quantity' => 2 ) ) ), Status::REVOKED );
+
+		$report = $this->processor->issue( $this->order( array( 10 => array( 'quantity' => 2 ) ) ) );
+
+		$this->assertSame( 1, $report->reinstated );
+		$this->assertSame( Status::REVOKED, $this->service->find( $first )->status );
+		$this->assertSame( Status::ACTIVE, $this->service->find( $second )->status );
+	}
+
+	public function test_a_license_ended_by_another_order_or_revoked_by_hand_later_stays_ended(): void {
+		$this->processor->issue( $this->order() );
+		$id = $this->store->links[10][0];
+		$this->processor->revoke( $this->order(), Status::REVOKED );
+		$this->service->reinstate_license( $id );
+		$this->service->revoke_license( $id ); // The administrator's own revocation is now the latest.
+
+		$report = $this->processor->issue( $this->order() );
+
+		$this->assertSame( 0, $report->reinstated );
+		$this->assertSame( Status::REVOKED, $this->service->find( $id )->status );
+	}
+
+	public function test_a_license_past_its_expiry_comes_back_expired(): void {
+		$this->processor->issue( $this->order() );
+		$id = $this->store->links[10][0];
+		$this->processor->revoke( $this->order(), Status::REFUNDED );
+		$this->clock->advance( '+15 months' );
+
+		$report = $this->processor->issue( $this->order() );
+
+		$this->assertSame( 1, $report->reinstated );
+		$this->assertSame( Status::EXPIRED, $this->service->find( $id )->status );
 	}
 
 	// Terms and periods.

@@ -29,6 +29,10 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/06-purchase.cjs` also completes orders again (card 74): after a cancellation and after being set to
+Refunded the same licenses come back with the order named in their history, a unit refunded with its quantity keeps its
+license refunded, and a license revoked by hand stays revoked.
+
 `tests/e2e/06-purchase.cjs` also pays an order the way an online payment service does (`payment_complete()`): a plan
 product alone completes at once and gets its license; with a physical item in the same order it waits in Processing.
 
