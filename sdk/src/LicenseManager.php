@@ -20,6 +20,11 @@ final class LicenseManager {
 	public const REFRESH_INTERVAL = 86400;
 
 	/**
+	 * After this long without a definite answer from the server, the customer is told (the license keeps working).
+	 */
+	public const STALE_AFTER = 7 * 86400;
+
+	/**
 	 * Server API.
 	 *
 	 * @var ServerApi
@@ -74,7 +79,40 @@ final class LicenseManager {
 	 * inactive immediately, without waiting for the next check with the server.
 	 */
 	public function is_active(): bool {
-		return $this->store->load()->is_active( $this->now() );
+		return $this->store->load()->is_active( $this->now() ) && '' === $this->moved_from();
+	}
+
+	/**
+	 * The address the license was activated for, when this site now has another one (moved or copied), else ''. Such a site
+	 * is not active until the license is activated here: nothing moves on its own, so copying a site cannot multiply licenses.
+	 */
+	public function moved_from(): string {
+		$state = $this->store->load();
+
+		return '' !== $state->key && '' !== $state->site && LicenseState::same_site_key( $state->site ) !== LicenseState::same_site_key( $this->site_url )
+			? $state->site
+			: '';
+	}
+
+	/**
+	 * Whole days since the server last gave a definite answer, when that is STALE_AFTER or more, else 0. The license keeps
+	 * working; only the customer is told that updates may be missing.
+	 */
+	public function stale_days(): int {
+		$state = $this->store->load();
+
+		if ( '' === $state->key || $state->last_checked <= 0 || $this->now() - $state->last_checked < self::STALE_AFTER ) {
+			return 0;
+		}
+
+		return (int) floor( ( $this->now() - $state->last_checked ) / 86400 );
+	}
+
+	/**
+	 * This site's address.
+	 */
+	public function site_url(): string {
+		return $this->site_url;
 	}
 
 	/**
@@ -98,6 +136,8 @@ final class LicenseManager {
 			$this->apply_license( $state, $key, $result->data );
 			$state->status       = LicenseState::ACTIVE;
 			$state->last_checked = $this->now();
+			$state->site         = $this->site_url;
+			$state->server       = $this->api->server();
 			$this->store->save( $state );
 			$this->store->cache_delete( 'update' );
 		}
@@ -173,6 +213,10 @@ final class LicenseManager {
 			} else {
 				$state->status  = LicenseState::ACTIVE;
 				$state->message = '';
+
+				// Licenses activated with an older copy of the SDK learn their address and server here.
+				$state->site   = '' === $state->site ? $this->site_url : $state->site;
+				$state->server = '' === $state->server ? $this->api->server() : $state->server;
 			}
 		} else {
 			$state->status  = $this->status_for_code( $result->code );

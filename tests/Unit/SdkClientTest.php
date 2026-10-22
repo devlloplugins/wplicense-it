@@ -583,4 +583,113 @@ final class SdkClientTest extends TestCase {
 		$this->assertStringNotContainsString( 'K7QM2', LicensePage::mask( 'K7QM2-9XDHB-ABCDE' ) );
 		$this->assertSame( '•••', LicensePage::mask( 'abc' ) );
 	}
+
+	// Card 101: moved sites, a silent server, the sites behind a full license.
+
+	public function test_activation_remembers_the_address_and_the_server(): void {
+		$this->activated();
+
+		$state = $this->store->load();
+		$this->assertSame( self::SITE, $state->site );
+		$this->assertSame( 'https://shop.example.com', $state->server );
+		$this->assertSame( '', $this->manager->moved_from() );
+	}
+
+	public function test_a_moved_or_copied_site_is_not_active_until_activated_there(): void {
+		$this->activated();
+		$moved = new LicenseManager(
+			new ServerApi(
+				Config::from_array(
+					array(
+						'server'     => 'https://shop.example.com',
+						'product_id' => 7,
+						'name'       => 'Great Plugin',
+						'version'    => '1.2.0',
+						'file'       => '/x',
+						'basename'   => 'great-plugin/great-plugin.php',
+					)
+				),
+				$this->transport
+			),
+			$this->store,
+			'https://new-home.example.com',
+			fn(): int => self::NOW
+		);
+
+		$this->assertSame( self::SITE, $moved->moved_from() );
+		$this->assertFalse( $moved->is_active(), 'nothing moves on its own: a copy cannot use the license' );
+
+		$this->transport->reply( 200, $this->license_body() );
+		$this->assertTrue( $moved->activate( $moved->state()->key )->ok );
+		$this->assertSame( '', $moved->moved_from() );
+		$this->assertTrue( $moved->is_active() );
+		$this->assertSame( 'https://new-home.example.com', $this->transport->requests[0]['body']['site_url'] );
+	}
+
+	public function test_the_same_site_written_differently_is_not_a_move(): void {
+		$this->activated();
+
+		foreach ( array( 'http://customer.example.com/', 'https://www.Customer.example.com' ) as $same ) {
+			$manager = new LicenseManager(
+				new ServerApi(
+					Config::from_array(
+						array(
+							'server'     => 'https://shop.example.com',
+							'product_id' => 7,
+							'name'       => 'Great Plugin',
+							'version'    => '1.2.0',
+							'file'       => '/x',
+							'basename'   => 'great-plugin/great-plugin.php',
+						)
+					),
+					$this->transport
+				),
+				$this->store,
+				$same,
+				fn(): int => self::NOW
+			);
+			$this->assertSame( '', $manager->moved_from(), $same );
+		}
+	}
+
+	public function test_a_license_from_an_older_sdk_learns_its_address_at_the_next_check(): void {
+		$state         = new LicenseState();
+		$state->key    = 'KEY-OLD';
+		$state->status = LicenseState::ACTIVE;
+		$this->store->save( $state );
+
+		$this->transport->reply( 200, $this->license_body( 'valid' ) + array( 'site_active' => true ) );
+		$this->manager->refresh();
+
+		$this->assertSame( self::SITE, $this->store->load()->site );
+		$this->assertSame( 'https://shop.example.com', $this->store->load()->server );
+	}
+
+	public function test_a_week_without_an_answer_is_reported_but_the_license_keeps_working(): void {
+		$this->activated();
+		$this->assertSame( 0, $this->manager->stale_days() );
+
+		$state               = $this->store->load();
+		$state->last_checked = self::NOW - 8 * 86400;
+		$this->store->save( $state );
+
+		$this->assertSame( 8, $this->manager->stale_days() );
+		$this->assertTrue( $this->manager->is_active() );
+	}
+
+	public function test_a_full_license_says_where_it_is_used(): void {
+		$this->transport->reply(
+			403,
+			array(
+				'success'     => false,
+				'code'        => 'limit_reached',
+				'sites'       => array( 'one.example.com', 'two.example.com' ),
+				'account_url' => 'https://shop.example.com/my-account/licenses/',
+			)
+		);
+
+		$message = $this->manager->activate( 'KEY' )->message;
+		$this->assertStringContainsString( 'It is active on: one.example.com, two.example.com.', $message );
+		$this->assertStringContainsString( 'Free a site in your account: https://shop.example.com/my-account/licenses/', $message );
+	}
 }

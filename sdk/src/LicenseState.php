@@ -78,6 +78,21 @@ final class LicenseState {
 	public $message = '';
 
 	/**
+	 * The site address the license was activated for (empty for licenses activated with an older copy of the SDK until
+	 * the next successful check). When it differs from this site's address, the site was moved or copied.
+	 *
+	 * @var string
+	 */
+	public $site = '';
+
+	/**
+	 * The license server, so the site can be freed there when the plugin is deleted (when the SDK classes are not loaded).
+	 *
+	 * @var string
+	 */
+	public $server = '';
+
+	/**
 	 * Whether the license can be used at the given time, by what the site last learned.
 	 *
 	 * @param int $now Current Unix time.
@@ -115,7 +130,23 @@ final class LicenseState {
 		$state->local        = ! empty( $data['local'] );
 		$state->last_checked = isset( $data['last_checked'] ) ? (int) $data['last_checked'] : 0;
 		$state->message      = isset( $data['message'] ) ? (string) $data['message'] : '';
+		$state->site         = isset( $data['site'] ) ? (string) $data['site'] : '';
+		$state->server       = isset( $data['server'] ) ? (string) $data['server'] : '';
 
 		return $state;
+	}
+
+	/**
+	 * A site address as the license server compares them: lower-case host without "www.", no scheme, no trailing slash.
+	 *
+	 * @param string $url Address.
+	 */
+	public static function same_site_key( string $url ): string {
+		$url = strtolower( trim( $url ) );
+		$url = (string) preg_replace( '#^[a-z][a-z0-9+.-]*://#', '', $url );
+		$url = (string) preg_replace( '#^www\.#', '', $url );
+		$url = (string) preg_replace( '#[?\#].*$#', '', $url );
+
+		return rtrim( $url, '/' );
 	}
 }

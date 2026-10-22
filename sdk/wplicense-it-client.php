@@ -126,8 +126,8 @@ if ( ! function_exists( 'wplicense_it_client_forget' ) ) {
 	 * site or, on a network, on every site. Plugins without an uninstall.php get this automatically when they are deleted.
 	 *
 	 * A plugin with its own uninstall.php, or a theme, calls it there after including this file (see the README).
-	 * It does not deactivate the site on your server, because the plugin is being deleted and may not reach it; the slot
-	 * is freed from the customer's account or by you.
+	 * It also frees the site on your server, with one short request per site (a few seconds at most). If the server
+	 * cannot be reached nothing breaks, and the slot is freed from the customer's account or by you.
 	 *
 	 * @param string $slug Plugin folder name, or the slug passed to wplicense_it_client().
 	 */
@@ -139,6 +139,27 @@ if ( ! function_exists( 'wplicense_it_client_forget' ) ) {
 		}
 
 		$clean = static function () use ( $slug ) {
+			$state = get_option( 'wplit_client_' . $slug );
+
+			// Free this site on the license server. Only to an https server (or a local one while developing), as always.
+			if ( is_array( $state ) && ! empty( $state['key'] ) && ! empty( $state['site'] ) && ! empty( $state['server'] ) && function_exists( 'wp_remote_post' ) ) {
+				$server = rtrim( (string) $state['server'], '/' );
+				$host   = (string) wp_parse_url( $server, PHP_URL_HOST );
+
+				if ( 0 === strpos( $server, 'https://' ) || in_array( $host, array( 'localhost', '127.0.0.1' ), true ) || (bool) preg_match( '/\.(test|local|localhost)$/', $host ) ) {
+					wp_remote_post(
+						$server . '/wp-json/wplicense-it/v1/licenses/deactivate',
+						array(
+							'timeout' => 3,
+							'body'    => array(
+								'license_key' => (string) $state['key'],
+								'site_url'    => (string) $state['site'],
+							),
+						)
+					);
+				}
+			}
+
 			delete_option( 'wplit_client_' . $slug );
 			delete_transient( substr( 'wplit_c_' . $slug . '_update', 0, 160 ) );
 			wp_clear_scheduled_hook( 'wplit_client_refresh_' . $slug );
@@ -187,7 +208,7 @@ if ( ! function_exists( 'wplicense_it_client_uninstall_hook' ) ) {
 	}
 }
 
-wplicense_it_client_register_version( '1.0.0', __DIR__ . '/src' );
+wplicense_it_client_register_version( '1.1.0', __DIR__ . '/src' );
 
 // A late copy of the SDK (included after loading finished) cannot replace the loaded one, but a late call still works.
 if ( did_action( 'wplicense_it_client_loaded' ) ) {

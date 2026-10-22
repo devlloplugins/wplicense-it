@@ -44,6 +44,13 @@ final class ServerApi {
 	}
 
 	/**
+	 * The license server's address.
+	 */
+	public function server(): string {
+		return $this->config->server;
+	}
+
+	/**
 	 * Checks a license, and whether this site is still activated on it.
 	 *
 	 * @param string $key      License key.
@@ -146,9 +153,19 @@ final class ServerApi {
 			return new ApiResult( true, isset( $data['code'] ) ? (string) $data['code'] : 'ok', '', $data );
 		}
 
-		$code = isset( $data['code'] ) ? (string) $data['code'] : 'error';
+		$code    = isset( $data['code'] ) ? (string) $data['code'] : 'error';
+		$message = self::message_for( $code, isset( $data['message'] ) ? (string) $data['message'] : '' );
 
-		return new ApiResult( false, $code, self::message_for( $code, isset( $data['message'] ) ? (string) $data['message'] : '' ), $data );
+		// The server lists the sites that use the license, so the customer knows which one to free.
+		if ( 'limit_reached' === $code && isset( $data['sites'] ) && is_array( $data['sites'] ) && array() !== $data['sites'] ) {
+			$message .= ' It is active on: ' . implode( ', ', array_map( 'strval', array_slice( $data['sites'], 0, 20 ) ) ) . '.';
+
+			if ( ! empty( $data['account_url'] ) && is_string( $data['account_url'] ) ) {
+				$message .= ' Free a site in your account: ' . $data['account_url'];
+			}
+		}
+
+		return new ApiResult( false, $code, $message, $data );
 	}
 
 	/**

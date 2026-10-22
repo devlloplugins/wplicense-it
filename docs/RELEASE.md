@@ -49,3 +49,13 @@ all 19 test files passed, so nothing the plugin needs was left out.
 5. Tag the commit and publish the zip. Rebuilding from the tag gives the same bytes.
 
 See `WORDPRESS-ORG.md` for the Plugin Check results and why 2.0 is not hosted on wordpress.org.
+
+## The client SDK's version
+
+Several plugins on one customer site can each bundle the SDK; the newest copy (by the version passed to
+`wplicense_it_client_register_version()` at the end of `sdk/wplicense-it-client.php`) is the one that runs for all of
+them, and of two copies with the same version the first one loaded wins. So every release that changes anything in `sdk/`
+must raise that version, or customers whose site holds an older copy from another plugin may never get the change.
+1.1.0 (card 101): remembers the activated address and the server, the moved-site and silent-server notices, frees the
+site when the plugin is deleted, lists the sites of a full license; also the theme details page (card 75).
+

@@ -131,10 +131,13 @@ final class ApiService {
 			return new ApiResponse(
 				403,
 				array(
-					'success' => false,
-					'code'    => ActivationResult::LIMIT_REACHED,
-					'message' => 'This license has reached its activation limit. Deactivate it on another site first.',
-					'license' => $this->license_body( $result->license ),
+					'success'     => false,
+					'code'        => ActivationResult::LIMIT_REACHED,
+					'message'     => 'This license has reached its activation limit. Deactivate it on another site first.',
+					'license'     => $this->license_body( $result->license ),
+					// The caller has the key, so it may know where the license is used, and where to free a site.
+					'sites'       => $this->counted_sites( $result->license ),
+					'account_url' => function_exists( 'wc_get_account_endpoint_url' ) ? (string) wc_get_account_endpoint_url( 'licenses' ) : '',
 				)
 			);
 		}
@@ -156,6 +159,27 @@ final class ApiService {
 				),
 			)
 		);
+	}
+
+	/**
+	 * The addresses of the sites that use one of a license's slots (local and staging sites do not).
+	 *
+	 * @param License|null $license License.
+	 * @return string[]
+	 */
+	private function counted_sites( ?License $license ): array {
+		if ( null === $license ) {
+			return array();
+		}
+
+		$sites = array();
+		foreach ( $this->licenses->active_sites( $license ) as $activation ) {
+			if ( ! $activation->is_local ) {
+				$sites[] = $activation->site;
+			}
+		}
+
+		return $sites;
 	}
 
 	/**

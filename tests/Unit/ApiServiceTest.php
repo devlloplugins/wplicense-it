@@ -298,6 +298,8 @@ final class ApiServiceTest extends TestCase {
 		$this->assertSame( 403, $other->status );
 		$this->assertSame( 'limit_reached', $other->body['code'] );
 		$this->assertSame( 1, $other->body['license']['activations_used'] );
+		$this->assertSame( array( 'one.com' ), $other->body['sites'], 'the answer lists the sites that use the slots, to the holder of the key' );
+		$this->assertArrayHasKey( 'account_url', $other->body );
 
 		$gone = $this->api->deactivate(
 			array(

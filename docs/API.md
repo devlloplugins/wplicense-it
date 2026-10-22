@@ -34,7 +34,7 @@ The license object: `status`, `expires_at` (ISO 8601 UTC, or `null` for lifetime
 ### `POST /licenses/activate`
 `license_key`, `product_id`, `site_url`, `product_version` (optional). Uses one slot, unless the site
 is already active (`already_active`) or is a local or staging site, which never uses a slot. At the
-limit it returns 403 `limit_reached`. Returns `{ success, code, license, activation: { site, status, local } }`.
+limit it returns 403 `limit_reached`, with `sites` (the addresses that use a slot; local and staging sites do not) and `account_url` (My Account, Licenses, or empty without WooCommerce): the caller has the key, so it may know where the license is used. Returns `{ success, code, license, activation: { site, status, local } }`.
 
 ### `POST /licenses/deactivate`
 `license_key`, `site_url`. Frees the slot. Works on expired licenses too, so customers can always move a license.

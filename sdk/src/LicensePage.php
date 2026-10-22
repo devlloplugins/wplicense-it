@@ -45,6 +45,7 @@ final class LicensePage {
 	 */
 	public function register(): void {
 		add_action( 'admin_post_' . $this->action( 'do' ), array( $this, 'handle' ) );
+		add_action( 'admin_notices', array( $this, 'admin_notice' ) );
 
 		if ( '' !== $this->config->menu_parent ) {
 			add_action( 'admin_menu', array( $this, 'add_page' ) );
@@ -103,7 +104,20 @@ final class LicensePage {
 
 		echo '</tbody></table>';
 
-		if ( '' === $state->key || ! $active ) {
+		$moved = $this->manager->moved_from();
+		$stale = $this->manager->stale_days();
+
+		if ( '' !== $moved ) {
+			echo '<p class="wplit-client-moved">' . esc_html( $this->moved_text( $moved ) ) . '</p>';
+			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+			echo '<input type="hidden" name="action" value="' . esc_attr( $this->action( 'do' ) ) . '"><input type="hidden" name="do" value="activate_here">';
+			wp_nonce_field( $this->action( 'activate_here' ) );
+			echo '<p><button type="submit" class="button button-primary">' . esc_html( 'Activate here' ) . '</button></p></form>';
+		} elseif ( $stale > 0 ) {
+			echo '<p class="wplit-client-stale">' . esc_html( $this->stale_text( $stale ) ) . '</p>';
+		}
+
+		if ( '' === $moved && ( '' === $state->key || ! $active ) ) {
 			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 			echo '<input type="hidden" name="action" value="' . esc_attr( $this->action( 'do' ) ) . '"><input type="hidden" name="do" value="activate">';
 			wp_nonce_field( $this->action( 'activate' ) );
@@ -136,13 +150,23 @@ final class LicensePage {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by check_admin_referer() below.
 		$do = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';
 
-		if ( ! in_array( $do, array( 'activate', 'refresh', 'deactivate' ), true ) ) {
+		if ( ! in_array( $do, array( 'activate', 'activate_here', 'refresh', 'deactivate', 'dismiss' ), true ) ) {
 			wp_die( esc_html( 'Unknown action.' ), '', array( 'response' => 400 ) );
 		}
 
 		check_admin_referer( $this->action( $do ) );
 
-		if ( 'activate' === $do ) {
+		if ( 'dismiss' === $do ) {
+			// The notice stays away from this person for a week; the license page keeps saying it.
+			set_transient( $this->dismiss_key(), 1, 7 * DAY_IN_SECONDS );
+			wp_safe_redirect( wp_get_referer() ? wp_get_referer() : admin_url() );
+			exit;
+		}
+
+		if ( 'activate_here' === $do ) {
+			$result = $this->manager->activate( $this->manager->state()->key );
+			$text   = $result->ok ? 'License activated on this site. Thank you!' : $result->message;
+		} elseif ( 'activate' === $do ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above.
 			$key    = isset( $_POST['license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['license_key'] ) ) : '';
 			$result = $this->manager->activate( $key );
@@ -212,6 +236,10 @@ final class LicensePage {
 	 * @param bool         $active Whether the license is active now.
 	 */
 	private function status_text( LicenseState $state, bool $active ): string {
+		if ( '' !== $this->manager->moved_from() ) {
+			return 'Not active on this site: the license was activated for another address.';
+		}
+
 		if ( $active ) {
 			return 'Active. You will receive updates.';
 		}
@@ -225,6 +253,65 @@ final class LicensePage {
 		}
 
 		return '' !== $state->message ? ucfirst( $state->status ) . '. ' . $state->message : ucfirst( $state->status ) . '.';
+	}
+
+	/**
+	 * A notice in the admin when the site moved or the server has not answered for a week, for those who manage the
+	 * license, except on the license page itself (which says it). Dismissible for a week.
+	 */
+	public function admin_notice(): void {
+		if ( ! current_user_can( 'manage_options' ) || get_transient( $this->dismiss_key() ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only compares the page name.
+		if ( isset( $_GET['page'] ) && $this->config->slug . '-license' === $_GET['page'] ) {
+			return;
+		}
+
+		$moved = $this->manager->moved_from();
+		$stale = '' === $moved ? $this->manager->stale_days() : 0;
+
+		if ( '' === $moved && 0 === $stale ) {
+			return;
+		}
+
+		$text = '' !== $moved ? $this->moved_text( $moved ) : $this->stale_text( $stale );
+
+		echo '<div class="notice notice-warning wplit-client-notice"><p><strong>' . esc_html( $this->config->name ) . ':</strong> ' . esc_html( $text ) . ' <a href="' . esc_url( self::url( $this->config ) ) . '">' . esc_html( 'Open the license page' ) . '</a></p>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin: 0 0 8px;">';
+		echo '<input type="hidden" name="action" value="' . esc_attr( $this->action( 'do' ) ) . '"><input type="hidden" name="do" value="dismiss">';
+		wp_nonce_field( $this->action( 'dismiss' ) );
+		echo '<button type="submit" class="button-link">' . esc_html( 'Dismiss for a week' ) . '</button></form></div>';
+	}
+
+	/**
+	 * What a moved or copied site is told.
+	 *
+	 * @param string $moved The address the license was activated for.
+	 */
+	private function moved_text( string $moved ): string {
+		return sprintf(
+			'This license was activated for %1$s, but this site is %2$s (moved or copied). Activate it here to receive updates: that uses one of your sites. If %1$s is no longer used, free it in your account on our site.',
+			untrailingslashit( $moved ),
+			untrailingslashit( $this->manager->site_url() )
+		);
+	}
+
+	/**
+	 * What a site that has not reached the license server for a while is told.
+	 *
+	 * @param int $days Days since the last answer.
+	 */
+	private function stale_text( int $days ): string {
+		return sprintf( 'The license could not be checked with the license server for %d days, so updates may be missing. Your license keeps working. Use Check now on the license page to try again.', $days );
+	}
+
+	/**
+	 * The transient that keeps the notice away for a week, one per user.
+	 */
+	private function dismiss_key(): string {
+		return substr( 'wplit_cd_' . $this->config->slug . '_' . get_current_user_id(), 0, 160 );
 	}
 
 	/**

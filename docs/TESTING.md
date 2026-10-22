@@ -29,6 +29,12 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/31-license-checking.cjs` (17 checks) runs the sample plugin with the client SDK on the customer site: a changed
+address is told on the dashboard and the license page and the license is not active until Activate here; with the license
+server unreachable (a test mu-plugin blocks it) and no answer for 8 days, a notice says so while the license keeps working,
+Dismiss for a week hides it, Check now clears it; a full license answers with the site using it and the My Account link;
+deleting the plugin from the Plugins screen frees the site on the server.
+
 `tests/e2e/30-checkout-account.cjs` (10 checks) buys through the real checkout with guest checkout allowed: a licensed cart
 makes an account and a mug alone stays a guest order; the cash on delivery email and the order received page say the key
 follows; the completed email has the key, its sites, how to activate and the My Account link. Test 19 also checks the

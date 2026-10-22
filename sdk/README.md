@@ -103,8 +103,9 @@ wplicense_it_client_forget( 'my-plugin' ); // Your plugin's folder name, or the 
   once the theme is gone. A theme can call `wplicense_it_client_forget( 'my-theme' )` itself, for example from a
   "remove my data" button.
 
-Deleting the plugin does not free the site's slot on your server, because the plugin may not reach it at that moment. The
-customer frees it by deactivating the license first, from their account, or you do.
+Deleting the plugin also frees the site's slot on your server: one short request (3 seconds at most) to the server the
+license was activated with. If your server cannot be reached at that moment nothing breaks, and the customer frees the site
+from their account, or you do.
 
 ## Rules the SDK follows
 
@@ -112,7 +113,16 @@ customer frees it by deactivating the license first, from their account, or you 
 - **Renewing just works.** An expired license keeps its key. When the customer renews, the next daily check (or **Check now**) makes it active again.
 - **Download links never expire on the customer.** Update data only holds a placeholder. The real, 15-minute download link is requested when the customer clicks Update.
 - **The update replaces the installed copy.** If your zip unpacks to a differently named folder, the SDK renames it to your plugin's folder name.
-- **Several plugins can include the SDK.** Only the newest copy on the site is loaded.
+- **A moved or copied site is told at once.** The SDK remembers the address the license was activated for. On another
+  address (a moved domain, or a database copied to a staging or new site) the license is not active there, and the license
+  page and an admin notice say so, with **Activate here** (which uses one of the customer's sites). Nothing moves on its own,
+  so copying a site cannot multiply a license.
+- **A silent server is reported, not punished.** After 7 days without an answer from your server the license keeps working,
+  but the license page and a dismissible admin notice say updates may be missing, with **Check now**.
+- **A full license says where it is used.** When activation fails because every site is taken, the message lists the
+  sites that use it and the link to free one in the customer's account.
+- **Several plugins can include the SDK.** Only the newest copy on the site is loaded (by the version at the end of
+  `wplicense-it-client.php`; this is 1.1.0).
 
 ## What is sent to your server
 
