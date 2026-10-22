@@ -136,8 +136,13 @@ jobs:
       - name: Print the site logs
         if: failure()
         run: |
-          for f in /opt/wp-test/wordpress/wp-content/debug.log /opt/wp-test/client/wp-content/debug.log /opt/wp-test/server-*.log; do
+          for f in /opt/wp-test/wordpress/wp-content/debug.log /opt/wp-test/client/wp-content/debug.log; do
             echo "=== $f"; sudo tail -n 60 "$f" 2>/dev/null || true
+          done
+          # The web servers' requests (without the connection open/close lines), far enough back to cover a test that
+          # waited minutes for an answer before the next test ran.
+          for f in /opt/wp-test/server-*.log; do
+            echo "=== $f"; sudo grep -vE ' (Accepted|Closing)$' "$f" 2>/dev/null | tail -n 400 || true
           done
           php -v | head -1; php -m | tr '\n' ' '
           echo; echo '=== Product screen as the admin'
