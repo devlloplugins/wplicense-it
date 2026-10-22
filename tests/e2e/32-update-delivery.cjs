@@ -22,7 +22,9 @@ const installed = () => ( fs.readFileSync( path.join( SAMPLE, 'wplit-sample.php'
 // What WordPress would show next: forget its remembered update data and the SDK's cache, then check again.
 // The test site's WordPress is a git checkout, which makes WordPress skip all automatic updates; a normal site is not.
 // Background updates run from WordPress's cron, which keeps the plugin active while it is replaced; so run them as cron.
-const autoUpdate = () => onClient( 'add_filter( "automatic_updates_is_vcs_checkout", "__return_false" ); add_filter( "wp_doing_cron", "__return_true" ); delete_option( "auto_updater.lock" ); wp_maybe_auto_update(); echo "ok";' );
+// Only plugins: the two test sites share WordPress's own files (hard links), and where wordpress.org can be reached (CI)
+// a core update of this site would rewrite the license server's files too.
+const autoUpdate = () => onClient( 'add_filter( "automatic_updates_is_vcs_checkout", "__return_false" ); add_filter( "wp_doing_cron", "__return_true" ); foreach ( array( "auto_update_core", "auto_update_theme", "auto_update_translation" ) as $f ) { add_filter( $f, "__return_false" ); } delete_option( "auto_updater.lock" ); wp_maybe_auto_update(); echo "ok";' );
 const recheck = () => onClient( 'delete_site_transient( "update_plugins" ); delete_transient( "wplit_c_' + SLUG + '_update" ); wp_update_plugins(); echo "ok";' );
 
 async function save( page ) {
