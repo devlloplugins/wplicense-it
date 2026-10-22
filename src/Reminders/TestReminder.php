@@ -31,15 +31,20 @@ final class TestReminder {
 	}
 
 	/**
-	 * The made-up license: for this product, at this address and account, expiring in the given number of days.
+	 * The made-up license: for this product, at this address and account, expiring in the given number of days (or, for a
+	 * negative number, expired that many days ago).
 	 *
 	 * @param int               $product_id License product, or 0 when there is none yet.
 	 * @param string            $email      Where to send it.
 	 * @param int|null          $user_id    The seller's account, so the renewal link is the one a customer with an account gets.
-	 * @param int               $days       Days left.
+	 * @param int               $days       Days left, or minus the days since it expired.
 	 * @param DateTimeImmutable $now        Now, in UTC.
 	 */
 	public static function sample( int $product_id, string $email, ?int $user_id, int $days, DateTimeImmutable $now ): License {
+		if ( $days < 0 ) {
+			return new License( 0, $product_id, $user_id, null, 'TEST-0000-0000-0000', $email, Status::EXPIRED, 1, $now->sub( new DateInterval( 'P' . -$days . 'D' ) ), $now, $now );
+		}
+
 		return new License( 0, $product_id, $user_id, null, 'TEST-0000-0000-0000', $email, Status::ACTIVE, 1, $now->add( new DateInterval( 'P' . max( 1, $days ) . 'D' ) ), $now, $now );
 	}
 
@@ -47,11 +52,11 @@ final class TestReminder {
 	 * The email, as it would go out.
 	 *
 	 * @param License $license The made-up license.
-	 * @param int     $days    Days left.
+	 * @param int     $days    Days left, or minus the days since it expired.
 	 * @return array{to:string,subject:string,message:string,headers:string[]}
 	 */
 	public function build( License $license, int $days ): array {
-		$email            = $this->mailer->build( $license, max( 1, $days ) );
+		$email            = $this->mailer->build( $license, $days < 0 ? $days : max( 1, $days ) );
 		$email['to']      = $license->email;
 		$email['subject'] = self::SUBJECT_PREFIX . $email['subject'];
 
@@ -62,7 +67,7 @@ final class TestReminder {
 	 * Sends it.
 	 *
 	 * @param License $license The made-up license.
-	 * @param int     $days    Days left.
+	 * @param int     $days    Days left, or minus the days since it expired.
 	 * @return bool Whether WordPress accepted it for sending.
 	 */
 	public function send( License $license, int $days ): bool {

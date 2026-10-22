@@ -198,7 +198,13 @@ expiry date, says what expiry means (no more updates) and links to the renewal a
   next day (nothing is recorded).
 - **Filters:** `wplicense_it_send_reminder` (return `false` to skip a license), `wplicense_it_reminder_email` (change the
   recipient, subject, message or headers) and `wplicense_it_reminder_renew_url`.
-- **Test email:** **Send me a test email** sends you the reminder a customer would get, built by the same code, for your
+- **After expiry:** optionally one more email, some days after a license expired (3 by default, 1 to 90): it says the
+  license expired on that date and links to renew. Its own switch, off by default and independent of the reminders
+  before. Once per expiry date, recorded in the license history (`after: 3`). Only licenses that reached that day in the
+  last 30 days are emailed, so turning it on does not write to customers whose license ran out long ago, and a day the job
+  did not run is caught up. `wplicense_it_send_reminder` and `wplicense_it_reminder_email` get a negative number of days
+  for this email (days since expiry).
+- **Test email:** **Send me a test email** (and **Send me the email after expiry**) sends you the email a customer would get, built by the same code, for your
   first product and the first number of days in the setting, with `[Test]` in the subject. It uses the saved settings and
   works while reminders are off. Nothing is recorded on any license.
 

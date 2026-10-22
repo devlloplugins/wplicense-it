@@ -42,7 +42,7 @@ final class WpReminderMailer implements ReminderMailer {
 	 * The email for a license. The wplicense_it_reminder_email filter can change any part of it.
 	 *
 	 * @param License $license   The license.
-	 * @param int     $days_left Whole days left.
+	 * @param int     $days_left Whole days left, or minus the days since it expired (the email after expiry).
 	 * @return array{to:string,subject:string,message:string,headers:string[]}
 	 */
 	public function build( License $license, int $days_left ): array {
@@ -52,21 +52,38 @@ final class WpReminderMailer implements ReminderMailer {
 		$date    = null === $license->expires_at ? '' : wp_date( (string) get_option( 'date_format' ), $license->expires_at->getTimestamp() );
 		$url     = $this->renew_url( $license );
 
-		$subject = sprintf(
-			/* translators: 1: product name, 2: number of days. */
-			_n( 'Your %1$s license expires in %2$d day', 'Your %1$s license expires in %2$d days', $days_left, 'wplicense-it' ),
-			$name,
-			$days_left
-		);
+		if ( $days_left < 1 ) {
+			$subject = sprintf(
+				/* translators: %s: product name. */
+				__( 'Your %s license has expired', 'wplicense-it' ),
+				$name
+			);
 
-		$message = sprintf(
-			/* translators: 1: product name, 2: expiry date, 3: renewal address, 4: site name. */
-			__( "Hello,\n\nYour license for %1\$s expires on %2\$s. After that date you will no longer receive updates for it.\n\nRenew it here to keep receiving them:\n%3\$s\n\nThank you,\n%4\$s\n", 'wplicense-it' ),
-			$name,
-			$date,
-			$url,
-			$site
-		);
+			$message = sprintf(
+				/* translators: 1: product name, 2: expiry date, 3: renewal address, 4: site name. */
+				__( "Hello,\n\nYour license for %1\$s expired on %2\$s. Since then you no longer receive updates for it.\n\nRenew it here to get them again:\n%3\$s\n\nThank you,\n%4\$s\n", 'wplicense-it' ),
+				$name,
+				$date,
+				$url,
+				$site
+			);
+		} else {
+			$subject = sprintf(
+				/* translators: 1: product name, 2: number of days. */
+				_n( 'Your %1$s license expires in %2$d day', 'Your %1$s license expires in %2$d days', $days_left, 'wplicense-it' ),
+				$name,
+				$days_left
+			);
+
+			$message = sprintf(
+				/* translators: 1: product name, 2: expiry date, 3: renewal address, 4: site name. */
+				__( "Hello,\n\nYour license for %1\$s expires on %2\$s. After that date you will no longer receive updates for it.\n\nRenew it here to keep receiving them:\n%3\$s\n\nThank you,\n%4\$s\n", 'wplicense-it' ),
+				$name,
+				$date,
+				$url,
+				$site
+			);
+		}//end if
 
 		$email = array(
 			'to'      => $license->email,

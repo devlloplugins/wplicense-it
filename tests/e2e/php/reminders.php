@@ -6,6 +6,7 @@
  *   php tests/e2e/php/reminders.php run            the daily maintenance, as WordPress cron would run it
  *   php tests/e2e/php/reminders.php due            makes the daily maintenance event due now (for wp-cron.php to run)
  *   php tests/e2e/php/reminders.php state          what WordPress holds about the job and the reminders (for a failure message)
+ *   php tests/e2e/php/reminders.php lapsed         two licenses that ran out: 4 days ago, and 40 days ago
  */
 
 declare( strict_types=1 );
@@ -79,6 +80,25 @@ if ( 'due' === $op ) {
 	wp_clear_scheduled_hook( \Devllo\WPLicenseIt\Admin\Maintenance::HOOK );
 	wp_schedule_event( time() - 60, 'daily', \Devllo\WPLicenseIt\Admin\Maintenance::HOOK );
 	echo wp_json_encode( array( 'ok' => true ) );
+	exit( 0 );
+}
+
+if ( 'lapsed' === $op ) {
+	$service = \Devllo\WPLicenseIt\Plugin::instance()->licenses();
+	$product = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type='wplit_product' AND post_title='Reminder Product' ORDER BY ID DESC LIMIT 1" );
+	$out     = array();
+
+	foreach ( array(
+		'recent' => '-4 days',
+		'old'    => '-40 days',
+	) as $name => $when ) {
+		$license      = $service->issue_license( $product, $name . '-lapsed@example.com', null, null, 1, new DateTimeImmutable( '+1 year', new DateTimeZone( 'UTC' ) ) );
+		$out[ $name ] = $license->id;
+		// Issued a year before it ran out; the daily job marks it expired.
+		$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->prefix}wplit_licenses SET expires_at = %s, created_at = %s WHERE id = %d", gmdate( 'Y-m-d H:i:s', strtotime( $when ) ), gmdate( 'Y-m-d H:i:s', strtotime( $when . ' -1 year' ) ), $license->id ) );
+	}
+
+	echo wp_json_encode( $out );
 	exit( 0 );
 }
 

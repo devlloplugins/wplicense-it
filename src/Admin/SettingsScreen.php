@@ -16,6 +16,7 @@ use Devllo\WPLicenseIt\Api\RestController;
 use Devllo\WPLicenseIt\Migration\MigrationState;
 use Devllo\WPLicenseIt\Migration\OptionStateStore;
 use Devllo\WPLicenseIt\Api\WpProductCatalog;
+use Devllo\WPLicenseIt\Reminders\ReminderService;
 use Devllo\WPLicenseIt\Reminders\ReminderSettings;
 use Devllo\WPLicenseIt\Reminders\TestReminder;
 use Devllo\WPLicenseIt\Reminders\WpReminderMailer;
@@ -115,6 +116,24 @@ final class SettingsScreen {
 		);
 		register_setting(
 			self::GROUP,
+			ReminderSettings::OPTION_AFTER_ENABLED,
+			array(
+				'type'              => 'boolean',
+				'default'           => false,
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			)
+		);
+		register_setting(
+			self::GROUP,
+			ReminderSettings::OPTION_AFTER_DAYS,
+			array(
+				'type'              => 'integer',
+				'default'           => ReminderSettings::DEFAULT_AFTER_DAYS,
+				'sanitize_callback' => array( ReminderSettings::class, 'clean_after_days' ),
+			)
+		);
+		register_setting(
+			self::GROUP,
 			ReminderSettings::OPTION_URL,
 			array(
 				'type'              => 'string',
@@ -189,6 +208,7 @@ final class SettingsScreen {
 		add_settings_section( 'wplit_reminders', __( 'Expiry reminders', 'wplicense-it' ), array( $this, 'section_reminders' ), self::PAGE );
 		add_settings_field( ReminderSettings::OPTION_ENABLED, __( 'Email customers', 'wplicense-it' ), array( $this, 'field_reminders_enabled' ), self::PAGE, 'wplit_reminders' );
 		add_settings_field( ReminderSettings::OPTION_DAYS, __( 'Days before expiry', 'wplicense-it' ), array( $this, 'field_reminder_days' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_DAYS ) );
+		add_settings_field( ReminderSettings::OPTION_AFTER_ENABLED, __( 'After expiry', 'wplicense-it' ), array( $this, 'field_reminder_after' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_AFTER_DAYS ) );
 		add_settings_field( ReminderSettings::OPTION_URL, __( 'Renewal address', 'wplicense-it' ), array( $this, 'field_reminder_url' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_URL ) );
 		add_settings_field( 'wplit_test_reminder', __( 'Test email', 'wplicense-it' ), array( $this, 'field_test_reminder' ), self::PAGE, 'wplit_reminders' );
 
@@ -309,6 +329,25 @@ final class SettingsScreen {
 	}
 
 	/**
+	 * The email after expiry: on or off, and how many days after.
+	 */
+	public function field_reminder_after(): void {
+		echo '<label><input type="checkbox" name="' . esc_attr( ReminderSettings::OPTION_AFTER_ENABLED ) . '" value="1"' . checked( ReminderSettings::after_enabled(), true, false ) . '> ' . esc_html__( 'Also email once after a license has expired', 'wplicense-it' ) . '</label><br>';
+		printf(
+			/* translators: %s: number field. */
+			esc_html__( '%s days after the expiry date', 'wplicense-it' ),
+			'<input type="number" min="1" max="' . esc_attr( (string) ReminderSettings::MAX_AFTER_DAYS ) . '" class="small-text" id="' . esc_attr( ReminderSettings::OPTION_AFTER_DAYS ) . '" name="' . esc_attr( ReminderSettings::OPTION_AFTER_DAYS ) . '" value="' . esc_attr( (string) ReminderSettings::after_days() ) . '">'
+		);
+		echo '<p class="description">' . esc_html(
+			sprintf(
+				/* translators: %d: number of days. */
+				__( 'Says the license expired, and links to renew. Off until you turn it on, separately from the reminders before expiry. Each expiry date gets it once, recorded in the license history. Only licenses that reached that day in the last %d days are emailed, so turning it on does not write to customers whose license ran out long ago.', 'wplicense-it' ),
+				ReminderService::LATE_DAYS
+			)
+		) . '</p>';
+	}
+
+	/**
 	 * Renewal address field.
 	 */
 	public function field_reminder_url(): void {
@@ -322,11 +361,12 @@ final class SettingsScreen {
 	public function field_test_reminder(): void {
 		$url = wp_nonce_url( add_query_arg( 'action', self::TEST_REMINDER_ACTION, admin_url( 'admin-post.php' ) ), self::TEST_REMINDER_ACTION );
 
-		echo '<a class="button" id="wplit-test-reminder" href="' . esc_url( $url ) . '">' . esc_html__( 'Send me a test email', 'wplicense-it' ) . '</a>';
+		echo '<a class="button" id="wplit-test-reminder" href="' . esc_url( $url ) . '">' . esc_html__( 'Send me a test email', 'wplicense-it' ) . '</a> ';
+		echo '<a class="button" id="wplit-test-reminder-after" href="' . esc_url( add_query_arg( 'kind', 'after', $url ) ) . '">' . esc_html__( 'Send me the email after expiry', 'wplicense-it' ) . '</a>';
 		echo '<p class="description">' . esc_html(
 			sprintf(
 				/* translators: %s: the administrator's email address. */
-				__( 'Sends the reminder a customer would get to %s, for your first product and the first number of days above, with [Test] in the subject. It uses the saved settings, so save your changes first. It works while reminders are off, and nothing is recorded on any license.', 'wplicense-it' ),
+				__( 'Sends the reminder a customer would get to %s, for your first product and the first number of days above (or the email after expiry), with [Test] in the subject. It uses the saved settings, so save your changes first. It works while reminders are off, and nothing is recorded on any license.', 'wplicense-it' ),
 				wp_get_current_user()->user_email
 			)
 		) . '</p>';
@@ -350,9 +390,10 @@ final class SettingsScreen {
 				'fields'         => 'ids',
 			)
 		);
-		$days     = ReminderSettings::days()[0] ?? 30;
-		$license  = TestReminder::sample( (int) ( $products[0] ?? 0 ), (string) $user->user_email, $user->ID > 0 ? (int) $user->ID : null, $days, new \DateTimeImmutable( 'now', new \DateTimeZone( 'UTC' ) ) );
-		$sent     = ( new TestReminder( new WpReminderMailer( new WpProductCatalog() ) ) )->send( $license, $days );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checked above; only picks one of two emails.
+		$days    = isset( $_GET['kind'] ) && 'after' === $_GET['kind'] ? -ReminderSettings::after_days() : ( ReminderSettings::days()[0] ?? 30 );
+		$license = TestReminder::sample( (int) ( $products[0] ?? 0 ), (string) $user->user_email, $user->ID > 0 ? (int) $user->ID : null, $days, new \DateTimeImmutable( 'now', new \DateTimeZone( 'UTC' ) ) );
+		$sent    = ( new TestReminder( new WpReminderMailer( new WpProductCatalog() ) ) )->send( $license, $days );
 
 		wp_safe_redirect( add_query_arg( 'wplit_test_mail', $sent ? 'sent' : 'failed', Urls::settings() ) );
 		exit;

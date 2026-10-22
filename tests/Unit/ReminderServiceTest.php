@@ -238,4 +238,75 @@ final class ReminderServiceTest extends TestCase {
 		$this->assertSame( array(), $this->licenses->find_expiring( $now, $now->modify( '+30 days' ), null, 10 ) );
 		$this->assertInstanceOf( DateTimeImmutable::class, $now );
 	}
+
+	// After expiry (card 140).
+
+	public function test_an_expired_license_gets_one_email_the_chosen_days_after(): void {
+		$early = $this->license( '-2 days', Status::EXPIRED );
+		$due   = $this->license( '-4 days', Status::EXPIRED );
+
+		$this->assertSame( 1, $this->service->send_after( 3 ) );
+		$this->assertSame( $due->id, $this->mailer->sent[0]['id'] );
+		$this->assertSame( -4, $this->mailer->sent[0]['days'], 'the mailer is told how long ago it expired, as a negative number' );
+
+		$this->assertSame( 0, $this->service->send_after( 3 ), 'nothing twice' );
+
+		$this->clock->advance( '+1 day' );
+		$this->assertSame( 1, $this->service->send_after( 3 ), 'the other one, once it reaches the day' );
+		$this->assertSame( $early->id, $this->mailer->sent[1]['id'] );
+
+		$events = $this->events->of_type( $due->id, EventLog::REMINDER );
+		$this->assertSame( 3, $events[0]['data']['after'] );
+		$this->assertSame( $due->expires_at->setTimezone( new DateTimeZone( 'UTC' ) )->format( DATE_ATOM ), $events[0]['data']['expires_at'] );
+	}
+
+	public function test_licenses_that_expired_long_ago_are_left_alone(): void {
+		$this->license( '-34 days', Status::EXPIRED ); // Reached day 3 thirty-one days ago.
+		$recent = $this->license( '-32 days', Status::EXPIRED ); // Reached day 3 twenty-nine days ago: a missed day is caught up.
+
+		$this->assertSame( 1, $this->service->send_after( 3 ) );
+		$this->assertSame( $recent->id, $this->mailer->sent[0]['id'] );
+	}
+
+	public function test_only_expired_licenses_with_an_address_are_emailed_after(): void {
+		$this->license( '-5 days', Status::REVOKED );
+		$this->license( '-5 days', Status::REFUNDED );
+		$this->license( '-5 days', Status::ACTIVE ); // Not marked expired yet; the daily job marks it first.
+		$this->license( null, Status::EXPIRED );
+		$this->license( '-5 days', Status::EXPIRED, 'not-an-address' );
+
+		$this->assertSame( 0, $this->service->send_after( 3 ) );
+	}
+
+	public function test_the_emails_before_and_after_do_not_hide_each_other(): void {
+		$license = $this->license( '+5 days' );
+		$this->assertSame( 1, $this->service->send_due( array( 30, 7 ) ) );
+
+		$this->clock->advance( '+9 days' );
+		$this->licenses->update( $license->with_status( Status::EXPIRED, ( $this->clock )() ) );
+		$this->assertSame( 1, $this->service->send_after( 3 ), 'a reminder before expiry does not count as the email after' );
+
+		// A renewal gives a new expiry date and a new cycle of reminders before it.
+		$renewed             = $this->licenses->find( $license->id );
+		$renewed->expires_at = ( $this->clock )()->modify( '+20 days' );
+		$this->licenses->update( $renewed->with_status( Status::ACTIVE, ( $this->clock )() ) );
+		$this->assertSame( 1, $this->service->send_due( array( 30, 7 ) ), 'the email after expiry does not count as a reminder before the new expiry' );
+	}
+
+	public function test_a_failed_email_after_expiry_is_tried_again(): void {
+		$this->license( '-4 days', Status::EXPIRED );
+		$this->mailer->works = false;
+
+		$this->assertSame( 0, $this->service->send_after( 3 ) );
+		$this->assertSame( array(), $this->events->types() );
+
+		$this->mailer->works = true;
+		$this->assertSame( 1, $this->service->send_after( 3 ) );
+	}
+
+	public function test_no_days_after_means_no_emails(): void {
+		$this->license( '-4 days', Status::EXPIRED );
+
+		$this->assertSame( 0, $this->service->send_after( 0 ) );
+	}
 }

@@ -244,8 +244,9 @@ final class WpdbLicenseRepository implements LicenseRepository {
 	 * @param DateTimeImmutable $to    Expiring at or before this time.
 	 * @param License|null      $after The last license of the previous page.
 	 * @param int               $limit Maximum number to return.
+	 * @param string            $status Status::ACTIVE or Status::EXPIRED.
 	 */
-	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit ): array {
+	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit, string $status = Status::ACTIVE ): array {
 		// Ordered by the (status, expires_at) index, and continued from the last row's expiry and ID.
 		$cursor_date = Dates::to_db( null === $after || null === $after->expires_at ? $from : $after->expires_at );
 		$cursor_id   = null === $after ? 0 : $after->id;
@@ -253,7 +254,7 @@ final class WpdbLicenseRepository implements LicenseRepository {
 		$rows = $this->db->get_results(
 			$this->db->prepare(
 				"SELECT * FROM {$this->table} WHERE status = %s AND expires_at > %s AND expires_at <= %s AND (expires_at > %s OR (expires_at = %s AND id > %d)) ORDER BY expires_at ASC, id ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
-				Status::ACTIVE,
+				$status,
 				Dates::to_db( $from ),
 				Dates::to_db( $to ),
 				$cursor_date,

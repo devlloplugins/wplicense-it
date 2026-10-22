@@ -176,11 +176,13 @@ check( $before >= 8 && $before === $kept, "by default uninstall keeps every tabl
 check( '2.0.0' === site( '/alpha/', 'return get_option( "wplit_db_version" );' ), 'and keeps the settings and the database version' );
 
 // Each site decides for itself: the main site opts in, the others do not.
-site( '/', 'update_option( "wplit_delete_data_on_uninstall", 1 ); return true;' );
+site( '/', 'update_option( "wplit_delete_data_on_uninstall", 1 ); update_option( "wplit_reminder_after_enabled", 1 ); update_option( "wplit_reminder_days", "30, 7" ); return true;' );
 site( '/', $uninstall );
 $main_left  = $tables_of( 1 );
 $alpha_left = $tables_of( $alpha );
 check( 0 === $main_left && 4 === $alpha_left, "a site that opted in loses its tables and the others keep theirs (main {$main_left}, alpha {$alpha_left})" );
+// Counted first: a visit to the site makes its tables again.
+check( false === site( '/', 'return get_option( "wplit_reminder_after_enabled" );' ) && false === site( '/', 'return get_option( "wplit_reminder_days" );' ), 'the reminder settings go with it' );
 
 foreach ( explode( "\n", $sql( 'SELECT path FROM wp_blogs' ) ) as $path ) {
 	site( $path, 'update_option( "wplit_delete_data_on_uninstall", 1 ); return true;' );

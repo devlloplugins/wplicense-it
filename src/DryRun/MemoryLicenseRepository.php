@@ -150,11 +150,11 @@ final class MemoryLicenseRepository implements LicenseRepository {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit ): array {
+	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit, string $status = Status::ACTIVE ): array {
 		$found = array();
 
 		foreach ( $this->rows as $row ) {
-			if ( Status::ACTIVE !== $row->status || null === $row->expires_at || $row->expires_at <= $from || $row->expires_at > $to ) {
+			if ( $status !== $row->status || null === $row->expires_at || $row->expires_at <= $from || $row->expires_at > $to ) {
 				continue;
 			}
 

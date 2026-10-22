@@ -18,6 +18,11 @@ final class ReminderSettings {
 	public const OPTION_DAYS    = 'wplit_reminder_days';
 	public const OPTION_URL     = 'wplit_reminder_url';
 
+	public const OPTION_AFTER_ENABLED = 'wplit_reminder_after_enabled';
+	public const OPTION_AFTER_DAYS    = 'wplit_reminder_after_days';
+	public const DEFAULT_AFTER_DAYS   = 3;
+	public const MAX_AFTER_DAYS       = 90;
+
 	public const DEFAULT_DAYS = '30,7';
 	public const MAX_DAYS     = 365;
 	public const MAX_COUNT    = 5;
@@ -75,5 +80,30 @@ final class ReminderSettings {
 	 */
 	public static function custom_url(): string {
 		return (string) get_option( self::OPTION_URL, '' );
+	}
+
+	/**
+	 * Whether the email after expiry is on. Off until the site owner turns it on, separately from the reminders before.
+	 */
+	public static function after_enabled(): bool {
+		return (bool) get_option( self::OPTION_AFTER_ENABLED, false );
+	}
+
+	/**
+	 * How many days after expiry that email goes out.
+	 */
+	public static function after_days(): int {
+		return self::clean_after_days( get_option( self::OPTION_AFTER_DAYS, self::DEFAULT_AFTER_DAYS ) );
+	}
+
+	/**
+	 * A whole number of days from 1 to MAX_AFTER_DAYS; anything else gives the default.
+	 *
+	 * @param mixed $value Submitted value.
+	 */
+	public static function clean_after_days( $value ): int {
+		$days = is_numeric( $value ) ? (int) $value : 0;
+
+		return $days >= 1 && $days <= self::MAX_AFTER_DAYS ? $days : self::DEFAULT_AFTER_DAYS;
 	}
 }

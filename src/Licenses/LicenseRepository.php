@@ -84,13 +84,15 @@ interface LicenseRepository {
 	public function find_due_for_expiry( DateTimeImmutable $now, int $limit ): array;
 
 	/**
-	 * Active licenses that expire after $from and up to $to, soonest first, for expiry reminders.
+	 * Licenses in a status (active by default) that expire after $from and up to $to, soonest first, for expiry reminders
+	 * (and, with Status::EXPIRED, the email after expiry).
 	 *
-	 * @param DateTimeImmutable $from  Expiring after this time.
-	 * @param DateTimeImmutable $to    Expiring at or before this time.
-	 * @param License|null      $after The last license of the previous page, to continue after it (null for the first page).
-	 * @param int               $limit Maximum number to return.
+	 * @param DateTimeImmutable $from   Expiring after this time.
+	 * @param DateTimeImmutable $to     Expiring at or before this time.
+	 * @param License|null      $after  The last license of the previous page, to continue after it (null for the first page).
+	 * @param int               $limit  Maximum number to return.
+	 * @param string            $status Status::ACTIVE or Status::EXPIRED.
 	 * @return License[]
 	 */
-	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit ): array;
+	public function find_expiring( DateTimeImmutable $from, DateTimeImmutable $to, ?License $after, int $limit, string $status = Status::ACTIVE ): array;
 }

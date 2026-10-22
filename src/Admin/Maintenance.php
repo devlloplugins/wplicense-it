@@ -61,8 +61,14 @@ final class Maintenance {
 
 		self::expire_all( $plugin->licenses() );
 
+		$reminders = new ReminderService( new WpdbLicenseRepository( $wpdb ), new WpdbEventLog( $wpdb ), new WpReminderMailer( new WpProductCatalog() ) );
+
 		if ( ReminderSettings::enabled() ) {
-			( new ReminderService( new WpdbLicenseRepository( $wpdb ), new WpdbEventLog( $wpdb ), new WpReminderMailer( new WpProductCatalog() ) ) )->send_due( ReminderSettings::days() );
+			$reminders->send_due( ReminderSettings::days() );
+		}
+
+		if ( ReminderSettings::after_enabled() ) {
+			$reminders->send_after( ReminderSettings::after_days() );
 		}
 
 		if ( RenewalSettings::enabled() && class_exists( 'WooCommerce' ) ) {
