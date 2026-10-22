@@ -198,6 +198,9 @@ expiry date, says what expiry means (no more updates) and links to the renewal a
   next day (nothing is recorded).
 - **Filters:** `wplicense_it_send_reminder` (return `false` to skip a license), `wplicense_it_reminder_email` (change the
   recipient, subject, message or headers) and `wplicense_it_reminder_renew_url`.
+- **Test email:** **Send me a test email** sends you the reminder a customer would get, built by the same code, for your
+  first product and the first number of days in the setting, with `[Test]` in the subject. It uses the saved settings and
+  works while reminders are off. Nothing is recorded on any license.
 
 ## Renewal invoices
 

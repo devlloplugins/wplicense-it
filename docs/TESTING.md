@@ -86,7 +86,9 @@ history entry, no second invoice or email, a guest paying from the link, the acc
 paying with cash on delivery, the license renewed by a year only when the order is completed and no second license made, and an
 unpaid invoice cancelled when its license is renewed by another order.
 
-`tests/e2e/16-reminders.cjs` (43 checks) covers expiry reminder emails: off by default, junk cleaned from the days setting, the
+`tests/e2e/16-reminders.cjs` (50 checks) covers expiry reminder emails: off by default, the test email button (sent only to
+the administrator, while reminders are off, with the customer's subject marked [Test] and link, nothing recorded, refused
+without its security token), junk cleaned from the days setting, the
 daily job run through a real `wp-cron.php` request, who is mailed and who is not (far away, lifetime, revoked), the subject, no
 license key in the email, the link (a customer logs in and sees the license, a guest license goes to the home page), the history
 entry, no second email, a changed or renewed expiry starting a new cycle, and a custom renewal address (a `javascript:` address

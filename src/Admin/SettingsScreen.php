@@ -15,7 +15,10 @@ use Devllo\WPLicenseIt\Api\LegacyUsage;
 use Devllo\WPLicenseIt\Api\RestController;
 use Devllo\WPLicenseIt\Migration\MigrationState;
 use Devllo\WPLicenseIt\Migration\OptionStateStore;
+use Devllo\WPLicenseIt\Api\WpProductCatalog;
 use Devllo\WPLicenseIt\Reminders\ReminderSettings;
+use Devllo\WPLicenseIt\Reminders\TestReminder;
+use Devllo\WPLicenseIt\Reminders\WpReminderMailer;
 use Devllo\WPLicenseIt\Renewals\RenewalSettings;
 use Devllo\WPLicenseIt\WooCommerce\WooAdapter;
 
@@ -27,6 +30,8 @@ final class SettingsScreen {
 	private const GROUP = 'wplit_licensing';
 	private const PAGE  = 'wplit-licensing';
 
+	public const TEST_REMINDER_ACTION = 'wplit_test_reminder';
+
 	public const OPTION_FAILURES            = 'wplit_rate_limit_failures';
 	public const OPTION_WINDOW              = 'wplit_rate_limit_minutes';
 	public const OPTION_RETENTION           = 'wplit_event_retention_years';
@@ -37,6 +42,7 @@ final class SettingsScreen {
 	 */
 	public function register(): void {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_post_' . self::TEST_REMINDER_ACTION, array( $this, 'send_test_reminder' ) );
 	}
 
 	/**
@@ -184,6 +190,7 @@ final class SettingsScreen {
 		add_settings_field( ReminderSettings::OPTION_ENABLED, __( 'Email customers', 'wplicense-it' ), array( $this, 'field_reminders_enabled' ), self::PAGE, 'wplit_reminders' );
 		add_settings_field( ReminderSettings::OPTION_DAYS, __( 'Days before expiry', 'wplicense-it' ), array( $this, 'field_reminder_days' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_DAYS ) );
 		add_settings_field( ReminderSettings::OPTION_URL, __( 'Renewal address', 'wplicense-it' ), array( $this, 'field_reminder_url' ), self::PAGE, 'wplit_reminders', array( 'label_for' => ReminderSettings::OPTION_URL ) );
+		add_settings_field( 'wplit_test_reminder', __( 'Test email', 'wplicense-it' ), array( $this, 'field_test_reminder' ), self::PAGE, 'wplit_reminders' );
 
 		add_settings_section( 'wplit_api', __( 'API protection', 'wplicense-it' ), array( $this, 'section_api' ), self::PAGE );
 		add_settings_field( self::OPTION_FAILURES, __( 'Failed lookups allowed', 'wplicense-it' ), array( $this, 'field_failures' ), self::PAGE, 'wplit_api', array( 'label_for' => self::OPTION_FAILURES ) );
@@ -226,6 +233,7 @@ final class SettingsScreen {
 
 		echo '<div class="wrap"><h1>' . esc_html__( 'Licensing settings', 'wplicense-it' ) . '</h1>';
 		settings_errors();
+		$this->test_reminder_notice();
 
 		echo '<form method="post" action="options.php">';
 		settings_fields( self::GROUP );
@@ -306,6 +314,65 @@ final class SettingsScreen {
 	public function field_reminder_url(): void {
 		echo '<input type="url" class="regular-text" id="' . esc_attr( ReminderSettings::OPTION_URL ) . '" name="' . esc_attr( ReminderSettings::OPTION_URL ) . '" value="' . esc_attr( ReminderSettings::custom_url() ) . '" placeholder="https://">';
 		echo '<p class="description">' . esc_html__( 'Where the email sends customers. Leave empty to use the Licenses page of My Account in your store (the customer logs in and presses Renew), or your home page when there is no store.', 'wplicense-it' ) . '</p>';
+	}
+
+	/**
+	 * The test email button. A link, because this whole section sits inside the settings form.
+	 */
+	public function field_test_reminder(): void {
+		$url = wp_nonce_url( add_query_arg( 'action', self::TEST_REMINDER_ACTION, admin_url( 'admin-post.php' ) ), self::TEST_REMINDER_ACTION );
+
+		echo '<a class="button" id="wplit-test-reminder" href="' . esc_url( $url ) . '">' . esc_html__( 'Send me a test email', 'wplicense-it' ) . '</a>';
+		echo '<p class="description">' . esc_html(
+			sprintf(
+				/* translators: %s: the administrator's email address. */
+				__( 'Sends the reminder a customer would get to %s, for your first product and the first number of days above, with [Test] in the subject. It uses the saved settings, so save your changes first. It works while reminders are off, and nothing is recorded on any license.', 'wplicense-it' ),
+				wp_get_current_user()->user_email
+			)
+		) . '</p>';
+	}
+
+	/**
+	 * Sends the test reminder to the administrator and comes back.
+	 */
+	public function send_test_reminder(): void {
+		Capabilities::require_manage();
+		check_admin_referer( self::TEST_REMINDER_ACTION );
+
+		$user     = wp_get_current_user();
+		$products = get_posts(
+			array(
+				'post_type'      => 'wplit_product',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+			)
+		);
+		$days     = ReminderSettings::days()[0] ?? 30;
+		$license  = TestReminder::sample( (int) ( $products[0] ?? 0 ), (string) $user->user_email, $user->ID > 0 ? (int) $user->ID : null, $days, new \DateTimeImmutable( 'now', new \DateTimeZone( 'UTC' ) ) );
+		$sent     = ( new TestReminder( new WpReminderMailer( new WpProductCatalog() ) ) )->send( $license, $days );
+
+		wp_safe_redirect( add_query_arg( 'wplit_test_mail', $sent ? 'sent' : 'failed', Urls::settings() ) );
+		exit;
+	}
+
+	/**
+	 * What happened to the test email.
+	 */
+	private function test_reminder_notice(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only selects one of two fixed messages.
+		$result = isset( $_GET['wplit_test_mail'] ) ? sanitize_key( wp_unslash( $_GET['wplit_test_mail'] ) ) : '';
+		$email  = wp_get_current_user()->user_email;
+
+		if ( 'sent' === $result ) {
+			/* translators: %s: email address. */
+			printf( '<div class="notice notice-success is-dismissible" role="status"><p>%s</p></div>', esc_html( sprintf( __( 'A test reminder was sent to %s. If it does not arrive, check the spam folder and your site\'s email setup.', 'wplicense-it' ), $email ) ) );
+		} elseif ( 'failed' === $result ) {
+			/* translators: %s: email address. */
+			printf( '<div class="notice notice-error" role="alert"><p>%s</p></div>', esc_html( sprintf( __( 'WordPress could not send the test reminder to %s. Check your site\'s email setup (an SMTP plugin, for example).', 'wplicense-it' ), $email ) ) );
+		}
 	}
 
 	/**

@@ -38,6 +38,24 @@ const mails = () => woo( { op: 'mail' } ).mail;
 	check( ( await page.inputValue( '#wplit_reminder_url' ) ) === '', 'no renewal address is set by default' );
 	check( /Off until you turn it on/.test( await page.locator( 'body' ).innerText() ), 'the screen says nothing is sent until it is turned on' );
 
+	// 1b. Card 139: a test email to the administrator, while reminders are off, built like the real one.
+	const adminEmail = sql( 'SELECT user_email FROM wp_users WHERE ID=1' );
+	const firstProduct = sql( "SELECT post_title FROM wp_posts WHERE post_type='wplit_product' AND post_status='publish' ORDER BY ID ASC LIMIT 1" );
+	const eventsBefore = sql( 'SELECT COUNT(*) FROM wp_wplit_license_events' );
+	const licensesBefore = sql( 'SELECT COUNT(*) FROM wp_wplit_licenses' );
+	check( ( await page.locator( '#wplit-test-reminder' ).count() ) === 1 && ( await page.locator( 'body' ).innerText() ).includes( adminEmail ), 'the settings offer a test email to the administrator\'s address' );
+	await Promise.all( [ page.waitForNavigation( { waitUntil: 'load' } ), page.click( '#wplit-test-reminder' ) ] );
+	await shot( page, '16-test-email-sent' );
+	check( ( await page.locator( '.notice-success' ).innerText() ).includes( 'A test reminder was sent to ' + adminEmail ), 'the screen says where it went' );
+	const test = mails();
+	check( 1 === test.length && String( test[ 0 ].to ) === adminEmail, 'one email went out, to the administrator only: ' + test.map( ( m ) => m.to ).join( ',' ) );
+	check( String( test[ 0 ] && test[ 0 ].subject ) === '[Test] Your ' + firstProduct + ' license expires in 30 days', 'its subject is the customer\'s, for the first product and the first number of days, marked [Test]: ' + ( test[ 0 ] && test[ 0 ].subject ) );
+	check( /Renew it here/.test( String( test[ 0 ] && test[ 0 ].message ) ) && String( test[ 0 ] && test[ 0 ].message ).includes( BASE + '/my-account/licenses/' ), 'its text and renewal link are the ones a customer with an account gets' );
+	check( eventsBefore === sql( 'SELECT COUNT(*) FROM wp_wplit_license_events' ) && licensesBefore === sql( 'SELECT COUNT(*) FROM wp_wplit_licenses' ), 'nothing was recorded on any license, and no license was made' );
+	const forged = await page.request.get( BASE + '/wp-admin/admin-post.php?action=wplit_test_reminder' );
+	check( 403 === forged.status() && 1 === mails().length, 'without the button\'s security token nothing is sent: ' + forged.status() );
+	woo( { op: 'clear_mail' } );
+
 	// 2. Off: the daily job emails nobody.
 	helper( 'run' );
 	check( mails().length === 0, 'with reminders off the daily job sends nothing, sent ' + mails().length );
