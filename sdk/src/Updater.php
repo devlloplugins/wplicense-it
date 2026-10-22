@@ -43,6 +43,11 @@ final class Updater {
 	private $manager;
 
 	/**
+	 * The admin-ajax action that shows a theme's update details.
+	 */
+	public const DETAILS_ACTION = 'wplicense_it_theme_details';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Config         $config  Configuration.
@@ -65,6 +70,7 @@ final class Updater {
 			add_action( 'after_plugin_row_' . $this->config->basename, array( $this, 'license_row' ), 10, 2 );
 		} else {
 			add_filter( 'pre_set_site_transient_update_themes', array( $this, 'add_theme_update' ) );
+			add_action( 'wp_ajax_' . self::DETAILS_ACTION, array( $this, 'theme_details' ) );
 		}
 
 		add_filter( 'upgrader_pre_download', array( $this, 'download_package' ), 10, 4 );
@@ -160,11 +166,93 @@ final class Updater {
 		return array(
 			'theme'        => $config->slug,
 			'new_version'  => $info->version,
-			'url'          => $config->server,
+			'url'          => self::details_url( $config ),
 			'package'      => $config->package_marker(),
 			'requires'     => $info->requires,
 			'requires_php' => '',
 		);
+	}
+
+	/**
+	 * Where WordPress's "View version x details" link for a theme goes: a page on the customer's own site, filled from
+	 * the update information the SDK already has (WordPress opens it in a popup frame). The seller's home page, used
+	 * before, often refuses to be shown in a frame and the popup stayed empty.
+	 *
+	 * @param Config $config Configuration.
+	 */
+	public static function details_url( Config $config ): string {
+		return add_query_arg(
+			array(
+				'action' => self::DETAILS_ACTION,
+				'theme'  => $config->slug,
+			),
+			admin_url( 'admin-ajax.php' )
+		);
+	}
+
+	/**
+	 * Shows the details page of this theme's update (see details_url()), to people who may see theme updates.
+	 */
+	public function theme_details(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Shows information only, like WordPress's own plugin details.
+		$theme = isset( $_GET['theme'] ) && is_string( $_GET['theme'] ) ? sanitize_text_field( wp_unslash( $_GET['theme'] ) ) : '';
+
+		if ( $theme !== $this->config->slug ) {
+			return; // Another theme's, answered by its own copy of the SDK.
+		}
+
+		if ( ! current_user_can( 'update_themes' ) && ! current_user_can( 'switch_themes' ) ) {
+			wp_die( esc_html( 'Sorry, you are not allowed to see this.' ), '', array( 'response' => 403 ) );
+		}
+
+		nocache_headers();
+		header( 'Content-Type: text/html; charset=utf-8' );
+		echo self::details_page( $this->config, $this->updates->latest( $this->manager->state(), time() ), str_replace( '_', '-', get_user_locale() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while it is built.
+		exit;
+	}
+
+	/**
+	 * The details page: name, version, requirements, what is new and the description, as WordPress shows them for a
+	 * plugin. Everything from the server is escaped.
+	 *
+	 * @param Config          $config Configuration.
+	 * @param UpdateInfo|null $info   Latest version, or null when there is none to show.
+	 * @param string          $lang   Language of the page.
+	 */
+	public static function details_page( Config $config, ?UpdateInfo $info, string $lang ): string {
+		$name = null !== $info && '' !== $info->name ? $info->name : $config->name;
+		$body = '';
+
+		if ( null === $info ) {
+			$body = '<h1>' . esc_html( $name ) . '</h1><p>No update details are available. The license may not be active on this site: check it on the theme\'s license page.</p>';
+		} else {
+			$banner = '' !== $info->banner_high ? $info->banner_high : $info->banner_low;
+			if ( '' !== $banner ) {
+				$body .= '<img class="banner" src="' . esc_url( $banner ) . '" alt="">';
+			}
+			$body .= '<h1>' . esc_html( $name ) . '</h1><ul class="meta">';
+			$body .= '<li><strong>Version:</strong> ' . esc_html( $info->version ) . '</li>';
+			if ( '' !== $info->requires ) {
+				$body .= '<li><strong>Requires WordPress:</strong> ' . esc_html( $info->requires ) . '</li>';
+			}
+			if ( '' !== $info->tested ) {
+				$body .= '<li><strong>Tested up to:</strong> ' . esc_html( $info->tested ) . '</li>';
+			}
+			$body .= '</ul>';
+			if ( '' !== trim( $info->changelog ) ) {
+				$body .= '<h2>What is new in ' . esc_html( $info->version ) . '</h2>' . wpautop( esc_html( $info->changelog ) );
+			}
+			if ( '' !== trim( $info->description ) ) {
+				$body .= '<h2>Description</h2>' . wpautop( esc_html( $info->description ) );
+			}
+		}
+
+		return '<!DOCTYPE html><html lang="' . esc_attr( $lang ) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+			. '<title>' . esc_html( $name . ( null !== $info ? ' ' . $info->version : '' ) ) . '</title>'
+			. '<style>body{margin:0;padding:0 24px 24px;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;color:#1d2327;background:#fff}'
+			. '.banner{display:block;width:calc(100% + 48px);max-height:250px;object-fit:cover;margin:0 -24px}h1{font-size:23px;font-weight:400;margin:24px 0 8px}h2{font-size:16px;margin:24px 0 8px}'
+			. '.meta{list-style:none;margin:0;padding:0;color:#50575e}.meta li{display:inline-block;margin-right:24px}</style></head><body>'
+			. $body . '</body></html>';
 	}
 
 	/**

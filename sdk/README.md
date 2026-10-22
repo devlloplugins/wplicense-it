@@ -45,7 +45,10 @@ wplicense_it_client( array(
 ) );
 ```
 
-Themes use `'type' => 'theme'` and `'slug' => 'my-theme'` (the theme folder name) instead of `'file'`.
+Themes use `'type' => 'theme'` and `'slug' => 'my-theme'` (the theme folder name) instead of `'file'`. A theme's "View version x
+details" link (Themes and Updates screens) opens a page served by the SDK on the customer's own site, with the name,
+version, requirements, what is new and the description from your server; only people who may switch or update themes
+can open it.
 
 That is all. Customers now find **Settings > My Plugin License**.
 

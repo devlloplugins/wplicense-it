@@ -34,3 +34,19 @@ if ( ! function_exists( 'trailingslashit' ) ) {
 if ( ! function_exists( 'current_user_can' ) ) {
 	function current_user_can( $capability ) { return $GLOBALS['wplit_test_can'] ?? true; }
 }
+
+if ( ! function_exists( 'admin_url' ) ) {
+	function admin_url( $path = '' ) { return 'https://customer.example.com/wp-admin/' . $path; }
+}
+
+if ( ! function_exists( 'add_query_arg' ) ) {
+	function add_query_arg( $args, $url ) { return $url . '?' . http_build_query( $args ); }
+}
+
+if ( ! function_exists( 'esc_url' ) ) {
+	function esc_url( $url ) { return htmlspecialchars( (string) $url, ENT_QUOTES ); }
+}
+
+if ( ! function_exists( 'esc_attr' ) ) {
+	function esc_attr( $text ) { return htmlspecialchars( (string) $text, ENT_QUOTES ); }
+}

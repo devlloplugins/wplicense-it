@@ -146,6 +146,11 @@ to an existing user. Everything it makes is written down as it goes (option `wpl
 after a run that stopped half way. The orders show in WooCommerce's reports until the demo is removed, so do not use it
 on a live store. Customers have random passwords; set one (Users, Edit) to see My Account as them.
 
+`tests/e2e/29-theme-updates.cjs` (18 checks) does for a theme what test 04 does for a plugin, on the customer site: the
+Connect code for a theme, the license page, the update offered, the "View version details" popup (a page on the customer
+site with version, requirements and what is new; an author is refused it), and installing the update into the same
+folder.
+
 `tests/e2e/28-demo-store.cjs` (35 checks) runs create, checks every license state, the releases, the published plans,
 the Licenses list, a customer's My Account and download, that no email was sent and a second run is refused, then
 runs remove and checks nothing of it is left (licenses, sites, history, order records, orders and refunds, products,

@@ -60,6 +60,43 @@ ${ changelog || '= ' + version + ' =\n* Release ' + version + '.\n' }`
 	return zip( root, path.join( DIR, 'wplit-sample-' + version + '.zip' ), 'wplit-sample' );
 }
 
+/**
+ * A tiny classic theme (folder wplit-sample-theme) with the client SDK, as a zip. code is the Connect tab's code,
+ * written into functions.php; changelog is the readme text under "== Changelog ==".
+ */
+function sampleTheme( version, changelog, code ) {
+	const root = path.join( DIR, 'theme-build-' + version );
+	fs.rmSync( root, { recursive: true, force: true } );
+	const theme = path.join( root, 'wplit-sample-theme' );
+	write( path.join( theme, 'style.css' ), `/*
+Theme Name: WPLit Sample Theme
+Description: A tiny theme for trying WPLicense It.
+Version: ${ version }
+Requires at least: 6.2
+Tested up to: 6.7
+Requires PHP: 7.4
+*/
+` );
+	write( path.join( theme, 'index.php' ), '<?php get_header(); while ( have_posts() ) { the_post(); the_content(); } get_footer();\n' );
+	write( path.join( theme, 'functions.php' ), '<?php\n' + ( code || '// The Connect code goes here.' ) + '\n' );
+	write( path.join( theme, 'readme.txt' ), `=== WPLit Sample Theme ===
+Requires at least: 6.2
+Tested up to: 6.7
+Requires PHP: 7.4
+Stable tag: ${ version }
+
+== Description ==
+
+A sample theme.
+
+== Changelog ==
+
+${ changelog || '= ' + version + ' =\n* Release ' + version + '.\n' }`
+	);
+	fs.cpSync( path.join( REPO, 'sdk' ), path.join( theme, 'vendor/wplicense-it-client' ), { recursive: true, filter: ( src ) => ! /phpcs\.xml\.dist$/.test( src ) } );
+	return zip( root, path.join( DIR, 'wplit-sample-theme-' + version + '.zip' ), 'wplit-sample-theme' );
+}
+
 /** A zip with no plugin header. */
 function notAPlugin() {
 	const root = path.join( DIR, 'not-a-plugin' );
@@ -89,4 +126,4 @@ function fakePng( name ) {
 	return file;
 }
 
-module.exports = { DIR, samplePlugin, notAPlugin, bigZip, png, fakePng };
+module.exports = { DIR, samplePlugin, sampleTheme, notAPlugin, bigZip, png, fakePng };

@@ -279,6 +279,43 @@ final class SdkUpdaterTest extends TestCase {
 		$this->assertSame( 'pretty-theme', $entry['theme'] );
 		$this->assertSame( '1.1.0', $entry['new_version'] );
 		$this->assertSame( 'wplicense-it://pretty-theme', $entry['package'] );
+		$this->assertSame( 'https://customer.example.com/wp-admin/admin-ajax.php?action=wplicense_it_theme_details&theme=pretty-theme', $entry['url'], 'View details opens a page on the customer\'s site, not the seller\'s home page' );
+	}
+
+	public function test_the_theme_details_page_shows_the_update_with_everything_escaped(): void {
+		$theme                            = Config::from_array(
+			array(
+				'server'     => 'https://shop.example.com',
+				'product_id' => 7,
+				'name'       => 'Pretty Theme',
+				'version'    => '1.0.0',
+				'type'       => 'theme',
+				'slug'       => 'pretty-theme',
+			)
+		);
+		$response                         = $this->update_response( '1.1.0' );
+		$response['product']['name']      = 'Pretty <b>Theme</b>';
+		$response['product']['changelog'] = "New header.\n<script>alert(1)</script>";
+		$page                             = Updater::details_page( $theme, UpdateInfo::from_response( $response ), 'de-DE' );
+
+		$this->assertStringStartsWith( '<!DOCTYPE html><html lang="de-DE">', $page );
+		$this->assertStringContainsString( '<h1>Pretty &lt;b&gt;Theme&lt;/b&gt;</h1>', $page );
+		$this->assertStringContainsString( '<strong>Version:</strong> 1.1.0', $page );
+		$this->assertStringContainsString( '<strong>Requires WordPress:</strong> 6.2', $page );
+		$this->assertStringContainsString( '<strong>Tested up to:</strong> 6.6', $page );
+		$this->assertStringContainsString( '<h2>What is new in 1.1.0</h2>', $page );
+		$this->assertStringContainsString( 'New header.', $page );
+		$this->assertStringContainsString( 'Does great things.', $page );
+		$this->assertStringContainsString( 'src="https://x/high.png"', $page );
+		$this->assertStringNotContainsString( '<script>', $page );
+	}
+
+	public function test_the_theme_details_page_says_so_when_there_is_nothing_to_show(): void {
+		$page = Updater::details_page( $this->config, null, 'en-US' );
+
+		$this->assertStringContainsString( '<h1>Great Plugin</h1>', $page );
+		$this->assertStringContainsString( 'No update details are available', $page );
+		$this->assertStringNotContainsString( 'Version:', $page );
 	}
 
 	public function test_the_details_popup_is_filled_for_our_plugin_only(): void {
