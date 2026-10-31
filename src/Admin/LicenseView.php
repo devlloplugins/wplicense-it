@@ -51,6 +51,7 @@ final class LicenseView {
 
 		$this->summary( $license );
 		$this->status_actions( $license );
+		$this->support( $license );
 		$this->edit_form( $license );
 		$this->sites( $license );
 		$this->history( $license );
@@ -74,6 +75,7 @@ final class LicenseView {
 		$this->row(
 			__( 'Customer', 'wplicense-it' ),
 			esc_html( $license->email ) . ( $user && current_user_can( 'edit_user', $user->ID ) ? ' · <a href="' . esc_url( get_edit_user_link( $user->ID ) ) . '">' . esc_html( $user->user_login ) . '</a>' : '' )
+			. ( $user ? '' : '<br><span class="description">' . esc_html__( 'Not linked to a user account, so it is not in anyone\'s My Account. Saving an email that belongs to an account links it.', 'wplicense-it' ) . '</span>' )
 		);
 		$this->row( __( 'Expires', 'wplicense-it' ), esc_html( null === $license->expires_at ? __( 'Never', 'wplicense-it' ) : wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $license->expires_at->getTimestamp() ) ) );
 		$this->row( __( 'Sites', 'wplicense-it' ), esc_html( $this->licenses->activations_used( $license ) . ' / ' . ( 0 === $license->activation_limit ? '∞' : $license->activation_limit ) ) );
@@ -118,6 +120,30 @@ final class LicenseView {
 			echo '</select> <button type="submit" class="button">' . esc_html__( 'Renew', 'wplicense-it' ) . '</button> ';
 			echo '<span class="description">' . esc_html__( 'Extends from the current expiry, or from today if it has expired.', 'wplicense-it' ) . '</span></form>';
 		}
+	}
+
+	/**
+	 * Resend the key, replace a leaked key, and private notes for the team.
+	 *
+	 * @param License $license License.
+	 */
+	private function support( License $license ): void {
+		$post = esc_url( admin_url( 'admin-post.php' ) );
+
+		echo '<h2>' . esc_html__( 'Support', 'wplicense-it' ) . '</h2>';
+		echo '<form method="post" action="' . $post . '" style="display:inline-block;margin-right:8px">' . Urls::form_fields( 'resend', $license->id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above and in form_fields().
+		echo '<button type="submit" class="button">' . esc_html__( 'Email the key to the customer', 'wplicense-it' ) . '</button></form>';
+
+		echo '<form method="post" action="' . $post . '" style="display:inline-block" onsubmit="return confirm(\'' . esc_js( __( 'Replace the key? The old key stops working at once, and the customer has to enter the new key on every site.', 'wplicense-it' ) ) . '\');">' . Urls::form_fields( 'replace_key', $license->id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above and in form_fields().
+		echo '<button type="submit" class="button">' . esc_html__( 'Replace the key', 'wplicense-it' ) . '</button> ';
+		echo '<label><input type="checkbox" name="send_email" value="1" checked> ' . esc_html__( 'Email the new key to the customer', 'wplicense-it' ) . '</label></form>';
+		echo '<p class="description">' . esc_html__( 'Replace the key when it leaked (shared or posted online): the sites keep their place and work again once the new key is entered there.', 'wplicense-it' ) . '</p>';
+
+		echo '<form method="post" action="' . $post . '">' . Urls::form_fields( 'note', $license->id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above and in form_fields().
+		echo '<p><label for="wplit-note"><strong>' . esc_html__( 'Private note', 'wplicense-it' ) . '</strong></label><br>';
+		echo '<textarea id="wplit-note" name="note" rows="2" class="large-text" maxlength="2000" style="max-width:760px"></textarea><br>';
+		echo '<span class="description">' . esc_html__( 'For your team. It is shown in the history below, never to the customer, but it is part of the customer\'s personal data export and is deleted when their data is erased.', 'wplicense-it' ) . '</span></p>';
+		echo '<p><button type="submit" class="button">' . esc_html__( 'Add note', 'wplicense-it' ) . '</button></p></form>';
 	}
 
 	/**
@@ -223,6 +249,9 @@ final class LicenseView {
 			EventLog::REMINDER          => __( 'Expiry reminder emailed', 'wplicense-it' ),
 			EventLog::INVOICED          => __( 'Renewal invoice sent', 'wplicense-it' ),
 			EventLog::IMPORTED          => __( 'Imported', 'wplicense-it' ),
+			EventLog::KEY_REPLACED      => __( 'Key replaced', 'wplicense-it' ),
+			EventLog::KEY_EMAILED       => __( 'Key emailed to the customer', 'wplicense-it' ),
+			EventLog::NOTE              => __( 'Note', 'wplicense-it' ),
 		);
 
 		return $labels[ $type ] ?? $type;

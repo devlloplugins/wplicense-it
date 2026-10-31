@@ -10,7 +10,8 @@ finds licenses linked to the WordPress account that uses that address.
 |---|---|---|
 | Licenses | The email address and WordPress account the license was issued to, the license key, the product, status and dates | To provide the license and updates, and to support the customer |
 | Activations | The addresses of the sites the license is activated on, the plugin version they reported, the dates | To enforce the site limit and let customers move a license |
-| License history | What happened to the license (issued, activated, renewed, edited, revoked) with dates | Support, and answering "why does my license not work" |
+| License history | What happened to the license (issued, activated, renewed, edited, revoked, key emailed or replaced) with dates | Support, and answering "why does my license not work" |
+| Private notes | What your team wrote on the license (shown in its history only to administrators, and part of the export) | Support |
 | License orders | Order number, total, currency, status, date, and the account | Accounting |
 | Expiry reminders | The license email address is used to send the reminder; the license history records that it was sent, the window and the expiry date, not the address | To remind customers to renew (off by default) |
 | Orders migrated from 1.x | Also the name, company, address, phone number and email from the checkout (can be switched off before migrating, **Licensing settings**) | Keeping the seller's existing records |
@@ -38,7 +39,7 @@ Erasing also takes the address off the list of those who stopped reminder emails
 Erasing **removes the identity and keeps the license**:
 
 - the email on each license becomes a placeholder (`erased-<id>@erased.invalid`) and the account link is removed;
-- email addresses are removed from the license history;
+- email addresses and the account link are removed from the license history, and the team's private notes are deleted;
 - name, company, address, phone and email are removed from order records, and the account link is removed;
 - the same is done to the 1.x tables.
 

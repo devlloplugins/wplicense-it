@@ -28,6 +28,9 @@ interface EventLog {
 	public const IMPORTED          = 'imported';
 	public const RENEWAL_REFUNDED  = 'renewal_refunded';
 	public const PURCHASE_REFUNDED = 'purchase_refunded';
+	public const KEY_REPLACED      = 'key_replaced';
+	public const KEY_EMAILED       = 'key_emailed';
+	public const NOTE              = 'note';
 
 	/**
 	 * Records an event.

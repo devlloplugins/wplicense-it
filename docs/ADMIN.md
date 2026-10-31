@@ -35,7 +35,8 @@ The daily job writes down when it last ran (`wplit_last_maintenance`), and downl
 A searchable, filterable, sortable list of every license.
 
 - **Views:** All, Active, Expired, Revoked, Refunded, each with a count.
-- **Search:** by key or customer email. **Filter:** by product.
+- **Search:** by key, customer email, a site the license is (or was) activated on (with or without `https://` and
+  `www.`), or an order number (`1234` or `#1234`). **Filter:** by product.
 - **Sort:** customer, status, expiry, created. **Per page:** a screen option.
 - **Bulk actions:** revoke, reinstate. Row actions: manage, revoke or reinstate.
 
@@ -45,7 +46,8 @@ Open a license (**Manage**) to see and change everything about it:
 |---|---|
 | Summary | Key, status, product, customer (with a link to their profile), expiry, sites used, created. |
 | Actions | Revoke, mark as refunded, reinstate, renew for 1 month to 2 years. |
-| Edit | Customer email, sites per license, expiry (keep, never, or valid through a date). |
+| Support | Email the key to the customer again (key, sites, how to activate, My Account link). Replace the key when it leaked: the old key stops working at once, the sites keep their place and work again once the new key is entered there; the new key can be emailed at once. Private notes for your team, shown in the history (never to the customer; included in their personal data export, deleted when their data is erased). |
+| Edit | Customer email, sites per license, expiry (keep, never, or valid through a date). A new email also moves the license to the WordPress account with that address, so it shows in that customer's My Account (or to no account if there is none). |
 | Active sites | Each active site with a Deactivate button, to free a slot for a customer. |
 | History | Everything that happened to the license: issued, activated, renewed, edited, revoked, with details. |
 
@@ -65,8 +67,9 @@ or shared, and bulk Revoke and Reinstate bring you back to the same view (same f
 ## Add license
 
 Issue a license by hand (gifts, support, licenses sold elsewhere). Choose the product, the customer's email
-and optionally a WordPress user (so it shows in their account), sites per license, expiry (never, after a
-period, or through a date), and whether to email the key to the customer.
+and optionally a WordPress user (so it shows in their account; without one, the account with that email is used if
+there is one), sites per license, expiry (never, after a period, or through a date), and whether to email the key to the
+customer.
 
 ## Import and export
 

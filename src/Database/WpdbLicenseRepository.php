@@ -14,6 +14,7 @@ use Devllo\WPLicenseIt\Licenses\License;
 use Devllo\WPLicenseIt\Licenses\LicensePage;
 use Devllo\WPLicenseIt\Licenses\LicenseQuery;
 use Devllo\WPLicenseIt\Licenses\LicenseRepository;
+use Devllo\WPLicenseIt\Licenses\SiteNormalizer;
 use Devllo\WPLicenseIt\Licenses\Status;
 use RuntimeException;
 use wpdb;
@@ -177,10 +178,28 @@ final class WpdbLicenseRepository implements LicenseRepository {
 		if ( '' !== $match ) {
 			$escaped = $this->db->esc_like( $query->search );
 			$like    = 'start' === $match ? $escaped . '%' : '%' . $escaped . '%';
-			$where[] = '(license_key LIKE %s OR email LIKE %s)';
+			$any     = array( 'license_key LIKE %s', 'email LIKE %s' );
 			$args[]  = $like;
 			$args[]  = $like;
-		}
+
+			// A site address finds the licenses that site is (or was) activated on, as the server stores it: no scheme, no www.
+			$site = false === strpos( $query->search, '@' ) && false !== strpos( $query->search, '.' ) ? SiteNormalizer::normalize( $query->search ) : null;
+			if ( null !== $site ) {
+				$site_like = 'start' === $match ? $this->db->esc_like( $site ) . '%' : '%' . $this->db->esc_like( $site ) . '%';
+				$any[]     = 'id IN (SELECT license_id FROM ' . Schema::table( $this->db->prefix, 'activations' ) . ' WHERE site LIKE %s)';
+				$args[]    = $site_like;
+			}
+
+			// An order number (1234 or #1234) finds the licenses of that WooCommerce order.
+			if ( preg_match( '/^#?(\d{1,18})$/', trim( $query->search ), $number ) ) {
+				$any[]  = 'order_id IN (SELECT id FROM ' . Schema::table( $this->db->prefix, 'license_orders' ) . ' WHERE order_number = %s OR (source = %s AND external_id = %s))';
+				$args[] = 'WC-' . $number[1];
+				$args[] = 'woocommerce';
+				$args[] = $number[1];
+			}
+
+			$where[] = '(' . implode( ' OR ', $any ) . ')';
+		}//end if
 
 		$clause = implode( ' AND ', $where );
 

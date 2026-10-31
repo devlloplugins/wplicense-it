@@ -102,6 +102,7 @@ Please post it in the [WordPress support forum](https://wordpress.org/support/pl
 * Releases: an upload that lost the license code, or carries another product's or server's, is kept as a draft instead of stopping updates for everyone who installs it.
 * Connect tab: a third step with the code that runs your features only with a license; theme products get an example theme.
 * Client SDK: the texts customers see are translatable (text domain wplicense-it-client, template in sdk/languages).
+* Licenses: search by site address or order number; a new email moves the license to that customer's account; email the key again, replace a leaked key, and private notes for your team.
 * Requires PHP 8.0 and WordPress 6.2.
 
 = 1.0.2 =

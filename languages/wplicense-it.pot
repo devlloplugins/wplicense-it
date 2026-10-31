@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-31T12:13:04+00:00\n"
+"POT-Creation-Date: 2026-10-31T12:44:39+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -170,7 +170,7 @@ msgstr ""
 
 #: src/Admin/AddLicenseScreen.php:47
 #: src/Admin/LicensesTable.php:80
-#: src/Admin/LicenseView.php:73
+#: src/Admin/LicenseView.php:74
 #: src/Admin/PlansBox.php:254
 #: src/Admin/TransferScreen.php:265
 #: src/WooCommerce/LicenseDisplay.php:138
@@ -179,7 +179,7 @@ msgid "Product"
 msgstr ""
 
 #: src/Admin/AddLicenseScreen.php:53
-#: src/Admin/LicenseView.php:135
+#: src/Admin/LicenseView.php:161
 msgid "Customer email"
 msgstr ""
 
@@ -196,7 +196,7 @@ msgid "Optional. A username or email. The license then shows in that customer's 
 msgstr ""
 
 #: src/Admin/AddLicenseScreen.php:57
-#: src/Admin/LicenseView.php:137
+#: src/Admin/LicenseView.php:163
 #: src/Admin/ProductScreen.php:245
 #: src/WooCommerce/ProductFields.php:74
 #: src/WooCommerce/ProductFields.php:136
@@ -208,12 +208,12 @@ msgid "Empty uses the product default (1). 0 is unlimited."
 msgstr ""
 
 #: src/Admin/AddLicenseScreen.php:59
-#: src/Admin/LicenseView.php:139
+#: src/Admin/LicenseView.php:165
 msgid "Expiry"
 msgstr ""
 
 #: src/Admin/AddLicenseScreen.php:60
-#: src/Admin/LicenseView.php:141
+#: src/Admin/LicenseView.php:167
 msgid "Never expires"
 msgstr ""
 
@@ -226,12 +226,12 @@ msgid "How long the license lasts"
 msgstr ""
 
 #: src/Admin/AddLicenseScreen.php:68
-#: src/Admin/LicenseView.php:142
+#: src/Admin/LicenseView.php:168
 msgid "Valid through"
 msgstr ""
 
 #: src/Admin/AddLicenseScreen.php:68
-#: src/Admin/LicenseView.php:142
+#: src/Admin/LicenseView.php:168
 msgid "Date the license is valid through"
 msgstr ""
 
@@ -393,35 +393,38 @@ msgstr ""
 msgid "Press Ctrl+C to copy the selected code."
 msgstr ""
 
-#: src/Admin/LicenseActions.php:138
+#: src/Admin/LicenseActions.php:171
+#: src/Admin/LicenseActions.php:298
 #: src/Licenses/LicenseService.php:253
 #: src/Licenses/LicenseService.php:301
 #: src/Licenses/LicenseService.php:329
 #: src/Licenses/LicenseService.php:497
 #: src/Licenses/LicenseService.php:529
 #: src/Licenses/LicenseService.php:560
+#: src/Licenses/LicenseService.php:636
+#: src/Licenses/LicenseService.php:660
 msgid "License not found."
 msgstr ""
 
-#: src/Admin/LicenseActions.php:146
+#: src/Admin/LicenseActions.php:179
 msgid "Site not active."
 msgstr ""
 
-#: src/Admin/LicenseActions.php:175
+#: src/Admin/LicenseActions.php:208
 msgid "Product not found."
 msgstr ""
 
-#: src/Admin/LicenseActions.php:182
+#: src/Admin/LicenseActions.php:215
 msgid "User not found."
 msgstr ""
 
-#: src/Admin/LicenseActions.php:245
+#: src/Admin/LicenseActions.php:282
 msgid "Choose a period to renew for."
 msgstr ""
 
-#: src/Admin/LicenseActions.php:324
+#: src/Admin/LicenseActions.php:385
 #: src/Admin/LicensesTable.php:266
-#: src/Admin/LicenseView.php:78
+#: src/Admin/LicenseView.php:80
 #: src/Compat/LegacyShortcodes.php:74
 #: src/Privacy/PrivacyService.php:177
 #: src/WooCommerce/AccountPage.php:208
@@ -431,7 +434,7 @@ msgid "Never"
 msgstr ""
 
 #. translators: 1: product name, 2: license key, 3: expiry date.
-#: src/Admin/LicenseActions.php:328
+#: src/Admin/LicenseActions.php:389
 #, php-format
 msgid ""
 "Thank you. Your license for %1$s is ready.\n"
@@ -441,8 +444,32 @@ msgid ""
 ""
 msgstr ""
 
+#. translators: %s: number of sites, or "unlimited".
+#: src/Admin/LicenseActions.php:396
+#, php-format
+msgid ""
+"Sites: %s\n"
+""
+msgstr ""
+
+#: src/Admin/LicenseActions.php:397
+#: src/WooCommerce/AccountPage.php:200
+msgid "unlimited"
+msgstr ""
+
+#: src/Admin/LicenseActions.php:399
+#: src/WooCommerce/LicenseDisplay.php:198
+msgid "To activate, enter the license key on the plugin or theme's license page in your WordPress admin."
+msgstr ""
+
+#: src/Admin/LicenseActions.php:401
+#: src/WooCommerce/LicenseDisplay.php:157
+#: src/WooCommerce/LicenseDisplay.php:179
+msgid "Download, renew and manage your licenses:"
+msgstr ""
+
 #. translators: %s: product name.
-#: src/Admin/LicenseActions.php:335
+#: src/Admin/LicenseActions.php:405
 #, php-format
 msgid "Your license for %s"
 msgstr ""
@@ -469,13 +496,13 @@ msgid "Revoke the selected licenses? They stop working immediately."
 msgstr ""
 
 #: src/Admin/LicensesTable.php:81
-#: src/Admin/LicenseView.php:75
+#: src/Admin/LicenseView.php:76
 #: src/Admin/OverviewScreen.php:377
 msgid "Customer"
 msgstr ""
 
 #: src/Admin/LicensesTable.php:82
-#: src/Admin/LicenseView.php:72
+#: src/Admin/LicenseView.php:73
 #: src/Admin/SettingsScreen.php:610
 #: src/Admin/TransferScreen.php:261
 #: src/Privacy/PrivacyService.php:168
@@ -486,7 +513,7 @@ msgid "Status"
 msgstr ""
 
 #: src/Admin/LicensesTable.php:83
-#: src/Admin/LicenseView.php:78
+#: src/Admin/LicenseView.php:80
 #: src/Admin/OverviewScreen.php:377
 #: src/Compat/LegacyShortcodes.php:74
 #: src/Privacy/PrivacyService.php:176
@@ -498,7 +525,7 @@ msgstr ""
 
 #. translators: 1: sites in use, 2: sites allowed.
 #: src/Admin/LicensesTable.php:84
-#: src/Admin/LicenseView.php:79
+#: src/Admin/LicenseView.php:81
 #: src/WooCommerce/AccountPage.php:210
 #: src/WooCommerce/LicenseDisplay.php:138
 #: src/WooCommerce/OrderLicensesBox.php:88
@@ -506,7 +533,7 @@ msgid "Sites"
 msgstr ""
 
 #: src/Admin/LicensesTable.php:85
-#: src/Admin/LicenseView.php:80
+#: src/Admin/LicenseView.php:82
 #: src/Admin/OverviewScreen.php:377
 #: src/Privacy/PrivacyService.php:180
 #: src/Privacy/PrivacyService.php:286
@@ -522,7 +549,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:114
 #: src/Admin/LicensesTable.php:312
-#: src/Admin/LicenseView.php:218
+#: src/Admin/LicenseView.php:244
 #: src/Admin/OverviewScreen.php:321
 #: src/Admin/OverviewScreen.php:377
 #: src/WooCommerce/AccountPage.php:245
@@ -531,7 +558,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:115
 #: src/Admin/LicensesTable.php:313
-#: src/Admin/LicenseView.php:219
+#: src/Admin/LicenseView.php:245
 #: src/Admin/OverviewScreen.php:322
 #: src/WooCommerce/AccountPage.php:242
 msgid "Revoked"
@@ -539,7 +566,7 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:116
 #: src/Admin/LicensesTable.php:314
-#: src/Admin/LicenseView.php:220
+#: src/Admin/LicenseView.php:246
 #: src/Admin/OverviewScreen.php:323
 #: src/WooCommerce/AccountPage.php:238
 msgid "Refunded"
@@ -552,13 +579,13 @@ msgstr ""
 
 #: src/Admin/LicensesTable.php:149
 #: src/Admin/LicensesTable.php:217
-#: src/Admin/LicenseView.php:105
+#: src/Admin/LicenseView.php:107
 msgid "Revoke"
 msgstr ""
 
 #: src/Admin/LicensesTable.php:150
 #: src/Admin/LicensesTable.php:211
-#: src/Admin/LicenseView.php:103
+#: src/Admin/LicenseView.php:105
 msgid "Reinstate"
 msgstr ""
 
@@ -586,7 +613,7 @@ msgid "Manage"
 msgstr ""
 
 #: src/Admin/LicensesTable.php:218
-#: src/Admin/LicenseView.php:105
+#: src/Admin/LicenseView.php:107
 msgid "Revoke this license? It stops working immediately."
 msgstr ""
 
@@ -603,7 +630,7 @@ msgstr ""
 msgid "All licenses"
 msgstr ""
 
-#: src/Admin/LicenseView.php:71
+#: src/Admin/LicenseView.php:72
 #: src/Compat/LegacyShortcodes.php:73
 #: src/Privacy/PrivacyService.php:156
 #: src/Privacy/PrivacyService.php:270
@@ -613,141 +640,193 @@ msgstr ""
 msgid "License key"
 msgstr ""
 
-#: src/Admin/LicenseView.php:100
+#: src/Admin/LicenseView.php:78
+msgid "Not linked to a user account, so it is not in anyone's My Account. Saving an email that belongs to an account links it."
+msgstr ""
+
+#: src/Admin/LicenseView.php:102
 msgid "Actions"
 msgstr ""
 
-#: src/Admin/LicenseView.php:106
+#: src/Admin/LicenseView.php:108
 msgid "Mark as refunded? It stops working immediately."
 msgstr ""
 
-#: src/Admin/LicenseView.php:106
+#: src/Admin/LicenseView.php:108
 msgid "Mark as refunded"
 msgstr ""
 
-#: src/Admin/LicenseView.php:112
+#: src/Admin/LicenseView.php:114
 msgid "Renew for"
 msgstr ""
 
-#: src/Admin/LicenseView.php:118
+#: src/Admin/LicenseView.php:120
 #: src/WooCommerce/AccountPage.php:221
 msgid "Renew"
 msgstr ""
 
-#: src/Admin/LicenseView.php:119
+#: src/Admin/LicenseView.php:121
 msgid "Extends from the current expiry, or from today if it has expired."
 msgstr ""
 
-#: src/Admin/LicenseView.php:131
-msgid "Edit"
+#: src/Admin/LicenseView.php:133
+msgid "Support"
+msgstr ""
+
+#: src/Admin/LicenseView.php:135
+msgid "Email the key to the customer"
 msgstr ""
 
 #: src/Admin/LicenseView.php:137
-msgid "0 is unlimited. Lowering it does not deactivate sites that are already active."
+msgid "Replace the key? The old key stops working at once, and the customer has to enter the new key on every site."
+msgstr ""
+
+#: src/Admin/LicenseView.php:138
+msgid "Replace the key"
+msgstr ""
+
+#: src/Admin/LicenseView.php:139
+msgid "Email the new key to the customer"
 msgstr ""
 
 #: src/Admin/LicenseView.php:140
-msgid "Keep as it is"
+msgid "Replace the key when it leaked (shared or posted online): the sites keep their place and work again once the new key is entered there."
+msgstr ""
+
+#: src/Admin/LicenseView.php:143
+msgid "Private note"
 msgstr ""
 
 #: src/Admin/LicenseView.php:145
-msgid "Save changes"
+msgid "For your team. It is shown in the history below, never to the customer, but it is part of the customer's personal data export and is deleted when their data is erased."
+msgstr ""
+
+#: src/Admin/LicenseView.php:146
+msgid "Add note"
 msgstr ""
 
 #: src/Admin/LicenseView.php:157
+msgid "Edit"
+msgstr ""
+
+#: src/Admin/LicenseView.php:163
+msgid "0 is unlimited. Lowering it does not deactivate sites that are already active."
+msgstr ""
+
+#: src/Admin/LicenseView.php:166
+msgid "Keep as it is"
+msgstr ""
+
+#: src/Admin/LicenseView.php:171
+msgid "Save changes"
+msgstr ""
+
+#: src/Admin/LicenseView.php:183
 msgid "Active sites"
 msgstr ""
 
-#: src/Admin/LicenseView.php:160
+#: src/Admin/LicenseView.php:186
 msgid "This license is not active on any site."
 msgstr ""
 
-#: src/Admin/LicenseView.php:165
+#: src/Admin/LicenseView.php:191
 msgid "Site"
 msgstr ""
 
-#: src/Admin/LicenseView.php:165
+#: src/Admin/LicenseView.php:191
 #: src/Admin/ProductScreen.php:282
 #: src/Admin/ReleasesBox.php:96
 msgid "Version"
 msgstr ""
 
-#: src/Admin/LicenseView.php:165
+#: src/Admin/LicenseView.php:191
 msgid "Activated"
 msgstr ""
 
-#: src/Admin/LicenseView.php:168
+#: src/Admin/LicenseView.php:194
 msgid "local or staging, not counted"
 msgstr ""
 
-#: src/Admin/LicenseView.php:172
+#: src/Admin/LicenseView.php:198
 #: src/WooCommerce/AccountPage.php:268
 msgid "Deactivate"
 msgstr ""
 
-#: src/Admin/LicenseView.php:186
+#: src/Admin/LicenseView.php:212
 #: src/Privacy/PrivacyService.php:194
 msgid "History"
 msgstr ""
 
-#: src/Admin/LicenseView.php:189
+#: src/Admin/LicenseView.php:215
 msgid "No history yet."
 msgstr ""
 
-#: src/Admin/LicenseView.php:194
+#: src/Admin/LicenseView.php:220
 msgid "When"
 msgstr ""
 
-#: src/Admin/LicenseView.php:194
+#: src/Admin/LicenseView.php:220
 msgid "Event"
 msgstr ""
 
-#: src/Admin/LicenseView.php:194
+#: src/Admin/LicenseView.php:220
 msgid "Details"
 msgstr ""
 
-#: src/Admin/LicenseView.php:212
+#: src/Admin/LicenseView.php:238
 msgid "Issued"
 msgstr ""
 
-#: src/Admin/LicenseView.php:213
+#: src/Admin/LicenseView.php:239
 msgid "Site activated"
 msgstr ""
 
-#: src/Admin/LicenseView.php:214
+#: src/Admin/LicenseView.php:240
 msgid "Site deactivated"
 msgstr ""
 
-#: src/Admin/LicenseView.php:215
+#: src/Admin/LicenseView.php:241
 msgid "Renewed"
 msgstr ""
 
-#: src/Admin/LicenseView.php:216
+#: src/Admin/LicenseView.php:242
 msgid "Renewal taken back"
 msgstr ""
 
-#: src/Admin/LicenseView.php:217
+#: src/Admin/LicenseView.php:243
 msgid "Purchase refunded, its time taken back"
 msgstr ""
 
-#: src/Admin/LicenseView.php:221
+#: src/Admin/LicenseView.php:247
 msgid "Reinstated"
 msgstr ""
 
-#: src/Admin/LicenseView.php:222
+#: src/Admin/LicenseView.php:248
 msgid "Edited"
 msgstr ""
 
-#: src/Admin/LicenseView.php:223
+#: src/Admin/LicenseView.php:249
 msgid "Expiry reminder emailed"
 msgstr ""
 
-#: src/Admin/LicenseView.php:224
+#: src/Admin/LicenseView.php:250
 msgid "Renewal invoice sent"
 msgstr ""
 
-#: src/Admin/LicenseView.php:225
+#: src/Admin/LicenseView.php:251
 msgid "Imported"
+msgstr ""
+
+#: src/Admin/LicenseView.php:252
+msgid "Key replaced"
+msgstr ""
+
+#: src/Admin/LicenseView.php:253
+msgid "Key emailed to the customer"
+msgstr ""
+
+#: src/Admin/LicenseView.php:254
+msgid "Note"
 msgstr ""
 
 #: src/Admin/Notices.php:25
@@ -782,43 +861,55 @@ msgstr ""
 msgid "License issued and emailed to the customer."
 msgstr ""
 
-#: src/Admin/Notices.php:43
-msgid "That license no longer exists."
+#: src/Admin/Notices.php:33
+msgid "The license key was emailed to the customer."
 msgstr ""
 
-#: src/Admin/Notices.php:44
-msgid "Some of the values were not valid. Nothing was changed."
+#: src/Admin/Notices.php:34
+msgid "The license has a new key. The old key no longer works; the customer enters the new one on their sites."
 msgstr ""
 
-#: src/Admin/Notices.php:45
-msgid "That is not a valid email address. Nothing was changed."
+#: src/Admin/Notices.php:35
+msgid "Note added."
 msgstr ""
 
 #: src/Admin/Notices.php:46
-msgid "A revoked or refunded license cannot be renewed. Reinstate it first."
+msgid "That license no longer exists."
 msgstr ""
 
 #: src/Admin/Notices.php:47
-msgid "That site is not active on this license."
+msgid "Some of the values were not valid. Nothing was changed."
 msgstr ""
 
 #: src/Admin/Notices.php:48
-msgid "No user was found for that username or email."
+msgid "That is not a valid email address. Nothing was changed."
 msgstr ""
 
 #: src/Admin/Notices.php:49
+msgid "A revoked or refunded license cannot be renewed. Reinstate it first."
+msgstr ""
+
+#: src/Admin/Notices.php:50
+msgid "That site is not active on this license."
+msgstr ""
+
+#: src/Admin/Notices.php:51
+msgid "No user was found for that username or email."
+msgstr ""
+
+#: src/Admin/Notices.php:52
 msgid "Choose a published license product."
 msgstr ""
 
 #. translators: %d: number of licenses.
-#: src/Admin/Notices.php:68
+#: src/Admin/Notices.php:71
 #, php-format
 msgid "%d license updated."
 msgid_plural "%d licenses updated."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/Notices.php:74
+#: src/Admin/Notices.php:77
 msgid "Something went wrong."
 msgstr ""
 
@@ -2043,7 +2134,11 @@ msgstr ""
 msgid "Only a revoked or refunded license can be reinstated."
 msgstr ""
 
-#: src/Licenses/LicenseService.php:1023
+#: src/Licenses/LicenseService.php:664
+msgid "The note is empty."
+msgstr ""
+
+#: src/Licenses/LicenseService.php:1091
 msgid "Could not generate a unique license key."
 msgstr ""
 
@@ -2967,10 +3062,6 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: src/WooCommerce/AccountPage.php:200
-msgid "unlimited"
-msgstr ""
-
 #. translators: 1: sites in use, 2: sites allowed.
 #: src/WooCommerce/AccountPage.php:210
 #, php-format
@@ -3054,16 +3145,7 @@ msgid "WPLicense It: the license key was emailed to the customer."
 msgstr ""
 
 #: src/WooCommerce/LicenseDisplay.php:157
-#: src/WooCommerce/LicenseDisplay.php:179
-msgid "Download, renew and manage your licenses:"
-msgstr ""
-
-#: src/WooCommerce/LicenseDisplay.php:157
 msgid "My Account, Licenses"
-msgstr ""
-
-#: src/WooCommerce/LicenseDisplay.php:198
-msgid "To activate, enter the license key on the plugin or theme's license page in your WordPress admin."
 msgstr ""
 
 #: src/WooCommerce/LicenseDisplay.php:205

@@ -595,6 +595,11 @@ final class LicenseService {
 			}
 		}
 
+		if ( $changes->change_user && $changes->user_id !== $license->user_id ) {
+			$diff['user_id']  = array( $license->user_id, $changes->user_id );
+			$updated->user_id = $changes->user_id;
+		}
+
 		if ( $changes->change_expiry && $this->format( $changes->expires_at ) !== $this->format( $license->expires_at ) ) {
 			$diff['expires_at']  = array( $this->format( $license->expires_at ), $this->format( $changes->expires_at ) );
 			$updated->expires_at = $changes->expires_at;
@@ -614,6 +619,69 @@ final class LicenseService {
 		$this->events->record( $updated->id, EventLog::UPDATED, $diff );
 
 		return $updated;
+	}
+
+	/**
+	 * Gives a license a new key, for one that leaked. The old key stops working at once; the sites it is active on keep
+	 * their place and use the new key when the customer enters it there. Only the end of the old key is kept, in the
+	 * history.
+	 *
+	 * @param int $license_id License ID.
+	 * @throws LicenseException If the license does not exist or no unique key could be made.
+	 */
+	public function replace_key( int $license_id ): License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		$updated              = clone $license;
+		$updated->license_key = $this->unique_key();
+		$updated->updated_at  = $this->now();
+		$this->licenses->update( $updated );
+		$this->events->record( $updated->id, EventLog::KEY_REPLACED, array( 'old_key_ends' => substr( $license->license_key, -5 ) ) );
+
+		return $updated;
+	}
+
+	/**
+	 * Adds a private note for the team to a license's history. Never shown to the customer.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $text       The note, up to 2000 characters.
+	 * @param string $by         Who wrote it (display name).
+	 * @throws LicenseException If the license does not exist or the note is empty.
+	 */
+	public function add_note( int $license_id, string $text, string $by ): void {
+		$text = trim( $text );
+
+		if ( null === $this->licenses->find( $license_id ) ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		if ( '' === $text ) {
+			throw new LicenseException( LicenseException::INVALID_INPUT, __( 'The note is empty.', 'wplicense-it' ) );
+		}
+
+		$this->events->record(
+			$license_id,
+			EventLog::NOTE,
+			array(
+				'note' => function_exists( 'mb_substr' ) ? mb_substr( $text, 0, 2000 ) : substr( $text, 0, 2000 ),
+				'by'   => $by,
+			)
+		);
+	}
+
+	/**
+	 * Records that the key was emailed to the customer again.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $to         Address it went to.
+	 */
+	public function key_emailed( int $license_id, string $to ): void {
+		$this->events->record( $license_id, EventLog::KEY_EMAILED, array( 'to' => $to ) );
 	}
 
 	/**

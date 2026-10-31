@@ -29,6 +29,12 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/37-support-desk.cjs` (19 checks): the Licenses search finds a license by its site (with https and www too)
+and its order number (with or without #); a new email links it to that customer's account, and a license added by hand
+without a user goes to the account with its email; the key is emailed again with the sites; Replace the key stops the
+old key, keeps the site and emails the new one; a private note shows in the history, and erasing the customer's data
+removes it and their address from the history.
+
 `tests/e2e/36-license-aware.cjs` (12 checks): the Connect tab's third step with the folder name and its Copy button; a
 German translation of the SDK in the customer site's languages folder translates the license page's status and one in
 the plugin's own folder its title, other texts staying English; a theme product's example theme downloads with the SDK,

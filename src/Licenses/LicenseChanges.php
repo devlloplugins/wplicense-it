@@ -43,4 +43,19 @@ final class LicenseChanges {
 	 * @var string|null
 	 */
 	public ?string $email = null;
+
+	/**
+	 * Whether to change the WordPress user the license belongs to (its My Account), needed because null is a valid new
+	 * value: no user.
+	 *
+	 * @var bool
+	 */
+	public bool $change_user = false;
+
+	/**
+	 * New WordPress user ID, null for none. Only used when $change_user is true.
+	 *
+	 * @var int|null
+	 */
+	public ?int $user_id = null;
 }

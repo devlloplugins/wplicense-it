@@ -107,7 +107,7 @@ final class LicenseActions {
 				);
 
 			case 'update':
-				$this->licenses->update_license( $license_id, $this->changes_from_request() );
+				$this->licenses->update_license( $license_id, $this->changes_from_request( $this->existing( $license_id ) ) );
 
 				return array(
 					'url'    => $view,
@@ -116,6 +116,39 @@ final class LicenseActions {
 
 			case 'deactivate_site':
 				return $this->deactivate_site( $license_id );
+
+			case 'resend':
+				$license = $this->existing( $license_id );
+				$this->email_customer( $license, (string) get_the_title( $license->product_id ) );
+				$this->licenses->key_emailed( $license->id, $license->email );
+
+				return array(
+					'url'    => $view,
+					'notice' => 'resent',
+				);
+
+			case 'replace_key':
+				$license = $this->licenses->replace_key( $license_id );
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified in handle().
+				if ( ! empty( $_POST['send_email'] ) ) {
+					$this->email_customer( $license, (string) get_the_title( $license->product_id ) );
+					$this->licenses->key_emailed( $license->id, $license->email );
+				}
+
+				return array(
+					'url'    => $view,
+					'notice' => 'key_replaced',
+				);
+
+			case 'note':
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified in handle().
+				$note = isset( $_POST['note'] ) ? sanitize_textarea_field( wp_unslash( $_POST['note'] ) ) : '';
+				$this->licenses->add_note( $license_id, $note, wp_get_current_user()->display_name );
+
+				return array(
+					'url'    => $view,
+					'notice' => 'noted',
+				);
 
 			case 'add':
 				return $this->add_license();
@@ -184,6 +217,10 @@ final class LicenseActions {
 
 			$user_id = (int) $user->ID;
 			$email   = '' === $email ? $user->user_email : $email;
+		} elseif ( '' !== $email ) {
+			// No user chosen: the customer with that address gets it in their My Account.
+			$user    = get_user_by( 'email', $email );
+			$user_id = $user ? (int) $user->ID : null;
 		}
 
 		if ( '' !== $limit && ! ctype_digit( $limit ) ) {
@@ -249,11 +286,29 @@ final class LicenseActions {
 	}
 
 	/**
-	 * Reads the Edit form.
+	 * A license that must exist.
 	 *
+	 * @param int $license_id License ID.
+	 * @throws LicenseException If it does not.
+	 */
+	private function existing( int $license_id ): License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		return $license;
+	}
+
+	/**
+	 * Reads the Edit form. A new email address also decides whose My Account the license is in: it is linked to the
+	 * WordPress user with that address, or to no one.
+	 *
+	 * @param License $license The license as it is.
 	 * @throws LicenseException If a value is invalid.
 	 */
-	private function changes_from_request(): LicenseChanges {
+	private function changes_from_request( License $license ): LicenseChanges {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified in handle().
 		$limit = isset( $_POST['activation_limit'] ) ? sanitize_text_field( wp_unslash( $_POST['activation_limit'] ) ) : '';
 		$email = self::posted_email();
@@ -272,6 +327,12 @@ final class LicenseActions {
 
 		if ( '' !== $email ) {
 			$changes->email = $email;
+
+			if ( strtolower( $email ) !== $license->email ) {
+				$user                 = get_user_by( 'email', $email );
+				$changes->change_user = true;
+				$changes->user_id     = $user ? (int) $user->ID : null;
+			}
 		}
 
 		if ( 'lifetime' === $mode ) {
@@ -330,6 +391,15 @@ final class LicenseActions {
 			$license->license_key,
 			$expires
 		);
+		$message .= sprintf(
+			/* translators: %s: number of sites, or "unlimited". */
+			__( "Sites: %s\n", 'wplicense-it' ),
+			0 === $license->activation_limit ? __( 'unlimited', 'wplicense-it' ) : (string) $license->activation_limit
+		);
+		$message .= "\n" . __( 'To activate, enter the license key on the plugin or theme\'s license page in your WordPress admin.', 'wplicense-it' ) . "\n";
+		if ( null !== $license->user_id && function_exists( 'wc_get_account_endpoint_url' ) ) {
+			$message .= __( 'Download, renew and manage your licenses:', 'wplicense-it' ) . ' ' . wc_get_account_endpoint_url( 'licenses' ) . "\n";
+		}
 
 		/* translators: %s: product name. */
 		wp_mail( $license->email, sprintf( __( 'Your license for %s', 'wplicense-it' ), $product_name ), $message );

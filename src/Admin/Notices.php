@@ -22,14 +22,17 @@ final class Notices {
 	 */
 	public static function messages(): array {
 		return array(
-			'revoked'     => __( 'License revoked.', 'wplicense-it' ),
-			'refunded'    => __( 'License marked as refunded.', 'wplicense-it' ),
-			'reinstated'  => __( 'License reinstated.', 'wplicense-it' ),
-			'renewed'     => __( 'License renewed.', 'wplicense-it' ),
-			'updated'     => __( 'License updated.', 'wplicense-it' ),
-			'deactivated' => __( 'Site deactivated.', 'wplicense-it' ),
-			'issued'      => __( 'License issued.', 'wplicense-it' ),
-			'emailed'     => __( 'License issued and emailed to the customer.', 'wplicense-it' ),
+			'revoked'      => __( 'License revoked.', 'wplicense-it' ),
+			'refunded'     => __( 'License marked as refunded.', 'wplicense-it' ),
+			'reinstated'   => __( 'License reinstated.', 'wplicense-it' ),
+			'renewed'      => __( 'License renewed.', 'wplicense-it' ),
+			'updated'      => __( 'License updated.', 'wplicense-it' ),
+			'deactivated'  => __( 'Site deactivated.', 'wplicense-it' ),
+			'issued'       => __( 'License issued.', 'wplicense-it' ),
+			'emailed'      => __( 'License issued and emailed to the customer.', 'wplicense-it' ),
+			'resent'       => __( 'The license key was emailed to the customer.', 'wplicense-it' ),
+			'key_replaced' => __( 'The license has a new key. The old key no longer works; the customer enters the new one on their sites.', 'wplicense-it' ),
+			'noted'        => __( 'Note added.', 'wplicense-it' ),
 		);
 	}
 

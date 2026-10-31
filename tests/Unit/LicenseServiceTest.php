@@ -399,4 +399,47 @@ final class LicenseServiceTest extends TestCase {
 		);
 		$this->assertSame( array(), $this->service->recently_expired( 30, 10 ) );
 	}
+
+	// Support tools (card 104).
+
+	public function test_replacing_the_key_stops_the_old_one_and_keeps_the_sites(): void {
+		$license = $this->service->issue_license( 7, 'a@example.com', null, null, 2, null );
+		$this->service->activate( $license->license_key, 'https://one.example.com', 7 );
+		$old = $license->license_key;
+
+		$new = $this->service->replace_key( $license->id );
+
+		$this->assertNotSame( $old, $new->license_key );
+		$this->assertNull( $this->service->find_by_key( $old ), 'the old key finds nothing' );
+		$this->assertSame( 1, $this->service->activations_used( $new ), 'the site keeps its place' );
+		$event = $this->events->of_type( $license->id, EventLog::KEY_REPLACED, 1 )[0];
+		$this->assertSame( substr( $old, -5 ), $event['data']['old_key_ends'], 'only the end of the old key is kept' );
+	}
+
+	public function test_a_note_goes_into_the_history(): void {
+		$license = $this->service->issue_license( 7, 'a@example.com', null, null, 1, null );
+
+		$this->service->add_note( $license->id, "  Called about a refund.\n", 'Ada' );
+
+		$note = $this->events->of_type( $license->id, EventLog::NOTE, 1 )[0];
+		$this->assertSame( 'Called about a refund.', $note['data']['note'] );
+		$this->assertSame( 'Ada', $note['data']['by'] );
+		$this->expectException( \Devllo\WPLicenseIt\Licenses\LicenseException::class );
+		$this->service->add_note( $license->id, '   ', 'Ada' );
+	}
+
+	public function test_the_user_follows_an_edit_only_when_asked(): void {
+		$license = $this->service->issue_license( 7, 'a@example.com', 5, null, 1, null );
+
+		$changes        = new \Devllo\WPLicenseIt\Licenses\LicenseChanges();
+		$changes->email = 'b@example.com';
+		$this->assertSame( 5, $this->service->update_license( $license->id, $changes )->user_id, 'an email alone leaves the user' );
+
+		$changes->change_user = true;
+		$changes->user_id     = null;
+		$changes->email       = 'c@example.com';
+		$updated              = $this->service->update_license( $license->id, $changes );
+		$this->assertNull( $updated->user_id );
+		$this->assertSame( array( 5, null ), $this->events->of_type( $license->id, EventLog::UPDATED, 1 )[0]['data']['user_id'] );
+	}
 }

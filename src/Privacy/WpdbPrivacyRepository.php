@@ -15,6 +15,7 @@ use Devllo\WPLicenseIt\Database\Schema;
 use Devllo\WPLicenseIt\Database\WpdbActivationRepository;
 use Devllo\WPLicenseIt\Database\WpdbEventLog;
 use Devllo\WPLicenseIt\Database\WpdbLicenseRepository;
+use Devllo\WPLicenseIt\Licenses\EventLog;
 use wpdb;
 
 /**
@@ -178,14 +179,17 @@ final class WpdbPrivacyRepository implements PrivacyRepository {
 			array( '%d' )
 		);
 
-		// History that recorded an old or new email address (an edit) loses it.
-		$rows = $this->db->get_results( $this->db->prepare( "SELECT id, data FROM {$this->events_table} WHERE license_id = %d AND data LIKE %s", $license_id, '%"email"%' ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+		// The team's private notes may say anything about the person: they go.
+		$this->db->query( $this->db->prepare( "DELETE FROM {$this->events_table} WHERE license_id = %d AND type = %s", $license_id, EventLog::NOTE ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
+
+		// History that recorded an email address (an edit, a key emailed again) or the account it was linked to loses it.
+		$rows = $this->db->get_results( $this->db->prepare( "SELECT id, data FROM {$this->events_table} WHERE license_id = %d AND (data LIKE %s OR data LIKE %s OR data LIKE %s)", $license_id, '%"email"%', '%"to"%', '%"user_id"%' ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is built from the prefix.
 
 		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
 			$data = json_decode( (string) $row['data'], true );
 
 			if ( is_array( $data ) ) {
-				unset( $data['email'] );
+				unset( $data['email'], $data['to'], $data['user_id'] );
 				$this->db->update( $this->events_table, array( 'data' => array() === $data ? null : wp_json_encode( $data ) ), array( 'id' => (int) $row['id'] ), array( '%s' ), array( '%d' ) );
 			}
 		}
