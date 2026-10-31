@@ -78,3 +78,6 @@ Sellers must not need a paid plugin to use WPLicense It, so renewals are layered
 | 40 | Activating an expired key (card 111) | Refused, with the Renew link; sites already on it keep their slot for when it is renewed. |
 | 41 | What the seller sees (card 111) | The Overview lists licenses that expired in the last 30 days and were not renewed, and the renewal rate of the last 90 days, with a link to all expired licenses. |
 | 42 | Refunding the first purchase of a renewed license (card 103 follow-up) | Takes off only the period that purchase paid for; renewals paid by other orders stay (expired if the date has passed). A license with no renewal left is ended as before. |
+| 43 | Releases without the license code (card 112) | An upload whose `wplicense_it_client()` call names another product or server, or that lost the code the current release has, is saved as a draft and not offered; "Make current anyway" publishes it. A product that never had the code yet only gets a warning, so the first upload before the Connect step is not blocked. |
+| 44 | When a release goes live (card 112) | At once on upload, as before; rolling back is Make current on an older release. No draft-first step. |
+| 45 | Telling customers about a release (card 112) | No email: WordPress's Updates and Plugins screens show it to customers with an active license. |

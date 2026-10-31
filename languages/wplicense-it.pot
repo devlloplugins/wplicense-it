@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-22T23:09:44+00:00\n"
+"POT-Creation-Date: 2026-10-31T12:02:14+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -1066,6 +1066,7 @@ msgid "On sale"
 msgstr ""
 
 #: src/Admin/PlansBox.php:189
+#: src/Admin/ReleasesBox.php:108
 msgid "Draft"
 msgstr ""
 
@@ -1116,12 +1117,12 @@ msgid "The plans were not saved. Fix these and save again:"
 msgstr ""
 
 #: src/Admin/PlansBox.php:272
-#: src/Admin/ReleasesBox.php:212
+#: src/Admin/ReleasesBox.php:217
 msgid "This link has expired. Go back and try again."
 msgstr ""
 
 #: src/Admin/PlansBox.php:275
-#: src/Admin/ReleasesBox.php:215
+#: src/Admin/ReleasesBox.php:220
 msgid "You are not allowed to do that."
 msgstr ""
 
@@ -1393,59 +1394,71 @@ msgstr ""
 msgid "Current"
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:116
+#: src/Admin/ReleasesBox.php:109
+msgid "Not offered to customers:"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:120
+msgid "Customers who install this release may stop getting updates. Make it current anyway?"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:120
+msgid "Make current anyway"
+msgstr ""
+
+#: src/Admin/ReleasesBox.php:121
 msgid "Make current"
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:117
+#: src/Admin/ReleasesBox.php:122
 msgid "Delete this release and its zip file? This cannot be undone."
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:117
+#: src/Admin/ReleasesBox.php:122
 msgid "Delete"
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:136
+#: src/Admin/ReleasesBox.php:141
 msgid "Edit notes"
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:142
+#: src/Admin/ReleasesBox.php:147
 msgid "Release notes"
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:145
+#: src/Admin/ReleasesBox.php:150
 msgid "Plain text, one change per line. Customers see this on the Changelog tab of the update popup."
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:146
+#: src/Admin/ReleasesBox.php:151
 msgid "Save notes"
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:147
+#: src/Admin/ReleasesBox.php:152
 msgid "Cancel"
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:222
+#: src/Admin/ReleasesBox.php:227
 msgid "This link cannot be opened directly. Use Edit notes in the release history."
 msgstr ""
 
 #. translators: %s: version.
-#: src/Admin/ReleasesBox.php:248
+#: src/Admin/ReleasesBox.php:253
 #, php-format
 msgid "Version %s is now the release customers get."
 msgstr ""
 
 #. translators: %s: version.
-#: src/Admin/ReleasesBox.php:252
+#: src/Admin/ReleasesBox.php:257
 #, php-format
 msgid "Version %s was removed from the history."
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:259
+#: src/Admin/ReleasesBox.php:264
 msgid "The release notes were saved."
 msgstr ""
 
-#: src/Admin/ReleasesBox.php:266
+#: src/Admin/ReleasesBox.php:271
 msgid "The release was removed from the list, but its file stays on the server:"
 msgstr ""
 
@@ -2109,69 +2122,69 @@ msgstr ""
 msgid "License %d has an old product API key. 1.x clients using it will stop validating."
 msgstr ""
 
-#: src/Packages/PackageReader.php:37
+#: src/Packages/PackageReader.php:39
 msgid "This server cannot open zip files (the PHP zip extension is missing), so the details cannot be read from the file."
 msgstr ""
 
-#: src/Packages/PackageReader.php:42
+#: src/Packages/PackageReader.php:44
 msgid "This file is not a readable zip."
 msgstr ""
 
-#: src/Packages/PackageReader.php:58
+#: src/Packages/PackageReader.php:60
 msgid "This zip has too many files to be a plugin or theme."
 msgstr ""
 
-#: src/Packages/PackageReader.php:71
+#: src/Packages/PackageReader.php:73
 msgid "This zip is empty."
 msgstr ""
 
-#: src/Packages/PackageReader.php:102
+#: src/Packages/PackageReader.php:104
 msgid "The name in the file header is empty."
 msgstr ""
 
-#: src/Packages/PackageReader.php:109
+#: src/Packages/PackageReader.php:111
 msgid "The file header has no Version. Add a \"Version:\" line to the style.css and upload again."
 msgstr ""
 
-#: src/Packages/PackageReader.php:110
+#: src/Packages/PackageReader.php:112
 msgid "The file header has no Version. Add a \"Version:\" line to the main plugin file and upload again."
 msgstr ""
 
 #. translators: %s: the version found in the file.
-#: src/Packages/PackageReader.php:118
+#: src/Packages/PackageReader.php:120
 #, php-format
 msgid "The version \"%s\" is not a valid version number. Use something like 1.4.2."
 msgstr ""
 
-#: src/Packages/PackageReader.php:134
+#: src/Packages/PackageReader.php:137
 msgid "No \"Requires at least\" (minimum WordPress version) was found. Customers will see no minimum."
 msgstr ""
 
-#: src/Packages/PackageReader.php:137
+#: src/Packages/PackageReader.php:140
 msgid "No \"Requires PHP\" (minimum PHP version) was found. Customers will see no minimum."
 msgstr ""
 
 #. translators: %s: folder names.
-#: src/Packages/PackageReader.php:170
+#: src/Packages/PackageReader.php:262
 #, php-format
 msgid "This zip has more than one folder at the top (%s). A plugin or theme zip should contain just one folder."
 msgstr ""
 
-#: src/Packages/PackageReader.php:176
+#: src/Packages/PackageReader.php:268
 msgid "The zip should contain one folder with all the files inside it. WordPress uses that folder name when it installs and updates, so a zip without it can install under the wrong name."
 msgstr ""
 
 #. translators: 1: stable tag in readme.txt, 2: version in the file header.
-#: src/Packages/PackageReader.php:287
+#: src/Packages/PackageReader.php:379
 #, php-format
 msgid "readme.txt says Stable tag %1$s but the file header says version %2$s. Update one so they match."
 msgstr ""
 
-#: src/Packages/PackageReader.php:300
+#: src/Packages/PackageReader.php:392
 msgid "This zip contains another zip. Upload the inner zip instead."
 msgstr ""
 
-#: src/Packages/PackageReader.php:304
+#: src/Packages/PackageReader.php:396
 msgid "No plugin or theme was found in this zip. A plugin needs a PHP file with a \"Plugin Name:\" header directly inside its folder. A theme needs a style.css with a \"Theme Name:\" header."
 msgstr ""
 
@@ -2356,26 +2369,32 @@ msgstr ""
 msgid "License orders (WPLicense It 1.x)"
 msgstr ""
 
-#: src/Products/ProductSaver.php:170
-#: src/Products/ProductSaver.php:179
-#: src/Products/ProductSaver.php:183
+#: src/Products/ProductSaver.php:171
+#: src/Products/ProductSaver.php:180
+#: src/Products/ProductSaver.php:184
 msgid "The release was not saved."
 msgstr ""
 
-#: src/Products/ProductSaver.php:252
+#. translators: 1: version, 2: why.
+#: src/Products/ProductSaver.php:199
+#, php-format
+msgid "Release %1$s was saved as a draft and is not offered to customers: %2$s Fix the zip and upload it again, or use \"Make current anyway\" in the Release history if you are sure."
+msgstr ""
+
+#: src/Products/ProductSaver.php:267
 msgid "The release notes were not saved: there is no release yet. Upload a zip first."
 msgstr ""
 
-#: src/Products/ProductSaver.php:259
+#: src/Products/ProductSaver.php:274
 msgid "The release notes were updated."
 msgstr ""
 
-#: src/Products/ProductSaver.php:363
+#: src/Products/ProductSaver.php:378
 msgid "The upload could not be verified. Try again."
 msgstr ""
 
 #. translators: 1: software name, 2: version, 3: plugin or theme.
-#: src/Products/ProductSaver.php:384
+#: src/Products/ProductSaver.php:399
 #, php-format
 msgid "Release saved. Read from the zip: %1$s %2$s (%3$s)."
 msgstr ""
@@ -2454,17 +2473,45 @@ msgstr ""
 msgid "The image could not be stored."
 msgstr ""
 
+#. translators: 1: product ID in the zip, 2: this product's ID.
+#: src/Releases/LicenseCodeCheck.php:48
+#, php-format
+msgid "Its wplicense_it_client() call is for product %1$d, not this product (%2$d), so customers would check the wrong product and get no updates. Copy the code from this product's Connect tab."
+msgstr ""
+
+#. translators: 1: server address in the zip, 2: this site's address.
+#: src/Releases/LicenseCodeCheck.php:57
+#, php-format
+msgid "Its wplicense_it_client() call names the license server %1$s, but this site is %2$s, so customers would not reach it for updates."
+msgstr ""
+
+#: src/Releases/LicenseCodeCheck.php:66
+msgid "The client SDK is in the zip, but no wplicense_it_client() call was found."
+msgstr ""
+
+#: src/Releases/LicenseCodeCheck.php:67
+msgid "The client SDK (wplicense-it-client.php) was not found in the zip."
+msgstr ""
+
+#: src/Releases/LicenseCodeCheck.php:70
+msgid "The release customers have now includes it, so whoever installs this one would stop getting updates."
+msgstr ""
+
+#: src/Releases/LicenseCodeCheck.php:72
+msgid "Until a release includes the code from the Connect tab, customers cannot activate their license or get updates."
+msgstr ""
+
 #. translators: 1: version of this release, 2: version customers had.
-#: src/Releases/ReleaseService.php:122
+#: src/Releases/ReleaseService.php:125
 #, php-format
 msgid "This release (%1$s) is older than the one customers had (%2$s). Sites already on %2$s will not be offered it."
 msgstr ""
 
-#: src/Releases/ReleaseService.php:209
+#: src/Releases/ReleaseService.php:215
 msgid "This is the release customers get now. Make another release current before deleting it."
 msgstr ""
 
-#: src/Releases/ReleaseService.php:342
+#: src/Releases/ReleaseService.php:348
 msgid "That release no longer exists."
 msgstr ""
 

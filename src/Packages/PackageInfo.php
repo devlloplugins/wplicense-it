@@ -78,6 +78,17 @@ final class PackageInfo {
 	public $warnings = array();
 
 	/**
+	 * @var bool Whether the zip contains the WPLicense It client SDK (wplicense-it-client.php).
+	 */
+	public $has_sdk = false;
+
+	/**
+	 * @var array<int, array{product_id:?int, server:?string}> The wplicense_it_client() calls found, with the product ID
+	 *      and server address when they are written out as plain values (null when they come from a variable).
+	 */
+	public $client_calls = array();
+
+	/**
 	 * @param string $type      Package type.
 	 * @param string $name      Display name.
 	 * @param string $version   Version.

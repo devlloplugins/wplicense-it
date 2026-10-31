@@ -104,6 +104,9 @@ final class ReleasesBox {
 			echo '<tr><td><strong>' . esc_html( '' !== $release->version ? $release->version : '?' ) . '</strong>';
 			if ( $is_current ) {
 				echo ' <span style="background:#00a32a;color:#fff;padding:1px 6px;border-radius:3px;font-size:11px">' . esc_html__( 'Current', 'wplicense-it' ) . '</span>';
+			} elseif ( '' !== $release->held ) {
+				echo ' <span class="wplit-draft" style="background:#b32d2e;color:#fff;padding:1px 6px;border-radius:3px;font-size:11px">' . esc_html__( 'Draft', 'wplicense-it' ) . '</span>';
+				echo '<br><span class="description">' . esc_html__( 'Not offered to customers:', 'wplicense-it' ) . ' ' . esc_html( $release->held ) . '</span>';
 			}
 			echo '</td>';
 			echo '<td>' . esc_html( self::date_text( $release->uploaded_at ) ) . '</td>';
@@ -113,11 +116,13 @@ final class ReleasesBox {
 			echo '</td>';
 			echo '<td>';
 			if ( ! $is_current ) {
-				echo '<a href="' . esc_url( $this->action_url( 'current', $post->ID, $release->id ) ) . '">' . esc_html__( 'Make current', 'wplicense-it' ) . '</a> &middot; ';
+				echo '' !== $release->held
+					? '<a href="' . esc_url( $this->action_url( 'current', $post->ID, $release->id ) ) . '" onclick="return confirm(' . esc_attr( (string) wp_json_encode( __( 'Customers who install this release may stop getting updates. Make it current anyway?', 'wplicense-it' ) ) ) . ');">' . esc_html__( 'Make current anyway', 'wplicense-it' ) . '</a> &middot; '
+					: '<a href="' . esc_url( $this->action_url( 'current', $post->ID, $release->id ) ) . '">' . esc_html__( 'Make current', 'wplicense-it' ) . '</a> &middot; ';
 				echo '<a href="' . esc_url( $this->action_url( 'delete', $post->ID, $release->id ) ) . '" style="color:#b32d2e" onclick="return confirm(' . esc_attr( (string) wp_json_encode( __( 'Delete this release and its zip file? This cannot be undone.', 'wplicense-it' ) ) ) . ');">' . esc_html__( 'Delete', 'wplicense-it' ) . '</a>';
 			}
 			echo '</td></tr>';
-		}
+		}//end foreach
 
 		echo '</tbody></table>';
 	}

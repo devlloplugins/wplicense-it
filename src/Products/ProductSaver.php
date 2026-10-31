@@ -12,6 +12,7 @@ namespace Devllo\WPLicenseIt\Products;
 use Devllo\WPLicenseIt\Packages\PackageException;
 use Devllo\WPLicenseIt\Packages\PackageInfo;
 use Devllo\WPLicenseIt\Packages\PackageReader;
+use Devllo\WPLicenseIt\Releases\LicenseCodeCheck;
 use Devllo\WPLicenseIt\Releases\MetaReleaseRepository;
 use Devllo\WPLicenseIt\Releases\Release;
 use Devllo\WPLicenseIt\Releases\ReleaseException;
@@ -185,10 +186,24 @@ final class ProductSaver {
 			return false;
 		}
 
-		$warnings = $this->releases->add( $product_id, $this->release_from( $info, $stored, (int) ( $file['size'] ?? 0 ), $notes ) );
+		$release               = $this->release_from( $info, $stored, (int) ( $file['size'] ?? 0 ), $notes );
+		$check                 = LicenseCodeCheck::check( $info, $product_id, function_exists( 'home_url' ) ? (string) home_url() : '', $this->releases->current( $product_id ) );
+		$release->license_code = LicenseCodeCheck::present( $info ) ? 'yes' : 'no';
+		$release->held         = implode( ' ', $check['hold'] );
 
-		$report->messages[] = self::package_message( $info );
-		$report->warnings   = array_merge( $report->warnings, $info->warnings, $warnings );
+		$warnings = $this->releases->add( $product_id, $release );
+
+		if ( '' !== $release->held ) {
+			$report->errors[] = sprintf(
+				/* translators: 1: version, 2: why. */
+				__( 'Release %1$s was saved as a draft and is not offered to customers: %2$s Fix the zip and upload it again, or use "Make current anyway" in the Release history if you are sure.', 'wplicense-it' ),
+				'' !== $release->version ? $release->version : '?',
+				$release->held
+			);
+		} else {
+			$report->messages[] = self::package_message( $info );
+		}
+		$report->warnings = array_merge( $report->warnings, $info->warnings, $check['warnings'], $warnings );
 
 		return true;
 	}

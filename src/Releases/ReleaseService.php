@@ -82,8 +82,10 @@ final class ReleaseService {
 			}
 		}
 
-		// No pointer yet (a product from before releases): the one the settings describe, else the newest.
-		$path = $this->meta->get( $product_id, 'file_dir_path' );
+		// No pointer yet (a product from before releases): the one the settings describe, else the newest that is not a
+		// draft.
+		$releases = array_values( array_filter( $releases, static fn( Release $release ): bool => '' === $release->held ) );
+		$path     = $this->meta->get( $product_id, 'file_dir_path' );
 		foreach ( $releases as $release ) {
 			if ( '' !== $path && $release->path === $path ) {
 				return $release;
@@ -94,7 +96,8 @@ final class ReleaseService {
 	}
 
 	/**
-	 * Records an upload as a new release and makes it the current one.
+	 * Records an upload as a new release and makes it the current one, unless it is held back as a draft (its held
+	 * field says why): then customers keep the current release until it is made current by hand.
 	 *
 	 * @param int     $product_id License product ID.
 	 * @param Release $release    The new release. Its ID and time are set here.
@@ -127,7 +130,9 @@ final class ReleaseService {
 
 		$releases[] = $release;
 		$this->repo->save( $product_id, $releases );
-		$this->apply( $product_id, $release );
+		if ( '' === $release->held ) {
+			$this->apply( $product_id, $release );
+		}
 
 		return $warnings;
 	}
@@ -144,6 +149,8 @@ final class ReleaseService {
 		$releases = $this->load( $product_id );
 		$release  = $this->find( $releases, $release_id );
 
+		$release->held = '';
+		// Made current by hand: no longer a draft.
 		$this->repo->save( $product_id, $releases );
 		$this->apply( $product_id, $release );
 

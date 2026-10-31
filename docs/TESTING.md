@@ -29,6 +29,10 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/35-release-check.cjs` (11 checks) uploads the sample plugin without a client call (published, with the
+warning), then with the Connect code (published), then without it again: that release is a Draft with the reason, the
+update check still answers the previous version, and Make current anyway publishes it.
+
 `tests/e2e/34-expiry.cjs` (18 checks) runs the sample plugin with the client SDK on the customer site: after the daily
 job expires its license and Check now, `wplicense_it_license_active()` stays true, the status is `expired` and the
 license page says the plugin keeps working without updates; registered with `'expired' => 'stop'` the plugin's licensed

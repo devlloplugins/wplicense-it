@@ -114,9 +114,9 @@ Every uploaded zip is kept as a **release**: its version, file, size, upload tim
 and notes for customers. The **Release history** box lists them newest first.
 
 - **Notes.** Type what is new in the upload box. If you leave it empty, the entry for this version in the zip's
-  `readme.txt` changelog (`= 1.4.2 =` under `== Changelog ==`) is used. Customers see the notes on the
-  current release's notes. To fix the notes of any release later, use **Edit notes** on its row in the Release history. Editing the current release changes what customers see at once.
-  current release's notes.
+  `readme.txt` changelog (`= 1.4.2 =` under `== Changelog ==`) is used. Customers see the notes in the "View details"
+  popup. To fix the notes of any release later, use **Edit notes** on its row in the Release history. Editing the
+  current release changes what customers see at once.
 - **Current.** Customers always get the **Current** release. A new upload becomes current. The settings the license
   API reads (version, file, requirements, notes) always describe the current release.
 - **Roll back.** **Make current** on an older release. New downloads and update checks then serve it. Sites that
@@ -127,6 +127,13 @@ and notes for customers. The **Release history** box lists them newest first.
 - **Deleting a product.** Moving a product to the trash keeps its files, so it can be restored. Deleting it permanently
   (from the trash, or when WordPress empties the trash) removes all its release zips, its logo and its banner from the
   server. Licenses already sold stay in the license list.
+- **The license code.** Each upload is checked for the client SDK (`wplicense-it-client.php`) and a
+  `wplicense_it_client()` call for this product and this site. Customers who install a release without it stop getting
+  updates for good, because their site no longer asks. So a zip whose call names another product ID or another license
+  server, or that lost the code the current release has, is saved as a **Draft**: an error says why, customers keep the
+  current release, and its row in the Release history says it is not offered, with **Make current anyway** if you are
+  sure (for example a plugin that loads the SDK another way). A product that never had the code yet (its first uploads,
+  before the Connect step) is published with a warning instead, so setting up is not blocked.
 - **Warnings.** Uploading a version that already exists, or one older than the current release, still works but says
   that sites on the newer version will not be offered it.
 - **Products from before this change** show their one existing release (size and date unknown). It joins the

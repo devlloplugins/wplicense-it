@@ -14,6 +14,8 @@ require_once dirname( __DIR__ ) . '/Support/woocommerce-stubs.php';
 use Devllo\WPLicenseIt\Admin\ProductScreen;
 use Devllo\WPLicenseIt\Products\ProductSaver;
 use Devllo\WPLicenseIt\Products\SaveReport;
+use Devllo\WPLicenseIt\Releases\MetaReleaseRepository;
+use Devllo\WPLicenseIt\Releases\ReleaseService;
 use Devllo\WPLicenseIt\Tests\Support\FakeFileStore;
 use Devllo\WPLicenseIt\Tests\Support\InMemoryProductMeta;
 use PHPUnit\Framework\TestCase;
@@ -257,7 +259,7 @@ final class ProductSaverTest extends TestCase {
 
 		$this->assertSame( '6.0', $this->meta( 'wplit_required_wp_version' ) );
 		$this->assertSame( '6.5', $this->meta( 'wplit_tested_wp_version' ) );
-		$this->assertCount( 2, $report->warnings, 'Both missing minimums are pointed out' );
+		$this->assertCount( 2, preg_grep( '/minimum/', $report->warnings ), 'Both missing minimums are pointed out' );
 	}
 
 	public function test_a_zip_that_is_not_a_plugin_is_refused_and_nothing_about_the_release_changes(): void {
@@ -609,5 +611,97 @@ final class ProductSaverTest extends TestCase {
 
 		$this->assertSame( array( 'ok' ), $report->errors );
 		$this->assertSame( array(), $report->messages );
+	}
+
+	// The license code in a release (card 112).
+
+	/**
+	 * A plugin zip with the client SDK and a wplicense_it_client() call, as the Connect tab gives it.
+	 *
+	 * @param string $version    Version.
+	 * @param string $product_id Product ID in the call.
+	 * @param string $server     Server in the call.
+	 */
+	private function connected_zip( string $version, string $product_id = '7', string $server = 'https://shop.example.com' ): array {
+		return $this->zip(
+			array(
+				'seo-pro/seo-pro.php' => "<?php\n/*\nPlugin Name: SEO Pro\nVersion: {$version}\nRequires at least: 6.2\nRequires PHP: 8.0\n*/\nrequire_once __DIR__ . '/vendor/wplicense-it-client/wplicense-it-client.php';\nwplicense_it_client( array(\n\t'file' => __FILE__,\n\t'server' => '{$server}',\n\t'product_id' => {$product_id},\n) );\n",
+				'seo-pro/vendor/wplicense-it-client/wplicense-it-client.php' => "<?php\nfunction wplicense_it_client( array \$args ) {}\nwplicense_it_client_register_version( '1.1.0', __DIR__ );\n",
+			)
+		);
+	}
+
+	private function releases(): ReleaseService {
+		return new ReleaseService( new MetaReleaseRepository( $this->meta ), $this->meta );
+	}
+
+	public function test_a_first_release_without_license_code_is_published_with_a_warning(): void {
+		$report = $this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip() ) );
+
+		$this->assertSame( '1.4.2', $this->meta( 'wplit_product_version' ), 'published: setting up is not blocked' );
+		$this->assertSame( array(), $report->errors );
+		$this->assertCount( 1, preg_grep( '/client SDK \(wplicense-it-client\.php\) was not found.*cannot activate their license or get updates/', $report->warnings ) );
+		$this->assertSame( 'no', $this->releases()->current( self::ID )->license_code );
+	}
+
+	public function test_a_release_with_the_license_code_is_published_and_remembered(): void {
+		$report = $this->save( array(), array( 'wplit_product_file_upload' => $this->connected_zip( '2.0.0' ) ) );
+
+		$this->assertSame( '2.0.0', $this->meta( 'wplit_product_version' ) );
+		$this->assertSame( array(), preg_grep( '/SDK|wplicense_it_client/', $report->warnings ) );
+		$this->assertSame( 'yes', $this->releases()->current( self::ID )->license_code );
+	}
+
+	public function test_a_release_that_lost_the_license_code_is_held_as_a_draft(): void {
+		$this->save( array(), array( 'wplit_product_file_upload' => $this->connected_zip( '2.0.0' ) ) );
+
+		$report = $this->save( array(), array( 'wplit_product_file_upload' => $this->plugin_zip( "Plugin Name: SEO Pro\nVersion: 2.1.0\nRequires at least: 6.2\nRequires PHP: 8.0" ) ) );
+
+		$this->assertSame( '2.0.0', $this->meta( 'wplit_product_version' ), 'customers keep 2.0.0' );
+		$this->assertCount( 1, $report->errors );
+		$this->assertStringContainsString( 'Release 2.1.0 was saved as a draft', $report->errors[0] );
+		$this->assertStringContainsString( 'whoever installs this one would stop getting updates', $report->errors[0] );
+		$releases = $this->releases();
+		$draft    = $releases->all( self::ID )[0];
+		$this->assertSame( '2.1.0', $draft->version );
+		$this->assertNotSame( '', $draft->held );
+		$this->assertSame( '2.0.0', $releases->current( self::ID )->version );
+
+		$releases->make_current( self::ID, $draft->id );
+		$this->assertSame( '2.1.0', $this->meta( 'wplit_product_version' ), 'Make current anyway publishes it' );
+		$this->assertSame( '', $releases->current( self::ID )->held );
+	}
+
+	public function test_a_release_for_another_product_or_server_is_held_even_first(): void {
+		$wrong_product = $this->save( array(), array( 'wplit_product_file_upload' => $this->connected_zip( '1.0.0', '8' ) ) );
+		$this->assertStringContainsString( 'is for product 8, not this product (7)', $wrong_product->errors[0] );
+		$this->assertNull( $this->releases()->current( self::ID ), 'a draft is never served, even as the only release' );
+
+		$wrong_server = $this->save( array(), array( 'wplit_product_file_upload' => $this->connected_zip( '1.0.1', '7', 'https://old-shop.example.org/' ) ) );
+		$this->assertMatchesRegularExpression( '#names the license server https://old-shop\.example\.org/, but this site is https?://shop\.example\.com#', $wrong_server->errors[0] );
+
+		$same = $this->save( array(), array( 'wplit_product_file_upload' => $this->connected_zip( '1.0.2', '7', 'http://www.shop.example.com/' ) ) );
+		$this->assertSame( array(), $same->errors, 'the same address with www, http or a slash is fine' );
+		$this->assertSame( '1.0.2', $this->releases()->current( self::ID )->version );
+	}
+
+	public function test_comments_and_the_sdk_itself_are_not_taken_for_a_call(): void {
+		$this->save( array(), array( 'wplit_product_file_upload' => $this->connected_zip( '2.0.0' ) ) );
+
+		$report = $this->save(
+			array(),
+			array(
+				'wplit_product_file_upload' => $this->zip(
+					array(
+						'seo-pro/seo-pro.php'            => "<?php\n/*\nPlugin Name: SEO Pro\nVersion: 2.1.0\nRequires at least: 6.2\nRequires PHP: 8.0\n*/\n// TODO: call wplicense_it_client( array( 'product_id' => 7 ) ) again.\n",
+						'seo-pro/lib/sdk/wplicense-it-client.php' => "<?php\n/** Example: wplicense_it_client( array( 'product_id' => 7 ) ); */\nwplicense_it_client_register_version( '1.1.0', __DIR__ );\n",
+						'seo-pro/lib/sdk/src/Config.php' => "<?php\n// Settings passed to wplicense_it_client().\n",
+					)
+				),
+			)
+		);
+
+		$this->assertStringContainsString( 'no wplicense_it_client() call was found', $report->errors[0] ?? '', 'the SDK is found in any folder, and comments are not calls' );
+		$this->assertSame( '2.0.0', $this->meta( 'wplit_product_version' ) );
 	}
 }

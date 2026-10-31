@@ -24,6 +24,8 @@ final class PackageReader {
 	private const MAX_CHANGELOG   = 2000;
 	private const MAX_NAME_LENGTH = 120;
 	private const MAX_VERSION     = 40;
+	private const MAX_CODE_FILES  = 400;
+	private const CODE_BYTES      = 1048576;
 
 	/**
 	 * Reads a zip.
@@ -129,6 +131,7 @@ final class PackageReader {
 		$info->warnings     = $warnings;
 
 		self::apply_readme( $zip, $files, $info );
+		self::find_license_code( $zip, $names, $base, $info );
 
 		if ( '' === $info->requires_wp ) {
 			$info->warnings[] = __( 'No "Requires at least" (minimum WordPress version) was found. Customers will see no minimum.', 'wplicense-it' );
@@ -138,6 +141,96 @@ final class PackageReader {
 		}
 
 		return $info;
+	}
+
+	/**
+	 * Looks for the client SDK and the wplicense_it_client() calls in the zip's PHP files (the first MAX_CODE_FILES, up to
+	 * CODE_BYTES each), so an upload that would stop updates for the customers who install it can be caught.
+	 *
+	 * @param \ZipArchive $zip   Open archive.
+	 * @param string[]    $names Entry names.
+	 * @param string      $base  The package folder with a slash, or ''.
+	 * @param PackageInfo $info  Filled in.
+	 */
+	private static function find_license_code( \ZipArchive $zip, array $names, string $base, PackageInfo $info ): void {
+		// The SDK's own folders: their files mention wplicense_it_client() in comments and define it; they are not calls.
+		$sdk_dirs = array();
+		foreach ( $names as $name ) {
+			if ( 'wplicense-it-client.php' === basename( $name ) && 0 === strpos( $name, $base ) && false !== strpos( (string) $zip->getFromName( $name, self::CODE_BYTES ), 'wplicense_it_client_register_version' ) ) {
+				$info->has_sdk = true;
+				$sdk_dirs[]    = dirname( $name ) . '/';
+			}
+		}
+
+		$read = 0;
+		foreach ( $names as $name ) {
+			if ( '.php' !== strtolower( substr( $name, -4 ) ) || 0 !== strpos( $name, $base ) || self::inside( $name, $sdk_dirs ) ) {
+				continue;
+			}
+
+			$stat = $zip->statName( $name );
+			if ( ! is_array( $stat ) || $stat['size'] > self::CODE_BYTES || ++$read > self::MAX_CODE_FILES ) {
+				continue;
+			}
+
+			$code = self::without_comments( (string) $zip->getFromName( $name ) );
+
+			if ( ! preg_match_all( '/(?<![\w$>:])wplicense_it_client\s*\(/', $code, $matches, PREG_OFFSET_CAPTURE ) ) {
+				continue;
+			}
+
+			foreach ( $matches[0] as $match ) {
+				$before = substr( $code, max( 0, $match[1] - 12 ), min( 12, $match[1] ) );
+				if ( preg_match( '/function\s*$/', $before ) ) {
+					continue;
+					// A definition, not a call.
+				}
+
+				$args                 = substr( $code, $match[1], 1500 );
+				$info->client_calls[] = array(
+					'product_id' => preg_match( '/[\'"]product_id[\'"]\s*=>\s*[\'"]?(\d+)/', $args, $id ) ? (int) $id[1] : null,
+					'server'     => preg_match( '/[\'"]server[\'"]\s*=>\s*[\'"]([^\'"]+)[\'"]/', $args, $server ) ? $server[1] : null,
+				);
+			}
+		}//end foreach
+	}
+
+	/**
+	 * Whether a path is inside one of the folders.
+	 *
+	 * @param string   $name    Path.
+	 * @param string[] $folders Folders, each ending with a slash.
+	 */
+	private static function inside( string $name, array $folders ): bool {
+		foreach ( $folders as $folder ) {
+			if ( 0 === strpos( $name, $folder ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * PHP source without its comments, so a comment that mentions a function is not taken for a call.
+	 *
+	 * @param string $code PHP source.
+	 */
+	private static function without_comments( string $code ): string {
+		if ( ! function_exists( 'token_get_all' ) ) {
+			return $code;
+		}
+
+		$out = '';
+		foreach ( token_get_all( $code ) as $token ) {
+			if ( is_array( $token ) ) {
+				$out .= in_array( $token[0], array( T_COMMENT, T_DOC_COMMENT ), true ) ? ' ' : $token[1];
+			} else {
+				$out .= $token;
+			}
+		}
+
+		return $out;
 	}
 
 	/**

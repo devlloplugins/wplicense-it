@@ -31,6 +31,8 @@ final class Release {
 	 * @param string $requires_php Minimum PHP version, or ''.
 	 * @param string $requires_wp  Minimum WordPress version, or ''.
 	 * @param string $tested       Tested up to WordPress version, or ''.
+	 * @param string $license_code Whether the zip has the license code for this product: 'yes', 'no', or '' if unknown.
+	 * @param string $held         Why it was held back as a draft (not offered to customers), or '' if it was not.
 	 */
 	public function __construct(
 		public string $id,
@@ -46,7 +48,9 @@ final class Release {
 		public string $folder = '',
 		public string $requires_php = '',
 		public string $requires_wp = '',
-		public string $tested = ''
+		public string $tested = '',
+		public string $license_code = '',
+		public string $held = ''
 	) {
 	}
 
@@ -71,6 +75,8 @@ final class Release {
 			'requires_php' => $this->requires_php,
 			'requires_wp'  => $this->requires_wp,
 			'tested'       => $this->tested,
+			'license_code' => $this->license_code,
+			'held'         => $this->held,
 		);
 	}
 
@@ -98,7 +104,9 @@ final class Release {
 			(string) ( $data['folder'] ?? '' ),
 			(string) ( $data['requires_php'] ?? '' ),
 			(string) ( $data['requires_wp'] ?? '' ),
-			(string) ( $data['tested'] ?? '' )
+			(string) ( $data['tested'] ?? '' ),
+			(string) ( $data['license_code'] ?? '' ),
+			(string) ( $data['held'] ?? '' )
 		);
 	}
 }

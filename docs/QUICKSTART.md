@@ -53,8 +53,9 @@ the normal **Dashboard > Updates** screen.
 
 ## 5. Ship an update
 
-Raise the version in your plugin header (and `Stable tag` in its readme), zip it, and upload it on the product's
-**Releases** tab. Customers with an active license are offered it within a day (or at once when they click **Check
+Raise the version in your plugin header (and `Stable tag` in its readme), zip it with the SDK folder, and upload it on
+the product's **Releases** tab. A zip that lost the license code is kept as a draft, so a build mistake cannot cut your
+customers off from updates. Customers with an active license are offered it within a day (or at once when they click **Check
 again** on the Updates screen). If a release is bad, **Make current** on the previous one in the Release history.
 
 ## Before you go live
