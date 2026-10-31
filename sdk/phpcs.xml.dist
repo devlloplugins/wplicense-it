@@ -19,6 +19,15 @@
 	</rule>
 	<rule ref="PHPCompatibilityWP"/>
 
+	<!-- The SDK's texts have their own text domain (see src/I18n.php and languages/wplicense-it-client.pot). -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="wplicense-it-client"/>
+			</property>
+		</properties>
+	</rule>
+
 	<!-- WordPress hooks pass arguments that a handler does not always need; the signature has to match. -->
 	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter">
 		<severity>0</severity>

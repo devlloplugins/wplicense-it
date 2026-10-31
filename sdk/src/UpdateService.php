@@ -141,7 +141,7 @@ final class UpdateService {
 		$host  = is_array( $parts ) && isset( $parts['host'] ) ? strtolower( $parts['host'] ) : '';
 
 		if ( '' !== $this->server_host && $host !== $this->server_host ) {
-			return new ApiResult( false, 'bad_response', 'The license server returned a download link for another site, so it was not used.' );
+			return new ApiResult( false, 'bad_response', __( 'The license server returned a download link for another site, so it was not used.', 'wplicense-it-client' ) );
 		}
 
 		return $url;

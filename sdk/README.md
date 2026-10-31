@@ -101,6 +101,16 @@ $client->render_license_form();
 
 `$client->activate( $key )`, `->deactivate()`, `->license()`, `->is_active()` (what `wplicense_it_license_active()` answers) and `->status()` are available for fully custom screens.
 
+## Translations
+
+The texts customers see (the license page, notices, the update rows and details) use the text domain
+`wplicense-it-client`, the same in every plugin that includes the SDK. `languages/wplicense-it-client.pot` is the
+template. Put a translation, compiled as `wplicense-it-client-{locale}.mo` (for example `wplicense-it-client-de_DE.mo`), in
+your plugin's or theme's `languages` folder; a site owner can override it with one in `wp-content/languages/plugins`.
+For each text the site's file wins, then yours, then one shipped in the SDK's own `languages` folder; without any the
+texts are English. The license page's title is "{name} License" in the site's language unless you pass `'menu' =>
+array( 'title' => ... )`.
+
 ## Cleaning up
 
 When a customer deletes your plugin, the SDK removes what it stored on their site: the license, the cached update data and

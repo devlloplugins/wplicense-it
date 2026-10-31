@@ -86,6 +86,18 @@ final class Client {
 
 		$client->hook( new Updater( $config, new UpdateService( $api, $store, $config->server ), $manager ) );
 
+		// Translations load on init, as WordPress expects; a plugin registered later loads them at once.
+		if ( function_exists( 'did_action' ) && did_action( 'init' ) ) {
+			I18n::load( $config );
+		} elseif ( function_exists( 'add_action' ) ) {
+			add_action(
+				'init',
+				static function () use ( $config ): void {
+					I18n::load( $config );
+				}
+			);
+		}
+
 		return $client;
 	}
 

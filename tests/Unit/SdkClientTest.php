@@ -92,7 +92,7 @@ final class SdkClientTest extends TestCase {
 		$this->assertSame( 'wplit_client_my-plugin', $config->option_name() );
 		$this->assertSame( 'wplicense-it://my-plugin', $config->package_marker() );
 		$this->assertSame( 'options-general.php', $config->menu_parent );
-		$this->assertSame( 'my-plugin License', $config->menu_title );
+		$this->assertSame( 'my-plugin License', $config->title() );
 	}
 
 	public function test_a_single_file_plugin_and_a_theme(): void {

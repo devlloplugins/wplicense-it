@@ -44,7 +44,7 @@ all 19 test files passed, so nothing the plugin needs was left out.
    number (for example `2.0.0`). The script fails if they differ.
 2. If the browser tests now run on a newer WordPress (`WPLIT_WP_TAG` in `tests/env/setup.sh`), raise `Tested up to` in `readme.txt` to match. Do not raise it without testing.
 3. Add the changelog entry to `readme.txt`.
-4. Run `bin/make-pot.sh` if any text changed (CI fails while `languages/wplicense-it.pot` is out of date), then
+4. Run `bin/make-pot.sh` if any text changed (CI fails while `languages/wplicense-it.pot` or `sdk/languages/wplicense-it-client.pot` is out of date), then
    `bin/build-release.sh --check` and `tests/env/plugin-check.sh`.
 5. Tag the commit and publish the zip. Rebuilding from the tag gives the same bytes.
 
@@ -59,5 +59,5 @@ must raise that version, or customers whose site holds an older copy from anothe
 1.1.0 (card 101): remembers the activated address and the server, the moved-site and silent-server notices, frees the
 site when the plugin is deleted, lists the sites of a full license; also the theme details page (card 75), and (card 102)
 the PHP requirement, updates shown but not installable for an expired license, and automatic updates. Card 111 adds the `expired` option and
-`wplicense_it_license_status()`. 1.1.0 is not released yet, so these share its number.
+`wplicense_it_license_status()`; card 113 makes the texts translatable (`src/I18n.php`, `languages/`). 1.1.0 is not released yet, so these share its number.
 

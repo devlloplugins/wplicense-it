@@ -29,6 +29,12 @@ WP-CLI into the plugin's languages folder, switches the admin user to German, an
 and the Licensing settings screen are in German, and that nothing is logged about translations loading too early. It fails without
 the plugin's own translation loading.
 
+`tests/e2e/36-license-aware.cjs` (12 checks): the Connect tab's third step with the folder name and its Copy button; a
+German translation of the SDK in the customer site's languages folder translates the license page's status and one in
+the plugin's own folder its title, other texts staying English; a theme product's example theme downloads with the SDK,
+and switched to on the customer site shows its licensed feature off, its license page under Settings and a working front
+end with its stylesheet.
+
 `tests/e2e/35-release-check.cjs` (11 checks) uploads the sample plugin without a client call (published, with the
 warning), then with the Connect code (published), then without it again: that release is a Draft with the reason, the
 update check still answers the previous version, and Make current anyway publishes it.

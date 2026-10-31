@@ -100,6 +100,8 @@ Please post it in the [WordPress support forum](https://wordpress.org/support/pl
 * Client SDK: an expired license keeps the plugin working and only stops updates (developers can pass 'expired' => 'stop' to switch features off instead); new wplicense_it_license_status() answers active, expired or inactive.
 * Overview: licenses that expired in the last 30 days and were not renewed, and the renewal rate of the last 90 days.
 * Releases: an upload that lost the license code, or carries another product's or server's, is kept as a draft instead of stopping updates for everyone who installs it.
+* Connect tab: a third step with the code that runs your features only with a license; theme products get an example theme.
+* Client SDK: the texts customers see are translatable (text domain wplicense-it-client, template in sdk/languages).
 * Requires PHP 8.0 and WordPress 6.2.
 
 = 1.0.2 =

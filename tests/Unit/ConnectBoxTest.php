@@ -107,7 +107,7 @@ final class ConnectBoxTest extends TestCase {
 	public function test_a_product_name_cannot_break_out_of_the_textarea(): void {
 		$html = $this->draw( "</textarea><script>alert('x')</script>" );
 
-		$this->assertSame( 1, substr_count( $html, '</textarea>' ) );
+		$this->assertSame( 2, substr_count( $html, '</textarea>' ), 'only the two code boxes close a textarea' );
 		$this->assertStringNotContainsString( "<script>alert('x')", $html );
 		$this->assertStringContainsString( '&lt;/textarea&gt;&lt;script&gt;', $html );
 	}

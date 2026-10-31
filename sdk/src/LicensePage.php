@@ -68,14 +68,14 @@ final class LicensePage {
 	 * Adds the page to the admin menu.
 	 */
 	public function add_page(): void {
-		add_submenu_page( $this->config->menu_parent, $this->config->menu_title, $this->config->menu_title, 'manage_options', $this->config->slug . '-license', array( $this, 'render_page' ) );
+		add_submenu_page( $this->config->menu_parent, $this->config->title(), $this->config->title(), 'manage_options', $this->config->slug . '-license', array( $this, 'render_page' ) );
 	}
 
 	/**
 	 * Renders the page.
 	 */
 	public function render_page(): void {
-		echo '<div class="wrap"><h1>' . esc_html( $this->config->menu_title ) . '</h1>';
+		echo '<div class="wrap"><h1>' . esc_html( $this->config->title() ) . '</h1>';
 		$this->render_form();
 		echo '</div>';
 	}
@@ -94,12 +94,12 @@ final class LicensePage {
 		$active = $this->manager->is_active();
 
 		echo '<table class="form-table" role="presentation"><tbody>';
-		echo '<tr><th scope="row">' . esc_html( 'Status' ) . '</th><td>' . esc_html( $this->status_text( $state, $active ) ) . '</td></tr>';
+		echo '<tr><th scope="row">' . esc_html__( 'Status', 'wplicense-it-client' ) . '</th><td>' . esc_html( $this->status_text( $state, $active ) ) . '</td></tr>';
 
 		if ( '' !== $state->key ) {
-			echo '<tr><th scope="row">' . esc_html( 'License key' ) . '</th><td><code>' . esc_html( self::mask( $state->key ) ) . '</code></td></tr>';
-			echo '<tr><th scope="row">' . esc_html( 'Expires' ) . '</th><td>' . esc_html( null === $state->expires_at ? 'Never' : wp_date( get_option( 'date_format' ), $state->expires_at ) ) . '</td></tr>';
-			echo '<tr><th scope="row">' . esc_html( 'Sites' ) . '</th><td>' . esc_html( $state->used . ' of ' . ( 0 === $state->limit ? 'unlimited' : $state->limit ) . ' in use' ) . ( $state->local ? '<br><span class="description">' . esc_html( 'This site is a local or staging site, so it does not use one of them.' ) . '</span>' : '' ) . '</td></tr>';
+			echo '<tr><th scope="row">' . esc_html__( 'License key', 'wplicense-it-client' ) . '</th><td><code>' . esc_html( self::mask( $state->key ) ) . '</code></td></tr>';
+			echo '<tr><th scope="row">' . esc_html__( 'Expires', 'wplicense-it-client' ) . '</th><td>' . esc_html( null === $state->expires_at ? __( 'Never', 'wplicense-it-client' ) : wp_date( get_option( 'date_format' ), $state->expires_at ) ) . '</td></tr>';
+			echo '<tr><th scope="row">' . esc_html__( 'Sites', 'wplicense-it-client' ) . '</th><td>' . esc_html( sprintf( /* translators: 1: sites in use, 2: sites allowed or "unlimited". */ __( '%1$d of %2$s in use', 'wplicense-it-client' ), $state->used, 0 === $state->limit ? __( 'unlimited', 'wplicense-it-client' ) : (string) $state->limit ) ) . ( $state->local ? '<br><span class="description">' . esc_html__( 'This site is a local or staging site, so it does not use one of them.', 'wplicense-it-client' ) . '</span>' : '' ) . '</td></tr>';
 		}
 
 		echo '</tbody></table>';
@@ -112,7 +112,7 @@ final class LicensePage {
 			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 			echo '<input type="hidden" name="action" value="' . esc_attr( $this->action( 'do' ) ) . '"><input type="hidden" name="do" value="activate_here">';
 			wp_nonce_field( $this->action( 'activate_here' ) );
-			echo '<p><button type="submit" class="button button-primary">' . esc_html( 'Activate here' ) . '</button></p></form>';
+			echo '<p><button type="submit" class="button button-primary">' . esc_html__( 'Activate here', 'wplicense-it-client' ) . '</button></p></form>';
 		} elseif ( $stale > 0 ) {
 			echo '<p class="wplit-client-stale">' . esc_html( $this->stale_text( $stale ) ) . '</p>';
 		}
@@ -121,21 +121,21 @@ final class LicensePage {
 			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 			echo '<input type="hidden" name="action" value="' . esc_attr( $this->action( 'do' ) ) . '"><input type="hidden" name="do" value="activate">';
 			wp_nonce_field( $this->action( 'activate' ) );
-			echo '<p><label for="wplit-client-key"><strong>' . esc_html( 'License key' ) . '</strong></label><br>';
+			echo '<p><label for="wplit-client-key"><strong>' . esc_html__( 'License key', 'wplicense-it-client' ) . '</strong></label><br>';
 			echo '<input type="text" id="wplit-client-key" name="license_key" class="regular-text" autocomplete="off" spellcheck="false" maxlength="64"> ';
-			echo '<button type="submit" class="button button-primary">' . esc_html( 'Activate' ) . '</button></p></form>';
+			echo '<button type="submit" class="button button-primary">' . esc_html__( 'Activate', 'wplicense-it-client' ) . '</button></p></form>';
 		}
 
 		if ( '' !== $state->key ) {
 			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display: inline-block; margin-right: 8px;">';
 			echo '<input type="hidden" name="action" value="' . esc_attr( $this->action( 'do' ) ) . '"><input type="hidden" name="do" value="refresh">';
 			wp_nonce_field( $this->action( 'refresh' ) );
-			echo '<button type="submit" class="button">' . esc_html( 'Check now' ) . '</button></form>';
+			echo '<button type="submit" class="button">' . esc_html__( 'Check now', 'wplicense-it-client' ) . '</button></form>';
 
 			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display: inline-block;">';
 			echo '<input type="hidden" name="action" value="' . esc_attr( $this->action( 'do' ) ) . '"><input type="hidden" name="do" value="deactivate">';
 			wp_nonce_field( $this->action( 'deactivate' ) );
-			echo '<button type="submit" class="button">' . esc_html( 'Deactivate on this site' ) . '</button></form>';
+			echo '<button type="submit" class="button">' . esc_html__( 'Deactivate on this site', 'wplicense-it-client' ) . '</button></form>';
 		}
 	}
 
@@ -144,14 +144,14 @@ final class LicensePage {
 	 */
 	public function handle(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html( 'You are not allowed to manage this license.' ), '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'You are not allowed to manage this license.', 'wplicense-it-client' ), '', array( 'response' => 403 ) );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by check_admin_referer() below.
 		$do = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';
 
 		if ( ! in_array( $do, array( 'activate', 'activate_here', 'refresh', 'deactivate', 'dismiss' ), true ) ) {
-			wp_die( esc_html( 'Unknown action.' ), '', array( 'response' => 400 ) );
+			wp_die( esc_html__( 'Unknown action.', 'wplicense-it-client' ), '', array( 'response' => 400 ) );
 		}
 
 		check_admin_referer( $this->action( $do ) );
@@ -165,15 +165,15 @@ final class LicensePage {
 
 		if ( 'activate_here' === $do ) {
 			$result = $this->manager->activate( $this->manager->state()->key );
-			$text   = $result->ok ? 'License activated on this site. Thank you!' : $result->message;
+			$text   = $result->ok ? __( 'License activated on this site. Thank you!', 'wplicense-it-client' ) : $result->message;
 		} elseif ( 'activate' === $do ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above.
 			$key    = isset( $_POST['license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['license_key'] ) ) : '';
 			$result = $this->manager->activate( $key );
-			$text   = $result->ok ? 'License activated. Thank you!' : $result->message;
+			$text   = $result->ok ? __( 'License activated. Thank you!', 'wplicense-it-client' ) : $result->message;
 		} elseif ( 'refresh' === $do ) {
 			$result = $this->manager->refresh();
-			$text   = null === $result ? 'There is no license to check.' : ( $result->ok ? 'License checked: all good.' : $this->state_message( $result ) );
+			$text   = null === $result ? __( 'There is no license to check.', 'wplicense-it-client' ) : ( $result->ok ? __( 'License checked: all good.', 'wplicense-it-client' ) : $this->state_message( $result ) );
 			$result = $result ?? new ApiResult( false, 'none', $text );
 		} else {
 			$result = $this->manager->deactivate();
@@ -181,10 +181,10 @@ final class LicensePage {
 			// If the server cannot be reached, offer to forget the license locally on the next try.
 			if ( ! $result->ok && $result->is_temporary() ) {
 				$result = $this->manager->deactivate( true );
-				$text   = 'The license server could not be reached, so the license was only removed from this site. Deactivate it from your account to free the slot.';
+				$text   = __( 'The license server could not be reached, so the license was only removed from this site. Deactivate it from your account to free the slot.', 'wplicense-it-client' );
 				$result = new ApiResult( true, 'deactivated', $text );
 			} else {
-				$text = $result->ok ? 'License deactivated on this site.' : $result->message;
+				$text = $result->ok ? __( 'License deactivated on this site.', 'wplicense-it-client' ) : $result->message;
 			}
 		}//end if
 
@@ -207,7 +207,7 @@ final class LicensePage {
 	 * @param ApiResult $result Result.
 	 */
 	private function state_message( ApiResult $result ): string {
-		return '' !== $result->message ? $result->message : 'The license could not be checked right now. Nothing was changed.';
+		return '' !== $result->message ? $result->message : __( 'The license could not be checked right now. Nothing was changed.', 'wplicense-it-client' );
 	}
 
 	/**
@@ -237,21 +237,23 @@ final class LicensePage {
 	 */
 	private function status_text( LicenseState $state, bool $active ): string {
 		if ( '' !== $this->manager->moved_from() ) {
-			return 'Not active on this site: the license was activated for another address.';
+			return __( 'Not active on this site: the license was activated for another address.', 'wplicense-it-client' );
 		}
 
 		if ( $active ) {
-			return 'Active. You will receive updates.';
+			return __( 'Active. You will receive updates.', 'wplicense-it-client' );
 		}
 
 		if ( '' === $state->key ) {
-			return 'Not activated. Enter your license key to receive updates.';
+			return __( 'Not activated. Enter your license key to receive updates.', 'wplicense-it-client' );
 		}
 
 		if ( 'expired' === $this->manager->status() ) {
 			return 'stop' === $this->config->expired
-				? sprintf( 'Expired. Renew your license to use %s again and to receive updates.', $this->config->name )
-				: sprintf( 'Expired. %s keeps working, but you no longer receive updates. Renew your license to get them again.', $this->config->name );
+				/* translators: %s: product name. */
+				? sprintf( __( 'Expired. Renew your license to use %s again and to receive updates.', 'wplicense-it-client' ), $this->config->name )
+				/* translators: %s: product name. */
+				: sprintf( __( 'Expired. %s keeps working, but you no longer receive updates. Renew your license to get them again.', 'wplicense-it-client' ), $this->config->name );
 		}
 
 		return '' !== $state->message ? ucfirst( $state->status ) . '. ' . $state->message : ucfirst( $state->status ) . '.';
@@ -280,11 +282,11 @@ final class LicensePage {
 
 		$text = '' !== $moved ? $this->moved_text( $moved ) : $this->stale_text( $stale );
 
-		echo '<div class="notice notice-warning wplit-client-notice"><p><strong>' . esc_html( $this->config->name ) . ':</strong> ' . esc_html( $text ) . ' <a href="' . esc_url( self::url( $this->config ) ) . '">' . esc_html( 'Open the license page' ) . '</a></p>';
+		echo '<div class="notice notice-warning wplit-client-notice"><p><strong>' . esc_html( $this->config->name ) . ':</strong> ' . esc_html( $text ) . ' <a href="' . esc_url( self::url( $this->config ) ) . '">' . esc_html__( 'Open the license page', 'wplicense-it-client' ) . '</a></p>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin: 0 0 8px;">';
 		echo '<input type="hidden" name="action" value="' . esc_attr( $this->action( 'do' ) ) . '"><input type="hidden" name="do" value="dismiss">';
 		wp_nonce_field( $this->action( 'dismiss' ) );
-		echo '<button type="submit" class="button-link">' . esc_html( 'Dismiss for a week' ) . '</button></form></div>';
+		echo '<button type="submit" class="button-link">' . esc_html__( 'Dismiss for a week', 'wplicense-it-client' ) . '</button></form></div>';
 	}
 
 	/**
@@ -294,7 +296,8 @@ final class LicensePage {
 	 */
 	private function moved_text( string $moved ): string {
 		return sprintf(
-			'This license was activated for %1$s, but this site is %2$s (moved or copied). Activate it here to receive updates: that uses one of your sites. If %1$s is no longer used, free it in your account on our site.',
+			/* translators: 1: address the license was activated for, 2: this site's address. */
+			__( 'This license was activated for %1$s, but this site is %2$s (moved or copied). Activate it here to receive updates: that uses one of your sites. If %1$s is no longer used, free it in your account on our site.', 'wplicense-it-client' ),
 			untrailingslashit( $moved ),
 			untrailingslashit( $this->manager->site_url() )
 		);
@@ -306,7 +309,8 @@ final class LicensePage {
 	 * @param int $days Days since the last answer.
 	 */
 	private function stale_text( int $days ): string {
-		return sprintf( 'The license could not be checked with the license server for %d days, so updates may be missing. Your license keeps working. Use Check now on the license page to try again.', $days );
+		/* translators: %d: number of days. */
+		return sprintf( _n( 'The license could not be checked with the license server for %d day, so updates may be missing. Your license keeps working. Use Check now on the license page to try again.', 'The license could not be checked with the license server for %d days, so updates may be missing. Your license keeps working. Use Check now on the license page to try again.', $days, 'wplicense-it-client' ), $days );
 	}
 
 	/**

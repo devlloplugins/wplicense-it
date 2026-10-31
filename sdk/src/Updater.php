@@ -193,7 +193,7 @@ final class Updater {
 		$entry->requires     = $info->requires;
 		$entry->requires_php = $info->requires_php;
 		if ( $info->needs_renewal() ) {
-			$entry->upgrade_notice = 'Your license has expired. Renew it to install this version.';
+			$entry->upgrade_notice = __( 'Your license has expired. Renew it to install this version.', 'wplicense-it-client' );
 		}
 		$entry->icons   = array();
 		$entry->banners = array_filter(
@@ -254,7 +254,7 @@ final class Updater {
 		}
 
 		if ( ! current_user_can( 'update_themes' ) && ! current_user_can( 'switch_themes' ) ) {
-			wp_die( esc_html( 'Sorry, you are not allowed to see this.' ), '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'Sorry, you are not allowed to see this.', 'wplicense-it-client' ), '', array( 'response' => 403 ) );
 		}
 
 		nocache_headers();
@@ -276,32 +276,32 @@ final class Updater {
 		$body = '';
 
 		if ( null === $info ) {
-			$body = '<h1>' . esc_html( $name ) . '</h1><p>No update details are available. The license may not be active on this site: check it on the theme\'s license page.</p>';
+			$body = '<h1>' . esc_html( $name ) . '</h1><p>' . esc_html__( 'No update details are available. The license may not be active on this site: check it on the theme\'s license page.', 'wplicense-it-client' ) . '</p>';
 		} else {
 			$banner = '' !== $info->banner_high ? $info->banner_high : $info->banner_low;
 			if ( '' !== $banner ) {
 				$body .= '<img class="banner" src="' . esc_url( $banner ) . '" alt="">';
 			}
 			$body .= '<h1>' . esc_html( $name ) . '</h1><ul class="meta">';
-			$body .= '<li><strong>Version:</strong> ' . esc_html( $info->version ) . '</li>';
+			$body .= '<li><strong>' . esc_html__( 'Version:', 'wplicense-it-client' ) . '</strong> ' . esc_html( $info->version ) . '</li>';
 			if ( '' !== $info->requires ) {
-				$body .= '<li><strong>Requires WordPress:</strong> ' . esc_html( $info->requires ) . '</li>';
+				$body .= '<li><strong>' . esc_html__( 'Requires WordPress:', 'wplicense-it-client' ) . '</strong> ' . esc_html( $info->requires ) . '</li>';
 			}
 			if ( '' !== $info->requires_php ) {
-				$body .= '<li><strong>Requires PHP:</strong> ' . esc_html( $info->requires_php ) . '</li>';
+				$body .= '<li><strong>' . esc_html__( 'Requires PHP:', 'wplicense-it-client' ) . '</strong> ' . esc_html( $info->requires_php ) . '</li>';
 			}
 			if ( '' !== $info->tested ) {
-				$body .= '<li><strong>Tested up to:</strong> ' . esc_html( $info->tested ) . '</li>';
+				$body .= '<li><strong>' . esc_html__( 'Tested up to:', 'wplicense-it-client' ) . '</strong> ' . esc_html( $info->tested ) . '</li>';
 			}
 			$body .= '</ul>';
 			if ( $info->needs_renewal() ) {
-				$body .= '<p class="renew"><strong>Your license has expired. Renew it to install this version.</strong>' . ( '' !== $info->renew_url ? ' <a href="' . esc_url( $info->renew_url ) . '" target="_blank" rel="noopener">Renew</a>' : '' ) . '</p>';
+				$body .= '<p class="renew"><strong>' . esc_html__( 'Your license has expired. Renew it to install this version.', 'wplicense-it-client' ) . '</strong>' . ( '' !== $info->renew_url ? ' <a href="' . esc_url( $info->renew_url ) . '" target="_blank" rel="noopener">Renew</a>' : '' ) . '</p>';
 			}
 			if ( '' !== trim( $info->changelog ) ) {
-				$body .= '<h2>What is new in ' . esc_html( $info->version ) . '</h2>' . wpautop( esc_html( $info->changelog ) );
+				$body .= '<h2>' . esc_html( sprintf( /* translators: %s: version. */ __( 'What is new in %s', 'wplicense-it-client' ), $info->version ) ) . '</h2>' . wpautop( esc_html( $info->changelog ) );
 			}
 			if ( '' !== trim( $info->description ) ) {
-				$body .= '<h2>Description</h2>' . wpautop( esc_html( $info->description ) );
+				$body .= '<h2>' . esc_html__( 'Description', 'wplicense-it-client' ) . '</h2>' . wpautop( esc_html( $info->description ) );
 			}
 		}//end if
 
@@ -429,7 +429,7 @@ final class Updater {
 			return $wanted;
 		}
 
-		return new WP_Error( 'wplit_client_folder', 'Could not rename the update folder to ' . $this->config->folder() . '.' );
+		return new WP_Error( 'wplit_client_folder', /* translators: %s: folder name. */ sprintf( __( 'Could not rename the update folder to %s.', 'wplicense-it-client' ), $this->config->folder() ) );
 	}
 
 	/**
@@ -453,18 +453,21 @@ final class Updater {
 		if ( null !== $info && $info->needs_renewal() ) {
 			echo esc_html(
 				$info->is_newer_than( $this->config->version )
-					? sprintf( 'Your %1$s license has expired. Renew it to get version %2$s.', $this->config->name, $info->version )
-					: sprintf( 'Your %s license has expired. Renew it to keep receiving updates.', $this->config->name )
+					/* translators: 1: product name, 2: version. */
+					? sprintf( __( 'Your %1$s license has expired. Renew it to get version %2$s.', 'wplicense-it-client' ), $this->config->name, $info->version )
+					/* translators: %s: product name. */
+					: sprintf( __( 'Your %s license has expired. Renew it to keep receiving updates.', 'wplicense-it-client' ), $this->config->name )
 			);
 			if ( '' !== $info->renew_url ) {
-				echo ' <a href="' . esc_url( $info->renew_url ) . '">' . esc_html( 'Renew' ) . '</a>';
+				echo ' <a href="' . esc_url( $info->renew_url ) . '">' . esc_html__( 'Renew', 'wplicense-it-client' ) . '</a>';
 			}
 		} else {
-			echo esc_html( sprintf( 'Enter your %s license key to receive updates.', $this->config->name ) );
+			/* translators: %s: product name. */
+			echo esc_html( sprintf( __( 'Enter your %s license key to receive updates.', 'wplicense-it-client' ), $this->config->name ) );
 		}
 
 		if ( '' !== $this->config->menu_parent ) {
-			echo ' <a href="' . esc_url( LicensePage::url( $this->config ) ) . '">' . esc_html( 'Manage license' ) . '</a>';
+			echo ' <a href="' . esc_url( LicensePage::url( $this->config ) ) . '">' . esc_html__( 'Manage license', 'wplicense-it-client' ) . '</a>';
 		}
 
 		echo '</p></div></td></tr>';

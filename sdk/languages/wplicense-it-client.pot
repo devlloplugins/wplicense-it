@@ -1,0 +1,297 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WPLicense It client SDK\n"
+"Report-Msgid-Bugs-To: https://github.com/devlloplugins/wplicense-it/issues\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-31T12:13:05+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: wplicense-it-client\n"
+
+#. translators: %s: product name.
+#: src/Config.php:160
+#, php-format
+msgid "%s License"
+msgstr ""
+
+#: src/LicenseManager.php:232
+msgid "This site is no longer activated for the license. Activate it again to receive updates."
+msgstr ""
+
+#: src/LicensePage.php:97
+msgid "Status"
+msgstr ""
+
+#: src/LicensePage.php:100
+#: src/LicensePage.php:124
+msgid "License key"
+msgstr ""
+
+#: src/LicensePage.php:101
+msgid "Expires"
+msgstr ""
+
+#: src/LicensePage.php:101
+msgid "Never"
+msgstr ""
+
+#: src/LicensePage.php:102
+msgid "Sites"
+msgstr ""
+
+#. translators: 1: sites in use, 2: sites allowed or "unlimited".
+#: src/LicensePage.php:102
+#, php-format
+msgid "%1$d of %2$s in use"
+msgstr ""
+
+#. translators: 1: sites in use, 2: sites allowed or "unlimited".
+#: src/LicensePage.php:102
+msgid "unlimited"
+msgstr ""
+
+#. translators: 1: sites in use, 2: sites allowed or "unlimited".
+#: src/LicensePage.php:102
+msgid "This site is a local or staging site, so it does not use one of them."
+msgstr ""
+
+#: src/LicensePage.php:115
+msgid "Activate here"
+msgstr ""
+
+#: src/LicensePage.php:126
+msgid "Activate"
+msgstr ""
+
+#: src/LicensePage.php:133
+msgid "Check now"
+msgstr ""
+
+#: src/LicensePage.php:138
+msgid "Deactivate on this site"
+msgstr ""
+
+#: src/LicensePage.php:147
+msgid "You are not allowed to manage this license."
+msgstr ""
+
+#: src/LicensePage.php:154
+msgid "Unknown action."
+msgstr ""
+
+#: src/LicensePage.php:168
+msgid "License activated on this site. Thank you!"
+msgstr ""
+
+#: src/LicensePage.php:173
+msgid "License activated. Thank you!"
+msgstr ""
+
+#: src/LicensePage.php:176
+msgid "There is no license to check."
+msgstr ""
+
+#: src/LicensePage.php:176
+msgid "License checked: all good."
+msgstr ""
+
+#: src/LicensePage.php:184
+msgid "The license server could not be reached, so the license was only removed from this site. Deactivate it from your account to free the slot."
+msgstr ""
+
+#: src/LicensePage.php:187
+msgid "License deactivated on this site."
+msgstr ""
+
+#: src/LicensePage.php:210
+msgid "The license could not be checked right now. Nothing was changed."
+msgstr ""
+
+#: src/LicensePage.php:240
+msgid "Not active on this site: the license was activated for another address."
+msgstr ""
+
+#: src/LicensePage.php:244
+msgid "Active. You will receive updates."
+msgstr ""
+
+#: src/LicensePage.php:248
+msgid "Not activated. Enter your license key to receive updates."
+msgstr ""
+
+#. translators: %s: product name.
+#: src/LicensePage.php:254
+#, php-format
+msgid "Expired. Renew your license to use %s again and to receive updates."
+msgstr ""
+
+#. translators: %s: product name.
+#: src/LicensePage.php:256
+#, php-format
+msgid "Expired. %s keeps working, but you no longer receive updates. Renew your license to get them again."
+msgstr ""
+
+#: src/LicensePage.php:285
+msgid "Open the license page"
+msgstr ""
+
+#: src/LicensePage.php:289
+msgid "Dismiss for a week"
+msgstr ""
+
+#. translators: 1: address the license was activated for, 2: this site's address.
+#: src/LicensePage.php:300
+#, php-format
+msgid "This license was activated for %1$s, but this site is %2$s (moved or copied). Activate it here to receive updates: that uses one of your sites. If %1$s is no longer used, free it in your account on our site."
+msgstr ""
+
+#. translators: %d: number of days.
+#: src/LicensePage.php:313
+#, php-format
+msgid "The license could not be checked with the license server for %d day, so updates may be missing. Your license keeps working. Use Check now on the license page to try again."
+msgid_plural "The license could not be checked with the license server for %d days, so updates may be missing. Your license keeps working. Use Check now on the license page to try again."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/ServerApi.php:135
+msgid "Could not reach the license server."
+msgstr ""
+
+#: src/ServerApi.php:141
+msgid "The license server had a problem. Try again later."
+msgstr ""
+
+#: src/ServerApi.php:145
+msgid "The license server sent an answer this plugin does not understand."
+msgstr ""
+
+#: src/ServerApi.php:149
+msgid "Too many requests. Try again in a few minutes."
+msgstr ""
+
+#. translators: %s: list of site addresses.
+#: src/ServerApi.php:161
+#, php-format
+msgid "It is active on: %s."
+msgstr ""
+
+#. translators: %s: address of the customer's account.
+#: src/ServerApi.php:164
+#, php-format
+msgid "Free a site in your account: %s"
+msgstr ""
+
+#: src/ServerApi.php:191
+msgid "This license key was not found. Check it for typing mistakes."
+msgstr ""
+
+#: src/ServerApi.php:192
+msgid "This license has expired. Renew it to keep receiving updates."
+msgstr ""
+
+#: src/ServerApi.php:193
+msgid "This license has been revoked."
+msgstr ""
+
+#: src/ServerApi.php:194
+msgid "This license was refunded."
+msgstr ""
+
+#: src/ServerApi.php:195
+msgid "This license has reached its site limit. Deactivate it on another site first."
+msgstr ""
+
+#: src/ServerApi.php:196
+msgid "This site's address could not be used for activation."
+msgstr ""
+
+#: src/ServerApi.php:197
+msgid "This license is not active on this site."
+msgstr ""
+
+#: src/ServerApi.php:198
+msgid "No download is available for this product yet."
+msgstr ""
+
+#: src/ServerApi.php:201
+msgid "The license server could not process the request."
+msgstr ""
+
+#: src/Updater.php:196
+#: src/Updater.php:298
+msgid "Your license has expired. Renew it to install this version."
+msgstr ""
+
+#: src/Updater.php:257
+msgid "Sorry, you are not allowed to see this."
+msgstr ""
+
+#: src/Updater.php:279
+msgid "No update details are available. The license may not be active on this site: check it on the theme's license page."
+msgstr ""
+
+#: src/Updater.php:286
+msgid "Version:"
+msgstr ""
+
+#: src/Updater.php:288
+msgid "Requires WordPress:"
+msgstr ""
+
+#: src/Updater.php:291
+msgid "Requires PHP:"
+msgstr ""
+
+#: src/Updater.php:294
+msgid "Tested up to:"
+msgstr ""
+
+#. translators: %s: version.
+#: src/Updater.php:301
+#, php-format
+msgid "What is new in %s"
+msgstr ""
+
+#: src/Updater.php:304
+msgid "Description"
+msgstr ""
+
+#. translators: %s: folder name.
+#: src/Updater.php:432
+#, php-format
+msgid "Could not rename the update folder to %s."
+msgstr ""
+
+#. translators: 1: product name, 2: version.
+#: src/Updater.php:457
+#, php-format
+msgid "Your %1$s license has expired. Renew it to get version %2$s."
+msgstr ""
+
+#. translators: %s: product name.
+#: src/Updater.php:459
+#, php-format
+msgid "Your %s license has expired. Renew it to keep receiving updates."
+msgstr ""
+
+#: src/Updater.php:462
+msgid "Renew"
+msgstr ""
+
+#. translators: %s: product name.
+#: src/Updater.php:466
+#, php-format
+msgid "Enter your %s license key to receive updates."
+msgstr ""
+
+#: src/Updater.php:470
+msgid "Manage license"
+msgstr ""
+
+#: src/UpdateService.php:144
+msgid "The license server returned a download link for another site, so it was not used."
+msgstr ""

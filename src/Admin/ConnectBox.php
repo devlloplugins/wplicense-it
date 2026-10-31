@@ -12,6 +12,7 @@ namespace Devllo\WPLicenseIt\Admin;
 use Devllo\WPLicenseIt\Api\ProductCatalog;
 use Devllo\WPLicenseIt\Connect\Checklist;
 use Devllo\WPLicenseIt\Connect\ExamplePlugin;
+use Devllo\WPLicenseIt\Connect\ExampleTheme;
 use Devllo\WPLicenseIt\Connect\SdkZip;
 use Devllo\WPLicenseIt\Connect\Snippet;
 use Devllo\WPLicenseIt\Plans\PlanRepository;
@@ -104,7 +105,7 @@ final class ConnectBox {
 	}
 
 	/**
-	 * The link that downloads the example plugin of a product.
+	 * The link that downloads the example plugin (or theme) of a product.
 	 *
 	 * @param int $product_id License product ID.
 	 */
@@ -122,7 +123,7 @@ final class ConnectBox {
 	}
 
 	/**
-	 * Sends a working example plugin for a product, with this server and the product filled in, and the SDK inside.
+	 * Sends a working example plugin (or theme, for a theme product) with this server and the product filled in, and the SDK inside.
 	 */
 	public function download_example(): void {
 		if ( ! current_user_can( Capabilities::MANAGE ) ) {
@@ -138,8 +139,11 @@ final class ConnectBox {
 			wp_die( esc_html__( 'That product does not exist.', 'wplicense-it' ), '', array( 'response' => 404 ) );
 		}
 
-		$name  = (string) get_post_meta( $post->ID, 'wplit_package_name', true );
-		$files = ExamplePlugin::files( '' !== $name ? $name : $post->post_title, (string) get_post_meta( $post->ID, 'wplit_package_folder', true ), untrailingslashit( home_url() ), $post->ID );
+		$name    = (string) get_post_meta( $post->ID, 'wplit_package_name', true );
+		$name    = '' !== $name ? $name : $post->post_title;
+		$folder  = (string) get_post_meta( $post->ID, 'wplit_package_folder', true );
+		$builder = 'theme' === get_post_meta( $post->ID, 'wplit_package_type', true ) ? ExampleTheme::class : ExamplePlugin::class;
+		$files   = $builder::files( $name, $folder, untrailingslashit( home_url() ), $post->ID );
 
 		try {
 			$path = ExamplePlugin::build( $files, WPLICENSE_IT_DIR . 'sdk' );
@@ -212,7 +216,7 @@ final class ConnectBox {
 			esc_html__( 'Code to paste into your plugin or theme', 'wplicense-it' ),
 			esc_textarea( Snippet::generate( $type, $name, $slug, $server, $post->ID ) )
 		);
-		echo '<p><button type="button" class="button" id="wplit-connect-copy">' . esc_html__( 'Copy the code', 'wplicense-it' ) . '</button> <span id="wplit-connect-copied" role="status" class="description"></span></p>';
+		echo '<p><button type="button" class="button wplit-copy" id="wplit-connect-copy" data-target="wplit-connect-code">' . esc_html__( 'Copy the code', 'wplicense-it' ) . '</button> <span id="wplit-connect-copied" role="status" class="description"></span></p>';
 		echo '<p class="description">' . sprintf(
 			/* translators: 1: product ID, 2: settings page name. */
 			esc_html__( 'Product ID: %1$s. Customers then find the license page under Settings, %2$s.', 'wplicense-it' ),
@@ -220,32 +224,39 @@ final class ConnectBox {
 			esc_html( $name . ' ' . __( 'License', 'wplicense-it' ) )
 		) . '</p>';
 
-		if ( 'plugin' === $type ) {
-			echo '<p>' . sprintf(
-				/* translators: %s: link text "Download an example plugin". */
-				esc_html__( 'Or start from a working example: %s for this product, with the SDK and this code already in it. Install it on a test site to try activation and updates, then copy what you need.', 'wplicense-it' ),
-				'<a href="' . esc_url( self::example_url( $post->ID ) ) . '" id="wplit-example-download">' . esc_html__( 'Download an example plugin', 'wplicense-it' ) . '</a>'
-			) . '</p>';
-		}
+		echo '<ol start="3" style="margin-top:0"><li>' . esc_html__( 'Run your licensed features only with a license, wherever they start:', 'wplicense-it' ) . '</li></ol>';
+		printf(
+			'<label class="screen-reader-text" for="wplit-connect-gate">%1$s</label><textarea id="wplit-connect-gate" class="large-text code" rows="6" readonly style="font-family:monospace">%2$s</textarea>',
+			esc_html__( 'Code that runs your licensed features only with a license', 'wplicense-it' ),
+			esc_textarea( Snippet::gate( $name, $slug ) )
+		);
+		echo '<p><button type="button" class="button wplit-copy" id="wplit-connect-gate-copy" data-target="wplit-connect-gate">' . esc_html__( 'Copy the code', 'wplicense-it' ) . '</button> <span role="status" class="description"></span></p>';
+
+		echo '<p>' . sprintf(
+			/* translators: %s: link text "Download an example plugin" or "Download an example theme". */
+			esc_html__( 'Or start from a working example: %s for this product, with the SDK and this code already in it. Install it on a test site to try activation and updates, then copy what you need.', 'wplicense-it' ),
+			'<a href="' . esc_url( self::example_url( $post->ID ) ) . '" id="wplit-example-download">' . esc_html( 'theme' === $type ? __( 'Download an example theme', 'wplicense-it' ) : __( 'Download an example plugin', 'wplicense-it' ) ) . '</a>'
+		) . '</p>';
 		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript -- A few lines that only serve this box.
 		?>
 		<script>
 		( function () {
-			var button = document.getElementById( 'wplit-connect-copy' );
-			var area = document.getElementById( 'wplit-connect-code' );
-			var note = document.getElementById( 'wplit-connect-copied' );
-			if ( ! button || ! area ) { return; }
-			button.addEventListener( 'click', function () {
-				area.focus();
-				area.select();
-				var done = function ( ok ) { note.textContent = ok ? <?php echo wp_json_encode( __( 'Copied.', 'wplicense-it' ) ); ?> : <?php echo wp_json_encode( __( 'Press Ctrl+C to copy the selected code.', 'wplicense-it' ) ); ?>; };
-				if ( navigator.clipboard && navigator.clipboard.writeText ) {
-					navigator.clipboard.writeText( area.value ).then( function () { done( true ); }, function () { done( false ); } );
-				} else {
-					var ok = false;
-					try { ok = document.execCommand( 'copy' ); } catch ( e ) { ok = false; }
-					done( ok );
-				}
+			document.querySelectorAll( '.wplit-copy' ).forEach( function ( button ) {
+				var area = document.getElementById( button.getAttribute( 'data-target' ) );
+				var note = button.nextElementSibling;
+				if ( ! area ) { return; }
+				button.addEventListener( 'click', function () {
+					area.focus();
+					area.select();
+					var done = function ( ok ) { note.textContent = ok ? <?php echo wp_json_encode( __( 'Copied.', 'wplicense-it' ) ); ?> : <?php echo wp_json_encode( __( 'Press Ctrl+C to copy the selected code.', 'wplicense-it' ) ); ?>; };
+					if ( navigator.clipboard && navigator.clipboard.writeText ) {
+						navigator.clipboard.writeText( area.value ).then( function () { done( true ); }, function () { done( false ); } );
+					} else {
+						var ok = false;
+						try { ok = document.execCommand( 'copy' ); } catch ( e ) { ok = false; }
+						done( ok );
+					}
+				} );
 			} );
 		}() );
 		</script>

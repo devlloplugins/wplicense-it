@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-31T12:02:14+00:00\n"
+"POT-Creation-Date: 2026-10-31T12:13:04+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wplicense-it\n"
@@ -282,101 +282,114 @@ msgstr ""
 msgid "You are not allowed to manage licenses."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:83
-#: src/Admin/ConnectBox.php:129
+#: src/Admin/ConnectBox.php:84
+#: src/Admin/ConnectBox.php:130
 #: src/Migration/MigrationRunner.php:222
 #: src/WooCommerce/IssueProblems.php:253
 msgid "You are not allowed to do this."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:94
+#: src/Admin/ConnectBox.php:95
 msgid "The SDK zip could not be made on this server. Copy the sdk folder from the plugin instead."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:138
+#: src/Admin/ConnectBox.php:139
 msgid "That product does not exist."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:147
+#: src/Admin/ConnectBox.php:151
 msgid "The example zip could not be made on this server."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:165
+#: src/Admin/ConnectBox.php:169
 msgid "Connect your plugin or theme"
 msgstr ""
 
-#: src/Admin/ConnectBox.php:175
+#: src/Admin/ConnectBox.php:179
 msgid "Save the product first. Its code and checklist appear here."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:186
+#: src/Admin/ConnectBox.php:190
 msgid "Before you sell"
 msgstr ""
 
-#: src/Admin/ConnectBox.php:193
+#: src/Admin/ConnectBox.php:197
 #: src/Admin/OverviewScreen.php:275
 msgid "Done:"
 msgstr ""
 
-#: src/Admin/ConnectBox.php:193
+#: src/Admin/ConnectBox.php:197
 #: src/Admin/OverviewScreen.php:275
 msgid "To do:"
 msgstr ""
 
-#: src/Admin/ConnectBox.php:200
+#: src/Admin/ConnectBox.php:204
 msgid "Put this in your plugin or theme"
 msgstr ""
 
 #. translators: %s: link text "Download the SDK".
-#: src/Admin/ConnectBox.php:204
+#: src/Admin/ConnectBox.php:208
 #, php-format
 msgid "%s and unzip it into your plugin or theme, so you have vendor/wplicense-it-client."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:205
+#: src/Admin/ConnectBox.php:209
 msgid "Download the SDK"
 msgstr ""
 
-#: src/Admin/ConnectBox.php:207
+#: src/Admin/ConnectBox.php:211
 msgid "Paste this code into the main file of your plugin, or the functions.php of your theme:"
 msgstr ""
 
-#: src/Admin/ConnectBox.php:212
+#: src/Admin/ConnectBox.php:216
 msgid "Code to paste into your plugin or theme"
 msgstr ""
 
-#: src/Admin/ConnectBox.php:215
+#: src/Admin/ConnectBox.php:219
+#: src/Admin/ConnectBox.php:233
 msgid "Copy the code"
 msgstr ""
 
 #. translators: 1: product ID, 2: settings page name.
-#: src/Admin/ConnectBox.php:218
+#: src/Admin/ConnectBox.php:222
 #, php-format
 msgid "Product ID: %1$s. Customers then find the license page under Settings, %2$s."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:220
+#: src/Admin/ConnectBox.php:224
 #: src/Admin/LicensesTable.php:79
 #: src/Admin/LicenseView.php:41
 #: src/Admin/OverviewScreen.php:377
 msgid "License"
 msgstr ""
 
-#. translators: %s: link text "Download an example plugin".
-#: src/Admin/ConnectBox.php:226
+#: src/Admin/ConnectBox.php:227
+msgid "Run your licensed features only with a license, wherever they start:"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:230
+msgid "Code that runs your licensed features only with a license"
+msgstr ""
+
+#. translators: %s: link text "Download an example plugin" or "Download an example theme".
+#: src/Admin/ConnectBox.php:237
 #, php-format
 msgid "Or start from a working example: %s for this product, with the SDK and this code already in it. Install it on a test site to try activation and updates, then copy what you need."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:227
+#: src/Admin/ConnectBox.php:238
+msgid "Download an example theme"
+msgstr ""
+
+#: src/Admin/ConnectBox.php:238
 msgid "Download an example plugin"
 msgstr ""
 
-#: src/Admin/ConnectBox.php:241
+#: src/Admin/ConnectBox.php:251
 msgid "Copied."
 msgstr ""
 
-#: src/Admin/ConnectBox.php:241
+#: src/Admin/ConnectBox.php:251
 msgid "Press Ctrl+C to copy the selected code."
 msgstr ""
 
@@ -2165,26 +2178,26 @@ msgid "No \"Requires PHP\" (minimum PHP version) was found. Customers will see n
 msgstr ""
 
 #. translators: %s: folder names.
-#: src/Packages/PackageReader.php:262
+#: src/Packages/PackageReader.php:263
 #, php-format
 msgid "This zip has more than one folder at the top (%s). A plugin or theme zip should contain just one folder."
 msgstr ""
 
-#: src/Packages/PackageReader.php:268
+#: src/Packages/PackageReader.php:269
 msgid "The zip should contain one folder with all the files inside it. WordPress uses that folder name when it installs and updates, so a zip without it can install under the wrong name."
 msgstr ""
 
 #. translators: 1: stable tag in readme.txt, 2: version in the file header.
-#: src/Packages/PackageReader.php:379
+#: src/Packages/PackageReader.php:380
 #, php-format
 msgid "readme.txt says Stable tag %1$s but the file header says version %2$s. Update one so they match."
 msgstr ""
 
-#: src/Packages/PackageReader.php:392
+#: src/Packages/PackageReader.php:393
 msgid "This zip contains another zip. Upload the inner zip instead."
 msgstr ""
 
-#: src/Packages/PackageReader.php:396
+#: src/Packages/PackageReader.php:397
 msgid "No plugin or theme was found in this zip. A plugin needs a PHP file with a \"Plugin Name:\" header directly inside its folder. A theme needs a style.css with a \"Theme Name:\" header."
 msgstr ""
 
@@ -2507,11 +2520,11 @@ msgstr ""
 msgid "This release (%1$s) is older than the one customers had (%2$s). Sites already on %2$s will not be offered it."
 msgstr ""
 
-#: src/Releases/ReleaseService.php:215
+#: src/Releases/ReleaseService.php:216
 msgid "This is the release customers get now. Make another release current before deleting it."
 msgstr ""
 
-#: src/Releases/ReleaseService.php:348
+#: src/Releases/ReleaseService.php:349
 msgid "That release no longer exists."
 msgstr ""
 

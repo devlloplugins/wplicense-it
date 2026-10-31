@@ -169,11 +169,14 @@ folder come from the uploaded zip when there is one. The plugin version is read 
 when the plugin runs, so it never goes stale. Themes read theirs from `style.css`.
 
 **Download the SDK** gives the `wplicense-it-client` folder as a zip, to unpack into the seller's plugin or theme as
-`vendor/wplicense-it-client`. For plugins, **Download an example plugin** gives a small working plugin made for this
-product: the SDK, the code above, a feature that is only on while the license is active, a notice that links to the
-license page, and a readme with a changelog. It can be installed on a test site as it is, to try activation and updates,
-and copied from (see `sdk/README.md`, "Quickest start"). Its folder is the product's plugin folder, so updates of the real
-plugin find it.
+`vendor/wplicense-it-client`. A third step shows the code that runs the seller's licensed features only with a license
+(`wplicense_it_license_active()` with the folder name filled in), with its own Copy button.
+
+**Download an example plugin** (or, for a theme product, **Download an example theme**) gives a small working plugin or
+standalone theme made for this product: the SDK, the code above, a feature that is only on while the license allows it, a
+notice that links to the license page, and a readme with a changelog. It can be installed on a test site as it is, to try
+activation and updates, and copied from (see `sdk/README.md`, "Quickest start"). Its folder is the product's plugin or
+theme folder, so updates of the real one find it.
 
 ## Licensing settings
 

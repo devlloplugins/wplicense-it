@@ -132,21 +132,21 @@ final class ServerApi {
 		}
 
 		if ( 0 === $response['status'] ) {
-			return new ApiResult( false, ApiResult::NETWORK_ERROR, 'Could not reach the license server. ' . $response['error'] );
+			return new ApiResult( false, ApiResult::NETWORK_ERROR, __( 'Could not reach the license server.', 'wplicense-it-client' ) . ' ' . $response['error'] );
 		}
 
 		$data = $this->decode( $response['body'] );
 
 		if ( $response['status'] >= 500 ) {
-			return new ApiResult( false, ApiResult::SERVER_ERROR, 'The license server had a problem. Try again later.' );
+			return new ApiResult( false, ApiResult::SERVER_ERROR, __( 'The license server had a problem. Try again later.', 'wplicense-it-client' ) );
 		}
 
 		if ( null === $data ) {
-			return new ApiResult( false, ApiResult::BAD_RESPONSE, 'The license server sent an answer this plugin does not understand.' );
+			return new ApiResult( false, ApiResult::BAD_RESPONSE, __( 'The license server sent an answer this plugin does not understand.', 'wplicense-it-client' ) );
 		}
 
 		if ( 429 === $response['status'] ) {
-			return new ApiResult( false, ApiResult::RATE_LIMITED, 'Too many requests. Try again in a few minutes.', $data );
+			return new ApiResult( false, ApiResult::RATE_LIMITED, __( 'Too many requests. Try again in a few minutes.', 'wplicense-it-client' ), $data );
 		}
 
 		if ( $response['status'] >= 200 && $response['status'] < 300 && ! empty( $data['success'] ) ) {
@@ -158,10 +158,10 @@ final class ServerApi {
 
 		// The server lists the sites that use the license, so the customer knows which one to free.
 		if ( 'limit_reached' === $code && isset( $data['sites'] ) && is_array( $data['sites'] ) && array() !== $data['sites'] ) {
-			$message .= ' It is active on: ' . implode( ', ', array_map( 'strval', array_slice( $data['sites'], 0, 20 ) ) ) . '.';
+			$message .= ' ' . sprintf( /* translators: %s: list of site addresses. */ __( 'It is active on: %s.', 'wplicense-it-client' ), implode( ', ', array_map( 'strval', array_slice( $data['sites'], 0, 20 ) ) ) );
 
 			if ( ! empty( $data['account_url'] ) && is_string( $data['account_url'] ) ) {
-				$message .= ' Free a site in your account: ' . $data['account_url'];
+				$message .= ' ' . sprintf( /* translators: %s: address of the customer's account. */ __( 'Free a site in your account: %s', 'wplicense-it-client' ), $data['account_url'] );
 			}
 		}
 
@@ -188,16 +188,16 @@ final class ServerApi {
 	 */
 	public static function message_for( string $code, string $server ): string {
 		$messages = array(
-			'not_found'     => 'This license key was not found. Check it for typing mistakes.',
-			'expired'       => 'This license has expired. Renew it to keep receiving updates.',
-			'revoked'       => 'This license has been revoked.',
-			'refunded'      => 'This license was refunded.',
-			'limit_reached' => 'This license has reached its site limit. Deactivate it on another site first.',
-			'invalid_site'  => 'This site\'s address could not be used for activation.',
-			'not_active'    => 'This license is not active on this site.',
-			'no_package'    => 'No download is available for this product yet.',
+			'not_found'     => __( 'This license key was not found. Check it for typing mistakes.', 'wplicense-it-client' ),
+			'expired'       => __( 'This license has expired. Renew it to keep receiving updates.', 'wplicense-it-client' ),
+			'revoked'       => __( 'This license has been revoked.', 'wplicense-it-client' ),
+			'refunded'      => __( 'This license was refunded.', 'wplicense-it-client' ),
+			'limit_reached' => __( 'This license has reached its site limit. Deactivate it on another site first.', 'wplicense-it-client' ),
+			'invalid_site'  => __( 'This site\'s address could not be used for activation.', 'wplicense-it-client' ),
+			'not_active'    => __( 'This license is not active on this site.', 'wplicense-it-client' ),
+			'no_package'    => __( 'No download is available for this product yet.', 'wplicense-it-client' ),
 		);
 
-		return $messages[ $code ] ?? ( '' !== $server ? $server : 'The license server could not process the request.' );
+		return $messages[ $code ] ?? ( '' !== $server ? $server : __( 'The license server could not process the request.', 'wplicense-it-client' ) );
 	}
 }

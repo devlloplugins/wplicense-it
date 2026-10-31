@@ -60,6 +60,23 @@ final class Snippet {
 	}
 
 	/**
+	 * The code that runs a licensed feature only with a license, for the product's folder name.
+	 *
+	 * @param string $name Name shown to customers.
+	 * @param string $slug Plugin or theme folder name.
+	 */
+	public static function gate( string $name, string $slug ): string {
+		$lines   = array();
+		$lines[] = '// Run your licensed features only when the license allows it. An expired license keeps them on and only stops';
+		$lines[] = "// updates; add 'expired' => 'stop' to the wplicense_it_client() call to switch them off when it expires.";
+		$lines[] = 'if ( function_exists( \'wplicense_it_license_active\' ) && wplicense_it_license_active( ' . self::quote( self::clean_slug( $slug, $name ) ) . ' ) ) {';
+		$lines[] = "\t// Your licensed features: load your pro code, register its hooks, show its settings.";
+		$lines[] = '}';
+
+		return implode( "\n", $lines ) . "\n";
+	}
+
+	/**
 	 * A safe folder name: lower-case letters, digits, dashes and underscores. Falls back to the name.
 	 *
 	 * @param string $slug Folder name from the package, may be empty.

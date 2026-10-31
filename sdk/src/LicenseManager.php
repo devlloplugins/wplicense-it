@@ -229,7 +229,7 @@ final class LicenseManager {
 
 			if ( isset( $result->data['site_active'] ) && false === $result->data['site_active'] ) {
 				$state->status  = LicenseState::INACTIVE;
-				$state->message = 'This site is no longer activated for the license. Activate it again to receive updates.';
+				$state->message = __( 'This site is no longer activated for the license. Activate it again to receive updates.', 'wplicense-it-client' );
 			} else {
 				$state->status  = LicenseState::ACTIVE;
 				$state->message = '';

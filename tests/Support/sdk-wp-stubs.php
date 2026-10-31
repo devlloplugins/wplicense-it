@@ -7,6 +7,12 @@
 
 // phpcs:disable
 
+require_once __DIR__ . '/i18n-stubs.php';
+
+if ( ! function_exists( 'esc_html__' ) ) {
+	function esc_html__( $text, $domain = 'default' ) { return htmlspecialchars( (string) $text, ENT_QUOTES ); }
+}
+
 if ( ! class_exists( 'WP_Error' ) ) {
 	class WP_Error {
 		public $code;

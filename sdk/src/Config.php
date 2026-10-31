@@ -145,10 +145,19 @@ final class Config {
 		$config->name        = '' !== $config->name ? $config->name : $config->slug;
 		$menu                = isset( $args['menu'] ) ? $args['menu'] : array();
 		$config->menu_parent = false === $menu ? '' : (string) ( is_array( $menu ) && isset( $menu['parent'] ) ? $menu['parent'] : 'options-general.php' );
-		$config->menu_title  = is_array( $menu ) && isset( $menu['title'] ) ? (string) $menu['title'] : $config->name . ' License';
+		$config->menu_title  = is_array( $menu ) && isset( $menu['title'] ) ? (string) $menu['title'] : '';
 		$config->expired     = 'stop' === ( $args['expired'] ?? 'keep' ) ? 'stop' : 'keep';
 
 		return $config;
+	}
+
+	/**
+	 * The license page's title: the one the developer passed, else "{name} License" in the site's language. Read when the
+	 * menu is built, after translations have loaded.
+	 */
+	public function title(): string {
+		/* translators: %s: product name. */
+		return '' !== $this->menu_title ? $this->menu_title : sprintf( __( '%s License', 'wplicense-it-client' ), $this->name );
 	}
 
 	/**
