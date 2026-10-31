@@ -109,30 +109,31 @@ jobs:
         env:
           NODE_PATH: ${{ runner.temp }}/pw/node_modules
       # The scripts run as root, like in the sandbox they were written in: they install MariaDB and the database
-      # client then uses the root socket login. sudo -E keeps the environment, and PATH has to be passed on explicitly.
+      # client then uses the root socket login. The variables the scripts need are passed by name: newer runners' sudo
+      # ignores -E (keep the environment), and without PLAYWRIGHT_BROWSERS_PATH every browser test fails to start.
       - name: Build the test site
         run: |
           sudo systemctl stop mysql || true
-          sudo -E env "PATH=$PATH" bash tests/env/setup.sh
-          sudo -E env "PATH=$PATH" bash tests/env/setup-woocommerce.sh
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" bash tests/env/setup.sh
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" bash tests/env/setup-woocommerce.sh
       - name: Run the browser tests
-        run: sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh
+        run: sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh
       - name: Run the order tests again on classic order storage
         run: |
-          sudo -E env "PATH=$PATH" bash tests/env/order-storage.sh classic
-          sudo -E env "PATH=$PATH" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh 06 17 19 21 27 28 30 33
-          sudo -E env "PATH=$PATH" bash tests/env/order-storage.sh hpos
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" bash tests/env/order-storage.sh classic
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" "NODE_PATH=$RUNNER_TEMP/pw/node_modules" bash tests/e2e/run-all.sh 06 17 19 21 27 28 30 33
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" bash tests/env/order-storage.sh hpos
       - name: Check package protection on nginx
         run: |
           sudo apt-get install -y -qq nginx php-fpm php-mysql php-zip
           sudo systemctl stop nginx || true
-          sudo -E env "PATH=$PATH" bash tests/env/nginx-check.sh
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" bash tests/env/nginx-check.sh
       - name: Check the plugin on a multisite network
         run: |
-          sudo -E env "PATH=$PATH" bash tests/env/setup-multisite.sh
-          sudo -E env "PATH=$PATH" php tests/env/multisite-check.php
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" bash tests/env/setup-multisite.sh
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" php tests/env/multisite-check.php
       - name: Run WordPress.org's Plugin Check on the release files
-        run: sudo -E env "PATH=$PATH" bash tests/env/plugin-check.sh
+        run: sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" bash tests/env/plugin-check.sh
       - name: Print the site logs
         if: failure()
         run: |
@@ -146,7 +147,7 @@ jobs:
           done
           php -v | head -1; php -m | tr '\n' ' '
           echo; echo '=== Product screen as the admin'
-          sudo -E env "PATH=$PATH" php tests/env/diagnose.php 2>&1 | tail -40 || true
+          sudo env "PATH=$PATH" "PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH" "WPLIT_ENV_ROOT=$WPLIT_ENV_ROOT" php tests/env/diagnose.php 2>&1 | tail -40 || true
       - name: Keep what is needed to see a failure
         if: failure()
         uses: actions/upload-artifact@v4
