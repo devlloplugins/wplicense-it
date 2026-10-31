@@ -1,0 +1,25 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+    bootstrapFiles:
+        - tests/phpstan-bootstrap.php
+    # WooCommerce is not loaded during analysis, so its classes and functions come from stubs.
+    scanFiles:
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-packages-stubs.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-commands-stubs.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-i18n-stubs.php
+    ignoreErrors:
+        # The WooCommerce stubs say meta values are array|string, but WooCommerce stores any scalar (post meta is text in the
+        # database either way). Only the files that store numbers are listed.
+        -
+            message: '#^Parameter \#2 \$value of method WC_Data::update_meta_data\(\) expects array\|string, int(<1, max>)? given\.$#'
+            paths:
+                - src/Plans/WcProductGateway.php
+                - src/WooCommerce/CartRenewal.php
+                - src/WooCommerce/WooRenewalOrderCreator.php

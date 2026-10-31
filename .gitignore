@@ -1,2 +1,7 @@
-
 .DS_Store
+/vendor/
+/.phpunit.result.cache
+/.phpcs.xml
+/phpcs.xml
+/phpstan.neon
+/build/
