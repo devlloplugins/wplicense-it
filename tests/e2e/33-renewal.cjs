@@ -4,7 +4,7 @@
  *   product (which would renew it at that plan's price while it keeps its own sites); a link edited to the cheaper plan
  *   renews nothing;
  * - refunding a renewal order takes back only the renewed year: the license and the time paid for before stay;
- *   completing the order again renews it again;
+ *   completing the order again renews it again; refunding the first purchase after a renewal takes off only its year;
  * - when the plan is no longer sold, a plan with the same sites takes over, and without one there is no Renew button.
  */
 const fixtures = require( './fixtures.cjs' );
@@ -125,6 +125,12 @@ async function emptyCart( page ) {
 	woo( { op: 'set_order_status', order_id: second.order_id, status: 'completed' } );
 	woo( { op: 'set_order_status', order_id: second.order_id, status: 'completed' } );
 	check( again === expires( licenseId ), 'completing it again renews it again, once: ' + expires( licenseId ) + ', expected ' + again );
+
+	// Refunding the first purchase now: the renewal paid by the second order stays; only the purchased year goes.
+	woo( { op: 'refund', order_id: bought.order_id, full: true } );
+	const yearEarlier = ( line ) => line.replace( /(\d{4})(-\d\d-\d\d)$/, ( m, y, rest ) => ( Number( y ) - 1 ) + rest );
+	check( yearEarlier( again ) === expires( licenseId ), 'refunding the original purchase takes off its year and keeps the renewal: ' + expires( licenseId ) + ', expected ' + yearEarlier( again ) );
+	check( /renewals paid by other orders stay/.test( JSON.stringify( woo( { op: 'order_notes', order_id: bought.order_id } ) ) ), 'and the order note says so' );
 
 	// 3. The Agency plan is no longer sold: no Renew button, because no other plan has unlimited sites.
 	woo( { op: 'set_product_status', product_id: agency, status: 'draft' } );

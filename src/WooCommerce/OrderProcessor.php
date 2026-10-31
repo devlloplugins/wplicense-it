@@ -162,7 +162,7 @@ final class OrderProcessor {
 
 		foreach ( $order->items as $item ) {
 			foreach ( $item->license_ids as $license_id ) {
-				$this->end_or_take_back( $license_id, $status, $report, $order );
+				$this->end_or_take_back( $license_id, $status, $report, $order, $item );
 			}
 		}
 
@@ -195,7 +195,8 @@ final class OrderProcessor {
 					continue;
 				}
 
-				if ( in_array( $license->status, Status::terminal(), true ) || $this->licenses->renewal_taken_back( $license_id, self::context( $order )['order'] ) ) {
+				$reference = self::context( $order )['order'];
+				if ( in_array( $license->status, Status::terminal(), true ) || $this->licenses->renewal_taken_back( $license_id, $reference ) || $this->licenses->purchase_taken_back( $license_id, $reference ) ) {
 					++$already_ended;
 				} else {
 					$still_open[] = $license_id;
@@ -205,7 +206,7 @@ final class OrderProcessor {
 			$to_end = min( $item->refunded_quantity - $already_ended, count( $still_open ) );
 
 			for ( $i = 0; $i < $to_end; $i++ ) {
-				$this->end_or_take_back( $still_open[ $i ], Status::REFUNDED, $report, $order );
+				$this->end_or_take_back( $still_open[ $i ], Status::REFUNDED, $report, $order, $item );
 			}
 		}//end foreach
 
@@ -234,7 +235,7 @@ final class OrderProcessor {
 					continue;
 				}
 
-				if ( $this->licenses->renewal_taken_back( $license_id, $reference ) ) {
+				if ( $this->licenses->renewal_taken_back( $license_id, $reference ) || $this->licenses->purchase_taken_back( $license_id, $reference ) ) {
 					$ended[] = $license_id;
 					continue;
 				}
@@ -255,7 +256,7 @@ final class OrderProcessor {
 
 			foreach ( $back as $license_id ) {
 				try {
-					if ( $this->licenses->renewal_taken_back( $license_id, $reference ) ) {
+					if ( $this->licenses->renewal_taken_back( $license_id, $reference ) || $this->licenses->purchase_taken_back( $license_id, $reference ) ) {
 						$this->renew_again( $license_id, $item, $order, $report );
 						++$restored;
 						continue;
@@ -274,7 +275,7 @@ final class OrderProcessor {
 				}
 			}
 
-			$kept_renewals = count( array_filter( array_slice( $ended, count( $ended ) - $keep ), fn( int $id ): bool => $this->licenses->renewal_taken_back( $id, $reference ) ) );
+			$kept_renewals = count( array_filter( array_slice( $ended, count( $ended ) - $keep ), fn( int $id ): bool => $this->licenses->renewal_taken_back( $id, $reference ) || $this->licenses->purchase_taken_back( $id, $reference ) ) );
 			if ( $kept_renewals > 0 ) {
 				$report->notes[] = sprintf(
 					/* translators: 1: order line name, 2: number of licenses. */
@@ -299,7 +300,8 @@ final class OrderProcessor {
 	}
 
 	/**
-	 * Applies a renewal again that a refund or cancellation of this order had taken back, now that it is paid after all.
+	 * Gives back the time a refund or cancellation of this order had taken off a license (its renewal, or the purchase of
+	 * a license renewed since), now that the order is paid after all. Recorded as a renewal by this order.
 	 *
 	 * @param int           $license_id License ID.
 	 * @param OrderItemData $item       The renewal line.
@@ -333,24 +335,31 @@ final class OrderProcessor {
 	}
 
 	/**
-	 * Ends a license for a refund or cancellation, or, when this order renewed it, takes back only that renewal.
+	 * Ends a license for a refund or cancellation. When this order renewed it, only that renewal is taken back; when this
+	 * order issued it and other orders renewed it since, only the time this purchase paid for is taken back, so the
+	 * renewals the customer paid for stay.
 	 *
 	 * @param int           $license_id License ID.
 	 * @param string        $status     Terminal status for a license this order issued.
 	 * @param ProcessReport $report     Report.
 	 * @param OrderData     $order      Order.
+	 * @param OrderItemData $item       The order line the license is on.
 	 */
-	private function end_or_take_back( int $license_id, string $status, ProcessReport $report, OrderData $order ): void {
+	private function end_or_take_back( int $license_id, string $status, ProcessReport $report, OrderData $order, OrderItemData $item ): void {
 		$reference = self::context( $order )['order'];
-
-		if ( ! $this->licenses->renewed_by( $license_id, $reference ) ) {
-			$report->revoked += $this->end_license( $license_id, $status, $report, self::context( $order ) );
-
-			return;
-		}
+		$license   = null;
+		$renewal   = $this->licenses->renewed_by( $license_id, $reference );
 
 		try {
-			$license = $this->licenses->take_back_renewal( $license_id, $reference );
+			if ( $renewal ) {
+				$license = $this->licenses->take_back_renewal( $license_id, $reference );
+			} elseif ( $this->licenses->renewed_by_another_order( $license_id, $reference ) && null !== self::interval( $item ) ) {
+				$license = $this->licenses->take_back_purchase( $license_id, self::interval( $item ), $reference );
+			} else {
+				$report->revoked += $this->end_license( $license_id, $status, $report, self::context( $order ) );
+
+				return;
+			}
 		} catch ( LicenseException $e ) {
 			$license = null;
 		}
@@ -361,11 +370,27 @@ final class OrderProcessor {
 
 		++$report->taken_back;
 		$report->notes[] = sprintf(
-			/* translators: 1: license key, 2: expiry date. */
-			__( 'License %1$s: the renewal is taken back; it expires on %2$s again.', 'wplicense-it' ),
+			$renewal
+				/* translators: 1: license key, 2: expiry date. */
+				? __( 'License %1$s: the renewal is taken back; it expires on %2$s again.', 'wplicense-it' )
+				/* translators: 1: license key, 2: expiry date. */
+				: __( 'License %1$s: the time this order paid for is taken back, renewals paid by other orders stay; it now expires on %2$s.', 'wplicense-it' ),
 			$license->license_key,
 			null === $license->expires_at ? '' : $license->expires_at->format( 'Y-m-d' )
 		);
+	}
+
+	/**
+	 * The period an order line paid for, or null for lifetime or an unreadable period.
+	 *
+	 * @param OrderItemData $item Order line.
+	 */
+	private static function interval( OrderItemData $item ): ?\DateInterval {
+		try {
+			return PeriodParser::parse( $item->period );
+		} catch ( InvalidArgumentException $e ) {
+			return null;
+		}
 	}
 
 	/**

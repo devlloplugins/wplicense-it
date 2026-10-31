@@ -64,7 +64,7 @@ in yet. So does an order that also holds something to ship.
 | Reaches **Completed** (or **Processing** if the `wplit_woo_issue_on` option is `processing`) | One license per unit bought. Keys appear on the order page, in the customer's email, and in My Account. |
 | Completed again, or the event fires twice | Nothing new. Licenses are recorded per order line, so none are issued twice. |
 | Completed (or Processing) again after **Cancelled** or **Refunded** | The licenses this order had ended come back (`active`, or `expired` if their expiry passed meanwhile), and the order note says how many. Units still covered by a refund with quantities keep their licenses refunded. |
-| **Refunded** | The order's licenses become `refunded` and stop validating. A license the order *renewed* is not ended: only the time the renewal added is taken back (see Renewals). |
+| **Refunded** | The order's licenses become `refunded` and stop validating. A license the order *renewed* is not ended: only the time the renewal added is taken back (see Renewals). Nor is a license this order issued that other orders renewed since: only the period this purchase paid for is taken off, and the renewals stay. |
 | **Cancelled** | The order's licenses are revoked; a renewal is taken back the same way. |
 | Partial refund | As many licenses as units refunded are ended, newest first (on a renewal line the extra licenses first, then the renewal). |
 
@@ -109,7 +109,9 @@ that order completes, the existing license is extended instead of a new one bein
 **Refunding a renewal.** Refunding or cancelling a renewal order takes back only the time it added (a year renewal takes
 a year off the expiry). The license, its key and sites, and the time paid for by earlier orders stay; if the expiry is
 then in the past, the license is `expired` and can be renewed again. A later renewal paid by another order is kept. The
-order note and the license history ("Renewal taken back") say so. Completing the order again (paid after all) renews it
+order note and the license history ("Renewal taken back") say so. The same holds the other way round: refunding the
+first purchase of a license that was renewed since takes off only the purchased period ("Purchase refunded, its time
+taken back"), so the renewal the customer paid for stays. Completing the order again (paid after all) renews it
 again, unless the order still carries a refund of that unit.
 
 Renew buttons are shown for simple products. For variable products the customer renews from the product page.

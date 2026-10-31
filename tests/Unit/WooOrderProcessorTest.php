@@ -406,6 +406,44 @@ final class WooOrderProcessorTest extends TestCase {
 		$this->assertSame( 0, $this->processor->issue( $order() )->renewed, 'and only once' );
 	}
 
+	public function test_refunding_the_purchase_of_a_renewed_license_keeps_the_renewal(): void {
+		$purchase = fn() => $this->order( array( 10 => array() ), 5, 'buyer@example.com', 101 );
+		$this->processor->issue( $purchase() );
+		$license  = $this->store->links[10][0];
+		$this->processor->issue( $this->order( array( 20 => array( 'renew' => $license ) ), 5, 'buyer@example.com', 102 ) );
+		$this->assertSame( '2028-03-01', $this->service->find( $license )->expires_at->format( 'Y-m-d' ) );
+
+		$report = $this->processor->revoke( $purchase(), Status::REFUNDED );
+
+		$this->assertSame( 0, $report->revoked, 'not ended: the customer paid for the renewal' );
+		$this->assertSame( 1, $report->taken_back );
+		$this->assertSame( Status::ACTIVE, $this->service->find( $license )->status );
+		$this->assertSame( '2027-03-01', $this->service->find( $license )->expires_at->format( 'Y-m-d' ), 'the purchased year is taken off' );
+		$this->assertStringContainsString( 'renewals paid by other orders stay', $report->notes[0] );
+		$this->assertSame( 0, $this->processor->revoke( $purchase(), Status::REVOKED )->taken_back, 'not twice' );
+
+		$again = $this->processor->issue( $purchase() );
+		$this->assertSame( 1, $again->renewed, 'paid after all: the year comes back' );
+		$this->assertSame( '2028-03-01', $this->service->find( $license )->expires_at->format( 'Y-m-d' ) );
+
+		$this->processor->revoke( $purchase(), Status::REFUNDED );
+		$this->assertSame( '2027-03-01', $this->service->find( $license )->expires_at->format( 'Y-m-d' ), 'and refunded again it goes again' );
+	}
+
+	public function test_a_refunded_purchase_whose_renewal_was_refunded_too_ends_the_license(): void {
+		$purchase = fn() => $this->order( array( 10 => array() ), 5, 'buyer@example.com', 101 );
+		$this->processor->issue( $purchase() );
+		$license  = $this->store->links[10][0];
+		$renewal  = fn() => $this->order( array( 20 => array( 'renew' => $license ) ), 5, 'buyer@example.com', 102 );
+		$this->processor->issue( $renewal() );
+		$this->processor->revoke( $renewal(), Status::REFUNDED );
+
+		$report = $this->processor->revoke( $purchase(), Status::REFUNDED );
+
+		$this->assertSame( 1, $report->revoked, 'no renewal is left to protect' );
+		$this->assertSame( Status::REFUNDED, $this->service->find( $license )->status );
+	}
+
 	public function test_refunding_the_order_that_issued_a_license_still_ends_it(): void {
 		$this->processor->issue( $this->order( array( 10 => array() ), 5, 'buyer@example.com', 101 ) );
 

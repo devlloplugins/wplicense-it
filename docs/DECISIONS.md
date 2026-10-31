@@ -77,3 +77,4 @@ Sellers must not need a paid plugin to use WPLicense It, so renewals are layered
 | 39 | Grace days (card 111) | None: a license is expired at its date. The after-expiry reminder and the Renew link do the nudging. |
 | 40 | Activating an expired key (card 111) | Refused, with the Renew link; sites already on it keep their slot for when it is renewed. |
 | 41 | What the seller sees (card 111) | The Overview lists licenses that expired in the last 30 days and were not renewed, and the renewal rate of the last 90 days, with a link to all expired licenses. |
+| 42 | Refunding the first purchase of a renewed license (card 103 follow-up) | Takes off only the period that purchase paid for; renewals paid by other orders stay (expired if the date has passed). A license with no renewal left is ended as before. |

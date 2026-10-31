@@ -36,11 +36,12 @@ part turns off and the page says so; the expired key cannot be activated on anot
 `inactive`. The Overview lists the license that expired 5 days ago with the renewal rate (checked against the server's
 own count) and the link to all expired licenses; renewing it counts as renewed and removes it from the list.
 
-`tests/e2e/33-renewal.cjs` (19 checks) uses a product with an Agency and a newer Single site plan: Renew in My Account,
+`tests/e2e/33-renewal.cjs` (21 checks) uses a product with an Agency and a newer Single site plan: Renew in My Account,
 the cart and a renewal invoice use the Agency plan the license was bought with, and a link edited to the Single site
 plan renews nothing (4 checks fail with the lookup used before); refunding the renewal order puts the expiry back with
 the license still active, noted on the order and in the license history; completing it again with the refund recorded
-keeps it taken back; a cancelled renewal order paid after all renews again, once; with the plan unpublished there is no
+keeps it taken back; a cancelled renewal order paid after all renews again, once; refunding the first purchase afterwards
+takes off its year and keeps the renewal; with the plan unpublished there is no
 Renew button until a plan with the same sites exists.
 
 `tests/e2e/32-update-delivery.cjs` (18 checks) runs the sample plugin with the client SDK on the customer site: the

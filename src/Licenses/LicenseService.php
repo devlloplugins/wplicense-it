@@ -307,16 +307,96 @@ final class LicenseService {
 			return null;
 		}
 
-		$now    = $this->now();
-		$new    = $license->expires_at->sub( $added );
-		$status = $new > $now ? Status::ACTIVE : Status::EXPIRED;
+		return $this->shorten( $license, $added, EventLog::RENEWAL_REFUNDED, $order );
+	}
 
-		$changed = $license->with_expiry( $new, $now )->with_status( $status, $now );
+	/**
+	 * Takes back the time the purchase that issued a license paid for, when the license was renewed since: refunding or
+	 * cancelling that first order must not end the renewals paid by other orders. The expiry moves back by the purchased
+	 * period; the license is expired if that date has passed.
+	 *
+	 * @param int          $license_id License ID.
+	 * @param DateInterval $period     The period the purchase paid for.
+	 * @param string       $order      The purchase's order reference.
+	 * @return License|null The license after the change; null when it was already taken back, or the license is lifetime
+	 *                      or ended.
+	 * @throws LicenseException If the license does not exist.
+	 */
+	public function take_back_purchase( int $license_id, DateInterval $period, string $order ): ?License {
+		$license = $this->licenses->find( $license_id );
+
+		if ( null === $license ) {
+			throw new LicenseException( LicenseException::NOT_FOUND, __( 'License not found.', 'wplicense-it' ) );
+		}
+
+		if ( null === $license->expires_at || in_array( $license->status, Status::terminal(), true ) || $this->purchase_taken_back( $license_id, $order ) ) {
+			return null;
+		}
+
+		return $this->shorten( $license, $period, EventLog::PURCHASE_REFUNDED, $order );
+	}
+
+	/**
+	 * Whether the purchase's time was taken back (take_back_purchase()) and not given back since. Giving it back is
+	 * recorded as a renewal by the same order.
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference.
+	 */
+	public function purchase_taken_back( int $license_id, string $order ): bool {
+		$taken = count(
+			array_filter(
+				$this->events->of_type( $license_id, EventLog::PURCHASE_REFUNDED, 200 ),
+				static fn( array $event ): bool => ( $event['data']['order'] ?? null ) === $order
+			)
+		);
+
+		return $taken > $this->renewal_counts( $license_id, $order )[0];
+	}
+
+	/**
+	 * Whether the license carries a renewal paid by an order other than this one (and not taken back).
+	 *
+	 * @param int    $license_id License ID.
+	 * @param string $order      Order reference to leave out.
+	 */
+	public function renewed_by_another_order( int $license_id, string $order ): bool {
+		$orders = array();
+
+		foreach ( $this->events->of_type( $license_id, EventLog::RENEWED, 200 ) as $event ) {
+			$other = (string) ( $event['data']['order'] ?? '' );
+			if ( $other !== $order ) {
+				$orders[ $other ] = true;
+			}
+		}
+
+		foreach ( array_keys( $orders ) as $other ) {
+			[ $renewed, $taken_back ] = $this->renewal_counts( $license_id, (string) $other );
+			if ( $renewed > $taken_back ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Moves a license's expiry back by a period, expires it if that date has passed, and records why.
+	 *
+	 * @param License      $license License (with an expiry).
+	 * @param DateInterval $period  How much to take off.
+	 * @param string       $type    Event type.
+	 * @param string       $order   Order reference.
+	 */
+	private function shorten( License $license, DateInterval $period, string $type, string $order ): License {
+		$now     = $this->now();
+		$new     = $license->expires_at->sub( $period );
+		$changed = $license->with_expiry( $new, $now )->with_status( $new > $now ? Status::ACTIVE : Status::EXPIRED, $now );
 		$this->licenses->update( $changed );
 
 		$this->events->record(
 			$changed->id,
-			EventLog::RENEWAL_REFUNDED,
+			$type,
 			array(
 				'old_expires_at' => $this->format( $license->expires_at ),
 				'new_expires_at' => $this->format( $new ),
